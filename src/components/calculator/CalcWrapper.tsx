@@ -21,20 +21,30 @@ export function CalcWrapper({
     <div className="min-h-screen bg-white dark:bg-gray-950">
       <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
 
-        {/* ── BREADCRUMBS ────────────────────────────────────────── */}
-        <nav className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5 flex-wrap mb-8">
-          <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline">home</Link>
-          {crumbs.map((c, i) => (
-            <span key={i} className="flex items-center gap-1.5">
-              <span className="text-gray-300 dark:text-gray-700">/</span>
-              {c.href ? (
-                <Link href={c.href} className="text-blue-600 dark:text-blue-400 hover:underline">{c.label}</Link>
-              ) : (
-                <span className="text-gray-600 dark:text-gray-300">{c.label}</span>
-              )}
-            </span>
-          ))}
-        </nav>
+        {/* ── BREADCRUMBS & BACK BUTTON ──────────────────────────── */}
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <nav className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5 flex-wrap">
+            <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline">home</Link>
+            {crumbs.map((c, i) => (
+              <span key={i} className="flex items-center gap-1.5">
+                <span className="text-gray-300 dark:text-gray-700">/</span>
+                {c.href ? (
+                  <Link href={c.href} className="text-blue-600 dark:text-blue-400 hover:underline">{c.label}</Link>
+                ) : (
+                  <span className="text-gray-600 dark:text-gray-300">{c.label}</span>
+                )}
+              </span>
+            ))}
+          </nav>
+          
+          <Link 
+            href={crumbs.length > 0 && crumbs[0].href ? crumbs[0].href : '/'} 
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover:border-blue-500 hover:text-blue-600 rounded-lg transition-all w-fit shadow-sm"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            BACK TO TOOLS
+          </Link>
+        </div>
 
         {/* ── HEADER ────────────────────────────────────────────── */}
         <header className="mb-12">

@@ -159,7 +159,7 @@ export default function NepalTaxCalculator() {
                 {isMonthly ? 'Monthly' : 'Annual'} Gross Income
               </label>
               <div className="relative">
-                <input type="number" inputMode="numeric" pattern="[0-9]*" value={income}
+                <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" pattern="[0-9]*" value={income}
                   onChange={e=>setIncome(+e.target.value||0)}
                   className="w-full border-2 border-gray-200 rounded-lg px-3 py-2.5 pr-12 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono text-gray-900 bg-white"/>
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-medium">
@@ -200,22 +200,22 @@ export default function NepalTaxCalculator() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">PF (Provident Fund)</label>
-                  <input type="number" inputMode="numeric" value={pf} onChange={e=>setPf(+e.target.value||0)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-gray-900 bg-white focus:outline-none focus:border-blue-500" placeholder="0"/>
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={pf} onChange={e=>setPf(+e.target.value||0)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-gray-900 bg-white focus:outline-none focus:border-blue-500" placeholder="0"/>
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">CIT (Trust)</label>
-                  <input type="number" inputMode="numeric" value={cit} onChange={e=>setCit(+e.target.value||0)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-gray-900 bg-white focus:outline-none focus:border-blue-500" placeholder="Max 3L"/>
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={cit} onChange={e=>setCit(+e.target.value||0)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-gray-900 bg-white focus:outline-none focus:border-blue-500" placeholder="Max 3L"/>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Life Insurance</label>
-                  <input type="number" inputMode="numeric" value={insurance} onChange={e=>setInsurance(+e.target.value||0)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-gray-900 bg-white focus:outline-none focus:border-blue-500" placeholder="Max 40K"/>
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={insurance} onChange={e=>setInsurance(+e.target.value||0)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-gray-900 bg-white focus:outline-none focus:border-blue-500" placeholder="Max 40K"/>
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Medical Ins.</label>
-                  <input type="number" inputMode="numeric" value={medical} onChange={e=>setMedical(+e.target.value||0)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-gray-900 bg-white focus:outline-none focus:border-blue-500" placeholder="Max 20K"/>
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={medical} onChange={e=>setMedical(+e.target.value||0)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-gray-900 bg-white focus:outline-none focus:border-blue-500" placeholder="Max 20K"/>
                 </div>
               </div>
             </div>

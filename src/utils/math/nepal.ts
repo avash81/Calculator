@@ -30,8 +30,12 @@ export interface TaxResult {
   }>;
 }
 
-// Nepal Income Tax FY 2080/81 (2023/24) - Standard slabs
-// Note: These slabs change annually.
+// Nepal Income Tax FY 2082/83 (2025/26) - Nepal IRD
+// Source: https://ird.gov.np
+// Next update: mid-July 2083 (approx Aug 2026)
+// DEPRECATED: use calculateNepalIncomeTax() from
+//   src/utils/math/country-rules/nepal.ts instead
+// Edit slabs in src/data/nepal-tax-slabs.json ONLY
 export function calculateNepalTax(annualIncome: number, status: 'single' | 'married', isSsf: boolean): TaxResult {
   const baseSlab = status === 'single' ? 500000 : 600000;
   const slabs = [

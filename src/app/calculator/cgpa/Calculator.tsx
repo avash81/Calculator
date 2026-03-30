@@ -58,11 +58,11 @@ export default function CGPACalculator() {
                   <div key={i} className="grid grid-cols-[1fr_1fr_40px] gap-4 items-end">
                     <div>
                       <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-widest">GPA</label>
-                      <input type="number" inputMode="numeric" step="0.01" value={s.gpa} onChange={e => updateSemester(i, 'gpa', +e.target.value)} className="w-full h-10 px-3 rounded-lg border-2 border-gray-100 focus:border-blue-500 outline-none font-mono font-bold" />
+                      <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" step="0.01" value={s.gpa} onChange={e => updateSemester(i, 'gpa', +e.target.value)} className="w-full h-10 px-3 rounded-lg border-2 border-gray-100 focus:border-blue-500 outline-none font-mono font-bold" />
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-widest">Credits</label>
-                      <input type="number" inputMode="numeric" value={s.credits} onChange={e => updateSemester(i, 'credits', +e.target.value)} className="w-full h-10 px-3 rounded-lg border-2 border-gray-100 focus:border-blue-500 outline-none font-mono font-bold" />
+                      <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={s.credits} onChange={e => updateSemester(i, 'credits', +e.target.value)} className="w-full h-10 px-3 rounded-lg border-2 border-gray-100 focus:border-blue-500 outline-none font-mono font-bold" />
                     </div>
                     <button onClick={() => removeSemester(i)} className="h-10 flex items-center justify-center text-red-400 hover:text-red-600 transition-colors">
                       <Trash2 className="w-5 h-5" />

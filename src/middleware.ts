@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { jwtVerify } from 'jose';
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const url = req.nextUrl;
   
   // 1. URL Normalization: Force lowercase, strip trailing slash, and redirect legacy routes
@@ -41,8 +42,17 @@ export function middleware(req: NextRequest) {
     const token = req.cookies.get('admin_token')?.value;
     const adminSecret = process.env.ADMIN_SECRET_TOKEN;
     
-    // If secret is not set or token doesn't match, redirect to login
-    if (!adminSecret || token !== adminSecret) {
+    if (!adminSecret || !token) {
+      return NextResponse.redirect(new URL('/admin/login', req.url));
+    }
+
+    try {
+      const secret = new TextEncoder().encode(adminSecret);
+      const { payload } = await jwtVerify(token, secret);
+      if (payload.role !== 'admin') {
+        return NextResponse.redirect(new URL('/admin/login', req.url));
+      }
+    } catch (error) {
       return NextResponse.redirect(new URL('/admin/login', req.url));
     }
   }

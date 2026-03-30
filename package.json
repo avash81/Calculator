@@ -10,7 +10,6 @@
     "test": "jest"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.2.2",
     "@tiptap/extension-image": "^2.27.2",
     "@tiptap/extension-link": "^2.27.2",
     "@tiptap/extension-placeholder": "^2.27.2",
@@ -22,7 +21,7 @@
     "@tiptap/starter-kit": "^2.27.2",
     "clsx": "^2.1.1",
     "firebase": "^12.11.0",
-    "gray-matter": "^4.0.3",
+    "jose": "^6.2.2",
     "lucide-react": "^0.378.0",
     "motion": "^12.38.0",
     "nepali-date-converter": "^3.4.0",

@@ -75,23 +75,23 @@ export default function BodyFatCalculator() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Height (cm)</label>
-                  <input type="number" inputMode="numeric" value={height} onChange={e => setHeight(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={height} onChange={e => setHeight(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Neck (cm)</label>
-                  <input type="number" inputMode="numeric" value={neck} onChange={e => setNeck(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={neck} onChange={e => setNeck(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Waist (cm)</label>
-                  <input type="number" inputMode="numeric" value={waist} onChange={e => setWaist(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={waist} onChange={e => setWaist(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
                 </div>
                 {gender === 'female' && (
                   <div>
                     <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Hip (cm)</label>
-                    <input type="number" inputMode="numeric" value={hip} onChange={e => setHip(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                    <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={hip} onChange={e => setHip(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
                   </div>
                 )}
               </div>

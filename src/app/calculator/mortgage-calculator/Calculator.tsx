@@ -61,11 +61,11 @@ export default function MortgageCalculator() {
               <div className="grid grid-cols-2 gap-5">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-1.5">Down Payment (%)</label>
-                  <input type="number" value={downPercent} onChange={e => setDownPercent(+e.target.value)} className="w-full h-11 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-bold" />
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" value={downPercent} onChange={e => setDownPercent(+e.target.value)} className="w-full h-11 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-bold" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-1.5">Interest Rate (%)</label>
-                  <input type="number" step="0.1" value={rate} onChange={e => setRate(+e.target.value)} className="w-full h-11 px-4 rounded-xl border-2 border-gray-100 focus:border-green-500 outline-none font-bold" />
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" step="0.1" value={rate} onChange={e => setRate(+e.target.value)} className="w-full h-11 px-4 rounded-xl border-2 border-gray-100 focus:border-green-500 outline-none font-bold" />
                 </div>
               </div>
 
@@ -78,13 +78,13 @@ export default function MortgageCalculator() {
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">Annual Home Tax (%)</label>
-                  <input type="number" step="0.1" value={taxRate} onChange={e => setTaxRate(+e.target.value)} className="w-full h-10 px-3 rounded-lg border border-gray-200 focus:border-blue-500 outline-none font-bold" />
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" step="0.1" value={taxRate} onChange={e => setTaxRate(+e.target.value)} className="w-full h-10 px-3 rounded-lg border border-gray-200 focus:border-blue-500 outline-none font-bold" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">Annual Insurance (NPR)</label>
-                <input type="number" value={insurance} onChange={e => setInsurance(+e.target.value)} className="w-full h-10 px-3 rounded-lg border border-gray-200 focus:border-blue-500 outline-none font-bold" />
+                <input type="number" inputMode="decimal" pattern="[0-9.]*" value={insurance} onChange={e => setInsurance(+e.target.value)} className="w-full h-10 px-3 rounded-lg border border-gray-200 focus:border-blue-500 outline-none font-bold" />
               </div>
             </div>
           </div>

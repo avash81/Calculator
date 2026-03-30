@@ -179,7 +179,7 @@ export default function ScientificCalculator() {
               <div className="mb-3">
                 {/* Solver input */}
                 <input
-                  type="text"
+                  type="text" inputMode="decimal" pattern="[0-9.]*"
                   value={solverInput}
                   onChange={e => setSolverInput(e.target.value)}
                   placeholder="Enter equation... e.g. 6x + 5 = 14"

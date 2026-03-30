@@ -41,11 +41,11 @@ export default function HomePageClient() {
           </div>
 
           <div className="space-y-6 max-w-4xl mx-auto">
-             <h1 className="text-[clamp(2.5rem,8vw,5.5rem)] font-extrabold text-gray-900 tracking-tighter leading-[0.9] animate-in fade-in slide-in-from-top-10 duration-1000">
+             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 tracking-tighter leading-[1.1] animate-in fade-in slide-in-from-top-10 duration-1000">
                Precision Tools for <br/>
                <span className="text-google-blue">Nepal & Beyond</span>
              </h1>
-             <p className="text-lg md:text-xl text-gray-500 font-medium tracking-tight max-w-2xl mx-auto leading-relaxed">
+             <p className="text-base md:text-lg text-gray-500 font-medium tracking-tight max-w-2xl mx-auto leading-relaxed">
                39 free calculators for taxes, finance, health & education. <br />
                Built for Nepal&apos;s FY 2082/83. Private. Fast. No login needed.
              </p>
@@ -60,7 +60,7 @@ export default function HomePageClient() {
                { l: 'Data Stored', v: '0' }
              ].map(s => (
                <div key={s.l} className="text-center group">
-                  <div className="text-2xl md:text-3xl font-black text-gray-900 tracking-tighter group-hover:text-google-blue transition-colors">{s.v}</div>
+                  <div className="text-xl md:text-2xl font-black text-gray-900 tracking-tighter group-hover:text-google-blue transition-colors">{s.v}</div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">{s.l}</div>
                </div>
              ))}

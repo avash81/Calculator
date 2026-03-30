@@ -37,12 +37,12 @@ export default function LogarithmCalculator() {
               <div className="flex items-center gap-4 justify-center py-8 overflow-x-auto">
                 <span className="text-2xl font-bold text-gray-300">log</span>
                 <div className="flex flex-col items-center gap-2">
-                  <input type="number" inputMode="numeric" value={base} onChange={e => setBase(+e.target.value)} className="w-16 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={base} onChange={e => setBase(+e.target.value)} className="w-16 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">base</span>
                 </div>
                 <span className="text-2xl font-bold text-gray-300">(</span>
                 <div className="flex flex-col items-center gap-2">
-                  <input type="number" inputMode="numeric" value={number} onChange={e => setNumber(+e.target.value)} className="w-24 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={number} onChange={e => setNumber(+e.target.value)} className="w-24 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">number</span>
                 </div>
                 <span className="text-2xl font-bold text-gray-300">)</span>

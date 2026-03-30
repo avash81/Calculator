@@ -32,11 +32,8 @@ export default function AdminLoginPage() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       
-      // Set admin cookie for middleware
-      // In a real app, this should be a secure HttpOnly cookie set via an API route
-      // For this environment, we'll use document.cookie for simplicity
-      const secretToken = "calcpro-admin-2082-nepal"; // Should match .env.local
-      document.cookie = `admin_token=${secretToken}; path=/; max-age=86400; SameSite=Strict`;
+      // Set secure HttpOnly JWT via the new session API route
+      await fetch('/api/admin/session', { method: 'POST' });
       
       router.push('/admin');
     } catch (err: any) {

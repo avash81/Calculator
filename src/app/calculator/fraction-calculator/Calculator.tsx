@@ -64,9 +64,9 @@ export default function FractionCalculator() {
           <div className="space-y-6">
             <div className="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-center gap-8">
               <div className="flex flex-col items-center gap-2">
-                <input type="number" inputMode="numeric" value={n1} onChange={e => setN1(+e.target.value)} className="w-16 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={n1} onChange={e => setN1(+e.target.value)} className="w-16 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
                 <div className="w-20 h-1 bg-gray-200"></div>
-                <input type="number" inputMode="numeric" value={d1} onChange={e => setD1(+e.target.value)} className="w-16 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={d1} onChange={e => setD1(+e.target.value)} className="w-16 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
               </div>
 
               <div className="flex flex-col gap-2">
@@ -78,9 +78,9 @@ export default function FractionCalculator() {
               </div>
 
               <div className="flex flex-col items-center gap-2">
-                <input type="number" inputMode="numeric" value={n2} onChange={e => setN2(+e.target.value)} className="w-16 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={n2} onChange={e => setN2(+e.target.value)} className="w-16 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
                 <div className="w-20 h-1 bg-gray-200"></div>
-                <input type="number" inputMode="numeric" value={d2} onChange={e => setD2(+e.target.value)} className="w-16 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={d2} onChange={e => setD2(+e.target.value)} className="w-16 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
               </div>
             </div>
           </div>

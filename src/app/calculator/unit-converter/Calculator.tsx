@@ -145,7 +145,7 @@ export default function UnitConverter() {
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 <div className="w-full">
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Value</label>
-                  <input type="number" inputMode="decimal" value={value} onChange={e => setValue(Number(e.target.value))} className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold text-gray-900 bg-white" />
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="decimal" value={value} onChange={e => setValue(Number(e.target.value))} className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold text-gray-900 bg-white" />
                 </div>
                 <div className="w-full">
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">From Unit</label>

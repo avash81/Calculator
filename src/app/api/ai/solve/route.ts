@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
       return NextResponse.json({ 
-        answer: "AI solving is currently in maintenance mode (API key not configured)." 
+        answer: "AI solver is temporarily unavailable. Please try again shortly." 
       });
     }
 

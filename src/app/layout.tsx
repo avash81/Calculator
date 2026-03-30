@@ -12,7 +12,7 @@
  *   ClientShell.tsx (Client) → dynamic imports with ssr:false
  */
 import type { Metadata } from 'next';
-import { Inter, DM_Sans, JetBrains_Mono } from 'next/font/google';
+import { Inter, JetBrains_Mono } from 'next/font/google';
 import { ClientShell } from '@/components/layout/ClientShell';
 import { GoogleAnalytics } from '@/components/seo/GoogleAnalytics';
 import './globals.css';
@@ -23,12 +23,6 @@ const inter = Inter({
   display: 'swap',
 });
 
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  variable: '--font-dm-sans',
-  display: 'swap',
-  weight: ['400', '500', '700', '800'],
-});
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
@@ -111,7 +105,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body
-        className={`${inter.variable} ${dmSans.variable} ${jetbrainsMono.variable} font-sans bg-cp-bg text-cp-text antialiased`}
+        className={`${inter.variable} ${jetbrainsMono.variable} font-sans bg-cp-bg text-cp-text antialiased`}
       >
         <GoogleAnalytics />
         {/* ClientShell handles all dynamic imports (ssr:false) */}

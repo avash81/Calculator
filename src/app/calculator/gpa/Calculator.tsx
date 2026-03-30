@@ -107,11 +107,11 @@ export default function GPACalculator() {
                   <div key={sub.id} className="grid grid-cols-1 sm:grid-cols-[1fr_80px_120px_48px] gap-4 sm:gap-6 p-6 sm:p-0 bg-gray-50/50 dark:bg-gray-800/10 sm:bg-transparent rounded-3xl group border border-transparent hover:border-blue-50 dark:hover:border-blue-900/30 transition-all">
                     <div>
                       <label className="sm:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Course {idx+1}</label>
-                      <input type="text" value={sub.name} onChange={e => updateSubject(sub.id, 'name', e.target.value)} className="w-full bg-white dark:bg-gray-950 border-2 border-gray-100 dark:border-gray-800 rounded-2xl px-4 py-3 text-sm font-bold text-gray-900 dark:text-white focus:border-blue-500 outline-none transition-all" placeholder="Enter course name..." />
+                      <input type="text" inputMode="decimal" pattern="[0-9.]*" value={sub.name} onChange={e => updateSubject(sub.id, 'name', e.target.value)} className="w-full bg-white dark:bg-gray-950 border-2 border-gray-100 dark:border-gray-800 rounded-2xl px-4 py-3 text-sm font-bold text-gray-900 dark:text-white focus:border-blue-500 outline-none transition-all" placeholder="Enter course name..." />
                     </div>
                     <div>
                       <label className="sm:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block text-center">Credits</label>
-                      <input type="number" value={sub.credit} onChange={e => updateSubject(sub.id, 'credit', Number(e.target.value))} className="w-full bg-white dark:bg-gray-950 border-2 border-gray-100 dark:border-gray-800 rounded-2xl px-4 py-3 text-sm font-black text-center text-gray-900 dark:text-white focus:border-blue-500 outline-none transition-all" />
+                      <input type="number" inputMode="decimal" pattern="[0-9.]*" value={sub.credit} onChange={e => updateSubject(sub.id, 'credit', Number(e.target.value))} className="w-full bg-white dark:bg-gray-950 border-2 border-gray-100 dark:border-gray-800 rounded-2xl px-4 py-3 text-sm font-black text-center text-gray-900 dark:text-white focus:border-blue-500 outline-none transition-all" />
                     </div>
                     <div>
                       <label className="sm:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block text-center">Grade</label>

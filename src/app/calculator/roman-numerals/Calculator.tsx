@@ -89,7 +89,7 @@ export default function RomanNumeralsCalculator() {
             <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
               <div>
                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Number (1-3999)</label>
-                <input type="number" inputMode="numeric" value={number} onChange={e => handleNumberChange(e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={number} onChange={e => handleNumberChange(e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
               </div>
               <div className="flex items-center justify-center py-4">
                 <div className="h-px bg-gray-100 flex-1"></div>
@@ -98,7 +98,7 @@ export default function RomanNumeralsCalculator() {
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Roman Numeral</label>
-                <input type="text" value={roman} onChange={e => handleRomanChange(e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold uppercase" />
+                <input type="text" inputMode="decimal" pattern="[0-9.]*" value={roman} onChange={e => handleRomanChange(e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold uppercase" />
               </div>
             </div>
 

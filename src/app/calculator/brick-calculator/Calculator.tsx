@@ -46,11 +46,11 @@ export default function BrickCalculator() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Wall Length (ft)</label>
-                <input type="number" value={length} onChange={e => setLength(+e.target.value)} className="w-full h-12 bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 font-bold outline-none" />
+                <input type="number" inputMode="decimal" pattern="[0-9.]*" value={length} onChange={e => setLength(+e.target.value)} className="w-full h-12 bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 font-bold outline-none" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Wall Height (ft)</label>
-                <input type="number" value={height} onChange={e => setHeight(+e.target.value)} className="w-full h-12 bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 font-bold outline-none" />
+                <input type="number" inputMode="decimal" pattern="[0-9.]*" value={height} onChange={e => setHeight(+e.target.value)} className="w-full h-12 bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 font-bold outline-none" />
               </div>
             </div>
             <div>
@@ -65,15 +65,15 @@ export default function BrickCalculator() {
                <div className="grid grid-cols-3 gap-2">
                   <div>
                     <label className="text-[10px] text-gray-400 uppercase">L (in)</label>
-                    <input type="number" value={brickL} onChange={e => setBrickL(+e.target.value)} className="w-full h-10 bg-gray-50 rounded-lg px-2 text-sm outline-none" />
+                    <input type="number" inputMode="decimal" pattern="[0-9.]*" value={brickL} onChange={e => setBrickL(+e.target.value)} className="w-full h-10 bg-gray-50 rounded-lg px-2 text-sm outline-none" />
                   </div>
                   <div>
                     <label className="text-[10px] text-gray-400 uppercase">W (in)</label>
-                    <input type="number" value={brickW} onChange={e => setBrickW(+e.target.value)} className="w-full h-10 bg-gray-50 rounded-lg px-2 text-sm outline-none" />
+                    <input type="number" inputMode="decimal" pattern="[0-9.]*" value={brickW} onChange={e => setBrickW(+e.target.value)} className="w-full h-10 bg-gray-50 rounded-lg px-2 text-sm outline-none" />
                   </div>
                   <div>
                     <label className="text-[10px] text-gray-400 uppercase">H (in)</label>
-                    <input type="number" value={brickH} onChange={e => setBrickH(+e.target.value)} className="w-full h-10 bg-gray-50 rounded-lg px-2 text-sm outline-none" />
+                    <input type="number" inputMode="decimal" pattern="[0-9.]*" value={brickH} onChange={e => setBrickH(+e.target.value)} className="w-full h-10 bg-gray-50 rounded-lg px-2 text-sm outline-none" />
                   </div>
                </div>
             </div>

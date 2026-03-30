@@ -59,17 +59,17 @@ export default function GrowthTaxCalculator() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Purchase Price</label>
-                  <input type="number" value={buyPrice} onChange={e => setBuyPrice(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono font-bold" />
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" value={buyPrice} onChange={e => setBuyPrice(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono font-bold" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Selling Price</label>
-                  <input type="number" value={sellPrice} onChange={e => setSellPrice(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono font-bold" />
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" value={sellPrice} onChange={e => setSellPrice(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono font-bold" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Holding Period (Years)</label>
-                <input type="number" value={holdingPeriod} onChange={e => setHoldingPeriod(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono font-bold" />
+                <input type="number" inputMode="decimal" pattern="[0-9.]*" value={holdingPeriod} onChange={e => setHoldingPeriod(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono font-bold" />
                 <p className="mt-2 text-[10px] text-gray-400">
                   {assetType === 'share' ? 'Short term: < 365 days (7.5%), Long term: > 365 days (5%)' : 'Short term: < 5 years (7.5%), Long term: > 5 years (5%)'}
                 </p>

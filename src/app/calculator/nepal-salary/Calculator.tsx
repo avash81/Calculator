@@ -115,7 +115,7 @@ export default function NepalSalaryCalculator() {
             <div>
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Monthly Basic Salary</label>
               <div className="relative">
-                <input type="number" inputMode="numeric" pattern="[0-9]*" value={basic} onChange={e => setBasic(Number(e.target.value))} className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 pr-12 text-base text-gray-900 bg-white focus:outline-none focus:border-blue-500 font-mono font-bold" />
+                <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" pattern="[0-9]*" value={basic} onChange={e => setBasic(Number(e.target.value))} className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 pr-12 text-base text-gray-900 bg-white focus:outline-none focus:border-blue-500 font-mono font-bold" />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-bold">NPR</span>
               </div>
             </div>
@@ -123,7 +123,7 @@ export default function NepalSalaryCalculator() {
             <div>
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Monthly Allowances</label>
               <div className="relative">
-                <input type="number" inputMode="numeric" pattern="[0-9]*" value={allowance} onChange={e => setAllowance(Number(e.target.value))} className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 pr-12 text-base text-gray-900 bg-white focus:outline-none focus:border-blue-500 font-mono font-bold" />
+                <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" pattern="[0-9]*" value={allowance} onChange={e => setAllowance(Number(e.target.value))} className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 pr-12 text-base text-gray-900 bg-white focus:outline-none focus:border-blue-500 font-mono font-bold" />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-bold">NPR</span>
               </div>
             </div>

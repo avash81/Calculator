@@ -71,17 +71,17 @@ export default function LoanEMICalculator() {
                      <span className="text-sm font-black text-blue-600 bg-blue-50 px-4 py-1 rounded-full border border-blue-100">{nf(loan)}</span>
                   </div>
                   <input type="range" min="100000" max="20000000" step="100000" value={loan} onChange={e => setLoan(Number(e.target.value))} className="w-full accent-blue-600 opacity-80 hover:opacity-100 transition-opacity cursor-pointer h-2 bg-gray-100 rounded-lg" />
-                  <input type="number" value={loan} onChange={e => setLoan(Number(e.target.value))} className="w-full h-14 bg-gray-50 dark:bg-gray-950 border-2 border-transparent focus:border-blue-500 rounded-2xl px-6 font-black text-xl text-gray-900 dark:text-white outline-none transition-all" />
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" value={loan} onChange={e => setLoan(Number(e.target.value))} className="w-full h-14 bg-gray-50 dark:bg-gray-950 border-2 border-transparent focus:border-blue-500 rounded-2xl px-6 font-black text-xl text-gray-900 dark:text-white outline-none transition-all" />
                </div>
 
                <div className="grid grid-cols-2 gap-8">
                   <div className="space-y-2">
                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Interest Rate (%)</label>
-                     <input type="number" value={rate} onChange={e => setRate(Number(e.target.value))} className="w-full h-14 bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-2xl px-5 font-black text-lg text-gray-900 outline-none transition-all" />
+                     <input type="number" inputMode="decimal" pattern="[0-9.]*" value={rate} onChange={e => setRate(Number(e.target.value))} className="w-full h-14 bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-2xl px-5 font-black text-lg text-gray-900 outline-none transition-all" />
                   </div>
                   <div className="space-y-2">
                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Tenure (Years)</label>
-                     <input type="number" value={tenure} onChange={e => setTenure(Number(e.target.value))} className="w-full h-14 bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-2xl px-5 font-black text-lg text-gray-900 outline-none transition-all" />
+                     <input type="number" inputMode="decimal" pattern="[0-9.]*" value={tenure} onChange={e => setTenure(Number(e.target.value))} className="w-full h-14 bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-2xl px-5 font-black text-lg text-gray-900 outline-none transition-all" />
                   </div>
                </div>
 
@@ -92,7 +92,7 @@ export default function LoanEMICalculator() {
                   <div className="flex-1">
                      <div className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">Processing Fee</div>
                      <div className="flex items-center gap-3">
-                        <input type="number" value={fee} onChange={e => setFee(Number(e.target.value))} className="w-20 bg-transparent text-xl font-black text-gray-900 outline-none" />
+                        <input type="number" inputMode="decimal" pattern="[0-9.]*" value={fee} onChange={e => setFee(Number(e.target.value))} className="w-20 bg-transparent text-xl font-black text-gray-900 outline-none" />
                         <span className="text-xl font-black text-gray-400">%</span>
                         <div className="ml-auto text-sm font-bold text-blue-600 bg-white/80 px-3 py-1 rounded-lg border border-blue-100">{nf(result.feeAmount)}</div>
                      </div>

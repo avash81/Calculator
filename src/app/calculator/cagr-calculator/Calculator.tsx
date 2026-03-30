@@ -41,16 +41,16 @@ export default function CAGRCalculator() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Initial Value</label>
-                  <input type="number" inputMode="numeric" value={initial} onChange={e => setInitial(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={initial} onChange={e => setInitial(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Final Value</label>
-                  <input type="number" inputMode="numeric" value={final} onChange={e => setFinal(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={final} onChange={e => setFinal(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
                 </div>
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Duration (Years)</label>
-                <input type="number" inputMode="numeric" value={years} onChange={e => setYears(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={years} onChange={e => setYears(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
                 <input type="range" min={1} max={30} step={1} value={years} onChange={e => setYears(+e.target.value)} className="w-full mt-2 accent-blue-600 h-1.5" />
                 <div className="flex justify-between text-[10px] font-bold text-gray-300 mt-1 uppercase tracking-widest"><span>1 Yr</span><span>30 Yrs</span></div>
               </div>

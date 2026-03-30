@@ -1,8 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Menu, X, Search, Globe, ChevronRight } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Menu, X, Search, Globe, ChevronRight, ArrowLeft } from 'lucide-react';
 
 const CATEGORIES = {
   'Nepal Specialized': [
@@ -26,6 +26,15 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const path = usePathname();
+  const router = useRouter();
+  const [q, setQ] = useState('');
+
+  const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && q.trim()) {
+      setIsMenuOpen(false);
+      router.push('/search?q=' + encodeURIComponent(q.trim()));
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -60,6 +69,9 @@ export function Navbar() {
                 <Search className={`w-4 h-4 transition-colors ${isSearchFocused ? 'text-[#1A73E8]' : 'text-[#5F6368]'}`} />
                 <input 
                   type="text" 
+                  value={q}
+                  onChange={e => setQ(e.target.value)}
+                  onKeyDown={handleKey}
                   onFocus={() => setIsSearchFocused(true)}
                   onBlur={() => setIsSearchFocused(false)}
                   placeholder="Search 39 calculators..." 
@@ -108,6 +120,9 @@ export function Navbar() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input 
                 type="text" 
+                value={q}
+                onChange={e => setQ(e.target.value)}
+                onKeyDown={handleKey}
                 placeholder="Search calculators..." 
                 className="w-full bg-gray-100 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-medium focus:ring-2 focus:ring-google-blue outline-none"
               />
@@ -117,8 +132,8 @@ export function Navbar() {
             <div className="space-y-6 px-2">
                {[
                  { n: 'All Tools', i: '🗂️', p: '/calculator' },
-                 { n: 'Nepal Calculators', i: '🇳🇵', p: '/categories/nepal' },
-                 { n: 'Finance', i: '💰', p: '/categories/finance' },
+                 { n: 'Nepal Calculators', i: '🇳🇵', p: '/calculator?cat=nepal' },
+                 { n: 'Finance', i: '💰', p: '/calculator?cat=finance' },
                  { n: 'Blog', i: '📖', p: '/blog' },
                  { n: 'About', i: 'ℹ️', p: '/about' }
                ].map(cat => (
