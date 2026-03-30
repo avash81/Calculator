@@ -1,29 +1,29 @@
-import { ShieldCheck, Zap, Smartphone, Globe } from 'lucide-react';
+import { ShieldCheck, Zap, Smartphone, Lock } from 'lucide-react';
 
 const PILLARS = [
   { 
-    icon: ShieldCheck, 
-    title: 'Private by Design', 
-    desc: 'All calculations happen in your browser. We never store, track, or sell your data.',
-    color: 'text-yellow-500'
+    icon: Lock, 
+    title: 'Secure Encryption', 
+    desc: 'Your data never leaves your device. All calculations are 100% private and offline-capable.',
+    color: 'text-gray-400'
   },
   { 
     icon: Zap, 
     title: 'Instant Results', 
-    desc: 'No loading, no API calls for basic calculations. Real-time, every time.',
-    color: 'text-gray-900'
+    desc: 'Optimized for speed. Get complex mathematical solutions in milliseconds, not minutes.',
+    color: 'text-gray-400'
   },
   { 
     icon: Smartphone, 
-    title: 'Mobile Optimized', 
-    desc: 'Built mobile-first. Perfect on iPhone, Android, tablet, and desktop.',
-    color: 'text-gray-900'
+    title: 'Fully Responsive', 
+    desc: 'Pixel-perfect experience across all devices. Built for mobile-first Nepal.',
+    color: 'text-gray-400'
   },
   { 
-    icon: Globe, 
-    title: 'Nepal-First', 
-    desc: 'Updated for FY 2082/83 IRD tax rules. Built for Nepal\'s students, professionals & businesses.',
-    color: 'text-red-500'
+    icon: ShieldCheck, 
+    title: 'No Account Required', 
+    desc: 'We value your privacy. Access all 39+ professional tools without ever signing up.',
+    color: 'text-gray-400'
   },
 ];
 

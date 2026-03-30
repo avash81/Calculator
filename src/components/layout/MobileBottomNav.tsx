@@ -1,83 +1,48 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Grid, Search, BookOpen } from 'lucide-react';
-import { NepalFlag } from '@/components/ui/NepalFlag';
+import { Home, Search, Globe, Grid, BookOpen } from 'lucide-react';
 
-const NAV_ITEMS = [
-  {
-    href: '/',
-    label: 'Home',
-    icon: Home,
-  },
-  {
-    href: '/calculator',
-    label: 'Tools',
-    icon: Grid,
-  },
-  {
-    href: '/calculator/nepal-income-tax',
-    label: 'Nepal',
-    icon: NepalFlag,
-    special: true,
-  },
-  {
-    href: '/calculator?search=true',
-    label: 'Search',
-    icon: Search,
-  },
-  {
-    href: '/blog',
-    label: 'Blog',
-    icon: BookOpen,
-  },
-];
-
-export default function MobileBottomNav() {
+export function MobileBottomNav() {
   const pathname = usePathname();
 
-  return (
-    <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 z-[100] shadow-[0_-8px_24px_rgba(0,0,0,0.05)]"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-    >
-      <div className="grid grid-cols-5 h-16 relative">
-        {NAV_ITEMS.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href.split('?')[0]));
-          
-          if (item.special) {
-            return (
-              <Link key={item.href} href={item.href} className="relative flex flex-col items-center justify-center pt-1 group">
-                <div className={`w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-lg border border-gray-100 transform -translate-y-6 transition-all active:scale-90 ${isActive ? 'ring-4 ring-blue-50 border-blue-100' : ''}`}>
-                   <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
-                      <Icon />
-                   </div>
-                </div>
-                <span className={`text-[10px] font-bold absolute bottom-2 tracking-tight ${isActive ? 'text-blue-600' : 'text-gray-400'}`}>
-                  {item.label}
-                </span>
-              </Link>
-            );
-          }
+  const tabs = [
+    { name: 'Home', icon: Home, path: '/' },
+    { name: 'Search', icon: Search, path: '/calculator' },
+    { name: 'Nepal', icon: Globe, path: '/nepal', isSpecial: true },
+    { name: 'Tools', icon: Grid, path: '/categories' },
+    { name: 'Blog', icon: BookOpen, path: '/blog' },
+  ];
 
+  return (
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-google-border z-50 px-2 pb-safe">
+      <div className="flex justify-around items-center h-16">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = pathname === tab.path;
+          
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${isActive ? 'text-blue-600' : 'text-gray-400'}`}
+            <Link 
+              key={tab.name} 
+              href={tab.path}
+              className={`flex flex-col items-center justify-center flex-1 transition-all ${isActive ? 'text-google-blue' : 'text-gray-400'}`}
             >
-              <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
-              <span className={`text-[10px] font-bold tracking-tight ${isActive ? 'opacity-100' : 'opacity-60'}`}>
-                {item.label}
+              <div className={`p-1 rounded-xl transition-all ${tab.isSpecial ? 'bg-red-50 text-nepal-red border border-red-100 -mt-8 shadow-lg w-12 h-12 flex items-center justify-center' : ''}`}>
+                {tab.isSpecial ? (
+                  <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M4 21h1v-7.15c.67.24 1.34.42 2 .57V21h1v-6.38c.67.12 1.34.2 2 .25V21h1v-6.08c1.34.05 2.68.04 4-.04V21h1v-6.38c1.34-.14 2.68-.42 4-.82V21h1V4.85C16.34 2.8 13.68 1.95 11 2.3c-2.68.35-5.34 1.2-8 3.25V21h1z" />
+                  </svg>
+                ) : (
+                  <Icon className="w-5 h-5" strokeWidth={2.5} />
+                )}
+              </div>
+              <span className={`text-[9px] font-black uppercase tracking-tighter mt-1 ${tab.isSpecial ? 'text-nepal-red' : ''}`}>
+                {tab.name}
               </span>
-              {isActive && (
-                <div className="absolute top-0 w-12 h-0.5 bg-blue-600 rounded-b-full shadow-[0_4px_12px_rgba(37,99,235,0.4)]" />
-              )}
             </Link>
           );
         })}
       </div>
-    </nav>
+    </div>
   );
 }

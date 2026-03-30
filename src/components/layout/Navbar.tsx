@@ -88,59 +88,53 @@ export function Navbar() {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] animate-in fade-in duration-300" onClick={() => setIsMenuOpen(false)} />
       )}
 
-      {/* Slide-out Explorer */}
-      <aside className={`fixed top-0 right-0 bottom-0 w-[85%] max-w-[340px] bg-white z-[201] transform transition-transform duration-500 ease-out shadow-2xl ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="p-8 h-full flex flex-col overflow-y-auto">
-          <div className="flex items-center justify-between mb-12">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-[#1A73E8] rounded-xl flex items-center justify-center text-white font-black">C</div>
-              <span className="font-extrabold text-[#202124] uppercase tracking-tighter text-sm">Matrix Explorer</span>
+      {/* Slide-out Explorer - IMAGE 11 MATCH */}
+      <aside className={`fixed inset-0 bg-white z-[201] transform transition-transform duration-300 ease-in-out ${isMenuOpen ? 'translate-y-0' : 'translate-y-full lg:translate-y-0 lg:translate-x-full'}`}>
+        <div className="h-full flex flex-col">
+          {/* Header in Drawer */}
+          <div className="p-4 flex items-center justify-between border-b border-google-border">
+            <div className="flex items-center gap-1">
+              <span className="text-google-dark font-black text-xl tracking-tighter">CalcPro</span>
+              <span className="text-google-blue font-black text-xl tracking-tighter">.NP</span>
             </div>
-            <button onClick={() => setIsMenuOpen(false)} className="p-3 hover:bg-gray-100 rounded-2xl transition-colors">
-              <X className="w-6 h-6 text-gray-400" />
+            <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400">
+               <X className="w-6 h-6" />
             </button>
           </div>
 
-          <div className="space-y-10 flex-1">
-             <div className="space-y-4">
-                <Link href="/calculator" className="block text-lg font-bold text-[#202124] px-2">Tools Directory</Link>
-                <Link href="/blog" className="block text-lg font-bold text-[#202124] px-2">Insights & Blog</Link>
-                <Link href="/about" className="block text-lg font-bold text-[#202124] px-2">Our Mission</Link>
-             </div>
+          <div className="p-4 flex-1 overflow-y-auto">
+            {/* Drawer Search */}
+            <div className="relative mb-8">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder="Search calculators..." 
+                className="w-full bg-gray-100 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-medium focus:ring-2 focus:ring-google-blue outline-none"
+              />
+            </div>
 
-             <div className="h-px bg-gray-100 mx-2" />
-
-             {Object.entries(CATEGORIES).map(([cat, links]) => (
-              <div key={cat}>
-                <h3 className="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em] mb-4 pl-2">
-                   {cat}
-                </h3>
-                <div className="space-y-1">
-                  {links.map(l => (
-                    <Link 
-                      key={l.s} 
-                      href={`/calculator/${l.s}`}
-                      className="group flex items-center justify-between px-3 py-3 hover:bg-[#F8F9FA] rounded-xl transition-all"
-                    >
-                      <span className="text-sm font-bold text-[#5F6368] group-hover:text-[#1A73E8] transition-colors">
-                        {l.n}
-                      </span>
-                      <ChevronRight className="w-4 h-4 text-gray-200 group-hover:text-[#1A73E8] transition-all" />
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-12 pt-8 border-t border-gray-100">
-             <div className="bg-[#F8F9FA] p-4 rounded-3xl flex items-center gap-4">
-               <div className="text-2xl">🇳🇵</div>
-               <div>
-                  <div className="text-[10px] font-black text-[#5F6368] uppercase tracking-widest leading-none mb-1">Tax Update</div>
-                  <div className="text-xs font-bold text-[#202124]">Fiscal Year 2082/83</div>
-               </div>
-             </div>
+            {/* Drawer Categories - Image 11 List */}
+            <div className="space-y-6 px-2">
+               {[
+                 { n: 'All Tools', i: '🗂️', p: '/calculator' },
+                 { n: 'Nepal Calculators', i: '🇳🇵', p: '/categories/nepal' },
+                 { n: 'Finance', i: '💰', p: '/categories/finance' },
+                 { n: 'Blog', i: '📖', p: '/blog' },
+                 { n: 'About', i: 'ℹ️', p: '/about' }
+               ].map(cat => (
+                 <Link 
+                   key={cat.n} 
+                   href={cat.p}
+                   className="flex items-center gap-4 group"
+                   onClick={() => setIsMenuOpen(false)}
+                 >
+                   <span className="text-xl">{cat.i}</span>
+                   <span className="text-lg font-bold text-gray-700 group-hover:text-google-blue transition-colors">
+                     {cat.n}
+                   </span>
+                 </Link>
+               ))}
+            </div>
           </div>
         </div>
       </aside>

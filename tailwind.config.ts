@@ -2,28 +2,24 @@ import type { Config } from 'tailwindcss';
 
 const config: Config = {
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        'cp-blue':       '#1B4FBD',
-        'cp-blue-light': '#EFF4FF',
-        'cp-blue-dark':  '#1440A0',
-        'cp-nepal':      '#E31837',
-        'cp-nepal-light':'#FEF2F2',
-        'cp-green':      '#16a34a',
-        'cp-amber':      '#F59E0B',
-        'cp-bg':         '#F8FAFB',
-        'cp-text':       '#111827',
-        'cp-muted':      '#6B7280',
-        'cp-light':      '#9CA3AF',
+        'google-blue': '#1A73E8',
+        'google-blue-dark': '#1557B0',
+        'google-blue-light': '#E8F0FE',
+        'google-gray': '#F8F9FA',
+        'google-border': '#E8EAED',
+        'nepal-red': '#DC143C',
+      },
+      gridTemplateColumns: {
+        '7': 'repeat(7, minmax(0, 1fr))',
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-inter)', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
     },
   },
