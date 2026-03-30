@@ -19,7 +19,7 @@ import Link from 'next/link';
 import { getDb, handleFirestoreError, OperationType } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import {
-  PlusCircle, Eye, Edit, Trash2, Globe, FileText, ExternalLink
+  PlusCircle, Edit, Trash2, Globe, FileText, ExternalLink
 } from 'lucide-react';
 
 interface SEOPage {
@@ -58,7 +58,7 @@ export default function SEOPagesAdmin() {
   }
 
   async function handleDelete(id: string, title: string) {
-    if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
+    if (!confirm(`Delete &quot;${title}&quot;? This cannot be undone.`)) return;
     const db = getDb();
     if (!db) return;
     setDeleting(id);
@@ -107,8 +107,8 @@ export default function SEOPagesAdmin() {
                 SEO Pages are standalone content pages that target high-volume search
                 queries. Unlike blog posts (news/updates), SEO pages are evergreen
                 guides that stay relevant year-round. Example:
-                <strong> "How to Calculate Income Tax in Nepal 2082/83"</strong> or
-                <strong> "Nepal EMI Calculator — Complete Guide"</strong>.
+                <strong> &quot;How to Calculate Income Tax in Nepal 2082/83&quot;</strong> or
+                <strong> &quot;Nepal EMI Calculator — Complete Guide&quot;</strong>.
                 Each page links back to the relevant calculator to boost rankings for both.
               </div>
             </div>
@@ -129,7 +129,7 @@ export default function SEOPagesAdmin() {
             <div className="text-gray-500 font-medium mb-1">No SEO pages yet</div>
             <div className="text-xs text-gray-400 mb-4 max-w-xs mx-auto">
               Create your first SEO page. Start with
-              "Nepal Income Tax Guide 2082/83" — highest search volume.
+              &quot;Nepal Income Tax Guide 2082/83&quot; — highest search volume.
             </div>
             <Link href="/admin/seo-pages/new"
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600

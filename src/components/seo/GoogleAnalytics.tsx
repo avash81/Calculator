@@ -2,10 +2,9 @@
 
 import Script from 'next/script';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 
-export function GoogleAnalytics() {
-  const gaId = process.env.NEXT_PUBLIC_GA_ID;
+function GoogleAnalyticsInner({ gaId }: { gaId: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -22,10 +21,18 @@ export function GoogleAnalytics() {
     }
   }, [pathname, searchParams, gaId]);
 
+  return null;
+}
+
+export function GoogleAnalytics() {
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
   if (!gaId) return null;
 
   return (
     <>
+      <Suspense fallback={null}>
+        <GoogleAnalyticsInner gaId={gaId} />
+      </Suspense>
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
         strategy="afterInteractive"

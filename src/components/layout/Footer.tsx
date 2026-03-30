@@ -16,7 +16,7 @@ export function Footer() {
               <span className="text-[#1A73E8] font-black text-2xl tracking-tighter">.NP</span>
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
-              Nepal's most comprehensive free online calculator platform. Built for students, professionals, and businesses. All 39 calculators are free. Your data stays on your device.
+              Nepal&apos;s most comprehensive free online calculator platform. Built for students, professionals, and businesses. All 39 calculators are free. Your data stays on your device.
             </p>
           </div>
 

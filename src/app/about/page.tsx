@@ -1,10 +1,10 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { ShieldCheck, Target, Users, Mail, Globe } from 'lucide-react';
+import { ShieldCheck, Target } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'About CalcPro.NP | Professional Calculators for Nepal',
-  description: 'CalcPro.NP is Nepal’s premier destination for high-precision financial, tax, health, and engineering calculators. Built for accuracy, No Ads, 100% Free.',
+  description: 'CalcPro.NP is Nepal&apos;s premier destination for high-precision financial, tax, health, and engineering calculators. Built for accuracy, No Ads, 100% Free.',
 };
 
 export default function AboutPage() {
@@ -26,7 +26,7 @@ export default function AboutPage() {
            <div className="space-y-6">
               <h2 className="text-2xl font-black text-gray-900 leading-tight">Empowering 30 Million <br/> Minds in Nepal.</h2>
               <p className="text-gray-600 leading-relaxed">
-                 Calculating Income Tax, EMI, or even BMI shouldn't involve complex spreadsheets or ad-filled websites. CalcPro.NP was founded with a single mission: to provide the most accurate, secure, and user-friendly calculation ecosystem for the Nepalese people.
+                 Calculating Income Tax, EMI, or even BMI shouldn&apos;t involve complex spreadsheets or ad-filled websites. CalcPro.NP was founded with a single mission: to provide the most accurate, secure, and user-friendly calculation ecosystem for the Nepalese people.
               </p>
               <div className="pt-4 flex flex-wrap gap-4">
                  <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-2xl">
@@ -43,7 +43,7 @@ export default function AboutPage() {
               <div className="text-4xl font-black text-gray-900 mb-2">40+</div>
               <div className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-8">Specialized Tools</div>
               <p className="text-sm text-gray-500 leading-relaxed italic">
-                 "Our goal is to make precision accessible, helping users from Kathmandu to Kanchanpur solve their numeric problems in seconds."
+                 &quot;Our goal is to make precision accessible, helping users from Kathmandu to Kanchanpur solve their numeric problems in seconds.&quot;
               </p>
            </div>
         </section>

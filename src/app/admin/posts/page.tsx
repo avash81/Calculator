@@ -41,7 +41,9 @@ export default function PostsPage() {
 
   const fetchPosts = async () => {
     try {
-      const q = query(collection(dbInstance, 'posts'), orderBy('date', 'desc'));
+      const db = getDb();
+      if (!db) return;
+      const q = query(collection(db, 'posts'), orderBy('date', 'desc'));
       const querySnapshot = await getDocs(q);
       const fetchedPosts = querySnapshot.docs.map(doc => ({
         id: doc.id,
@@ -59,6 +61,8 @@ export default function PostsPage() {
     if (!confirm('Are you sure you want to delete this post?')) return;
     
     try {
+      const db = getDb();
+      if (!db) return;
       await deleteDoc(doc(db, 'posts', id));
       fetchPosts();
     } catch (error) {

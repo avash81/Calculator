@@ -186,7 +186,7 @@ export function SEOScorePanel(props: SEOScorePanelProps) {
         </div>
         <div className="text-[10px] text-blue-600 leading-relaxed">
           Add internal links to related calculators in your content.
-          e.g. "Use our <a href='...'> Nepal Tax Calculator</a>"
+          e.g. &quot;Use our &lt;a href=&apos;...&apos;&gt; Nepal Tax Calculator&lt;/a&gt;&quot;
           — this boosts SEO for both pages.
         </div>
       </div>
