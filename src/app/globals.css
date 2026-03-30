@@ -1,0 +1,559 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════════════════════════
+   CALCPRO.NP — DESIGN SYSTEM
+   Mobile-first CSS for Nepal's Free Calculator Suite
+   Last updated: FY 2082/83
+═══════════════════════════════════════════════════════════════ */
+
+/* ── CSS DESIGN TOKENS ─────────────────────────────────────── */
+:root {
+  --cp-blue: #1B4FBD;
+  --cp-blue-light: #EFF4FF;
+  --cp-blue-dark: #1440A0;
+  --cp-nepal: #E31837;
+  --cp-nepal-light: #FFF0F0;
+  --cp-green: #16a34a;
+  --cp-bg: #F8FAFB;
+  --cp-text: #111827;
+  --cp-muted: #6B7280;
+  --cp-border: #E5E7EB;
+  --nav-height: 56px;
+  /* 56px on mobile */
+  --bottom-nav: 60px;
+  /* Mobile bottom nav height */
+}
+
+@media (min-width: 768px) {
+  :root {
+    --nav-height: 64px;
+  }
+}
+
+/* ── RESET & BASE ───────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  background-color: var(--cp-bg);
+  color: var(--cp-text);
+  -webkit-font-smoothing: antialiased;
+  /* Space for mobile bottom nav + iOS home bar */
+  padding-bottom: calc(var(--bottom-nav) + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 768px) {
+  body {
+    padding-bottom: 0;
+  }
+}
+
+/* iOS safe area for body */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  body {
+    padding-bottom: calc(var(--bottom-nav) + env(safe-area-inset-bottom));
+  }
+
+  @media (min-width: 768px) {
+    body {
+      padding-bottom: 0;
+    }
+  }
+}
+
+/* ── TOUCH & INTERACTION ────────────────────────────────────── */
+button,
+a,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  /* Remove iOS blue flash */
+  touch-action: manipulation;
+  /* Prevent double-tap zoom */
+}
+
+/* Minimum touch target size — Apple HIG & WCAG 2.5.5 */
+button:not([class*="min-h"]) {
+  min-height: 44px;
+}
+
+/* ── PREVENT iOS ZOOM ON INPUT FOCUS ────────────────────────── */
+/* iOS zooms if font-size < 16px on focus */
+@media (max-width: 767px) {
+
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"],
+  input[type="search"],
+  input[type="url"],
+  input[type="date"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ── FOCUS ACCESSIBILITY (WCAG 2.1 AA) ─────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--cp-blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── SCROLLBAR UTILITIES ────────────────────────────────────── */
+/* Used for horizontal scroll on Nepal tools carousel */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Styled scrollbar for desktop */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #F3F4F6;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #D1D5DB;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #9CA3AF;
+  }
+}
+
+/* ── SCROLL SNAP (Nepal tools horizontal carousel) ──────────── */
+.snap-x {
+  scroll-snap-type: x mandatory;
+}
+
+.snap-start {
+  scroll-snap-align: start;
+}
+
+/* ── TYPOGRAPHY ─────────────────────────────────────────────── */
+/* Fluid heading sizes — scales from mobile to desktop */
+.heading-xl {
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.heading-lg {
+  font-size: clamp(1.25rem, 4vw, 1.875rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* ── MONOSPACE NUMBERS (calculator displays) ────────────────── */
+.font-calc {
+  font-family: 'JetBrains Mono', 'Courier New', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── NEPAL FLAG BADGE ───────────────────────────────────────── */
+.np-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cp-nepal);
+  color: white;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 3px;
+  line-height: 1;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+}
+
+/* ── BUTTON SYSTEM ──────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  border: none;
+  white-space: nowrap;
+  min-height: 44px;
+  /* Touch target */
+  user-select: none;
+}
+
+.btn-primary {
+  background: var(--cp-blue);
+  color: white;
+  box-shadow: 0 1px 3px rgba(27, 79, 189, 0.3);
+}
+
+.btn-primary:hover {
+  background: var(--cp-blue-dark);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: white;
+  color: var(--cp-blue);
+  border: 1.5px solid var(--cp-blue);
+}
+
+.btn-secondary:hover {
+  background: var(--cp-blue-light);
+}
+
+.btn-nepal {
+  background: var(--cp-nepal);
+  color: white;
+}
+
+.btn-nepal:hover {
+  background: #c71530;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--cp-muted);
+  border: 1.5px solid var(--cp-border);
+}
+
+.btn-ghost:hover {
+  background: #F9FAFB;
+  border-color: #D1D5DB;
+}
+
+/* ── CARD SYSTEM ────────────────────────────────────────────── */
+.card {
+  background: white;
+  border: 1px solid var(--cp-border);
+  border-radius: 12px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.card:hover {
+  border-color: #93C5FD;
+  box-shadow: 0 4px 16px rgba(27, 79, 189, 0.08);
+}
+
+.card-nepal {
+  border-color: #FECACA;
+}
+
+.card-nepal:hover {
+  border-color: var(--cp-nepal);
+  box-shadow: 0 4px 16px rgba(227, 24, 55, 0.08);
+}
+
+/* ── FORM INPUTS ────────────────────────────────────────────── */
+.form-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--cp-border);
+  border-radius: 10px;
+  font-size: 16px;
+  /* 16px prevents iOS zoom */
+  color: var(--cp-text);
+  background: white;
+  outline: none;
+  transition: border-color 0.15s;
+  min-height: 44px;
+}
+
+.form-input:focus {
+  border-color: var(--cp-blue);
+}
+
+.form-input::placeholder {
+  color: #9CA3AF;
+}
+
+/* ── RESULT VALUE DISPLAY ───────────────────────────────────── */
+.result-value {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(1.5rem, 5vw, 2.25rem);
+  font-weight: 700;
+  color: var(--cp-blue);
+  line-height: 1;
+}
+
+/* ── LOADING ANIMATIONS ─────────────────────────────────────── */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid #E5E7EB;
+  border-top-color: var(--cp-blue);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+/* ── PAGE TRANSITIONS ───────────────────────────────────────── */
+.page-fade {
+  animation: pageFade 0.18s ease-out;
+}
+
+@keyframes pageFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── DARK MODE (class-based) ────────────────────────────────── */
+html.dark body {
+  background: #0F1117;
+  color: #F9FAFB;
+}
+
+html.dark .card {
+  background: #1A1D27;
+  border-color: #2D3148;
+}
+
+html.dark .form-input {
+  background: #1A1D27;
+  border-color: #2D3148;
+  color: #F9FAFB;
+}
+
+/* ── CALCULATOR SPECIFIC ────────────────────────────────────── */
+
+/* Amortization / breakdown tables */
+.calc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.calc-table th {
+  background: #F8FAFF;
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--cp-muted);
+  border-bottom: 1px solid var(--cp-border);
+}
+
+.calc-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid #F9FAFB;
+  font-size: 13px;
+}
+
+.calc-table tr:hover td {
+  background: #FAFBFF;
+}
+
+/* Result card highlight */
+.result-card-primary {
+  background: linear-gradient(135deg, var(--cp-blue) 0%, #1440A0 100%);
+  border-radius: 14px;
+  padding: 20px;
+  color: white;
+}
+
+/* Slider custom styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: #E5E7EB;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--cp-blue);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 4px rgba(27, 79, 189, 0.3);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: var(--cp-blue);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 4px rgba(27, 79, 189, 0.3);
+}
+
+/* ── MOBILE HOMEPAGE SPECIFIC ───────────────────────────────── */
+
+/* Nepal tools horizontal scroll — smooth on iOS */
+.nepal-tools-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+  margin: 0 -16px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.nepal-tools-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.nepal-tool-card {
+  flex-shrink: 0;
+  min-width: 130px;
+  scroll-snap-align: start;
+}
+
+/* Category grid — 1 col mobile, 2 col tablet, 3 col desktop */
+.calc-category-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .calc-category-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .calc-category-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ── PRINT STYLES ───────────────────────────────────────────── */
+@media print {
+
+  .no-print,
+  header nav,
+  footer,
+  .mobile-nav,
+  button:not(.print-show) {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    padding: 0;
+  }
+
+  .result-card-primary {
+    background: white !important;
+    border: 2px solid #1B4FBD;
+    color: #111827 !important;
+  }
+
+  .calc-table {
+    border: 1px solid #E5E7EB;
+  }
+
+  .calc-table th {
+    background: #F3F4F6 !important;
+  }
+}
+
+/* ── GLOBAL INPUT TEXT VISIBILITY FIX ──────────────────────── */
+/* Ensures all inputs always show dark text on light background  */
+/* Prevents invisible text when browser autofill changes colors  */
+input[type="number"],
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="search"],
+input[type="url"],
+input[type="date"],
+select,
+textarea {
+  color: #111827 !important;
+  /* text-gray-900 */
+  background-color: #ffffff;
+  -webkit-text-fill-color: #111827;
+  /* Fix Safari autofill */
+}
+
+/* Fix autofill background color (browser override) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+select:-webkit-autofill {
+  -webkit-text-fill-color: #111827 !important;
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}

@@ -1,0 +1,162 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: posts
+    // Fields:
+    //   - title: string (required, 1-100 chars)
+    //   - slug: string (required, 1-100 chars, unique)
+    //   - excerpt: string (optional, 0-500 chars)
+    //   - content: string (required, 1-50000 chars)
+    //   - category: string (required, enum: Finance, Health, etc.)
+    //   - image: string (optional, URL)
+    //   - author: string (optional, 1-50 chars)
+    //   - authorUid: string (required, matches auth.uid)
+    //   - date: string (optional, ISO 8601)
+    //   - metaTitle: string (optional, 0-100 chars)
+    //   - metaDesc: string (optional, 0-200 chars)
+    //   - keywords: string (optional, 0-200 chars)
+    //   - status: string (required, enum: draft, published)
+    //
+    // Collection: users
+    // Fields:
+    //   - uid: string (required, matches doc ID)
+    //   - email: string (required, email format)
+    //   - role: string (required, enum: admin, editor)
+    //   - displayName: string (optional, 1-50 chars)
+    //
+    // Collection: nepal_rules
+    // Fields:
+    //   - type: string (required)
+    //   - data: map (required)
+    //   - updatedAt: string (optional, ISO 8601)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "avash.211619@ncit.edu.np" && request.auth.token.email_verified == true));
+    }
+
+    function isEditor() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'editor']);
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidUrl(url) {
+      return url is string && (url.matches("^https://.*") || url.matches("^http://.*"));
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidPost(data) {
+      return hasRequiredFields(['title', 'slug', 'content', 'category', 'authorUid', 'status']) &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 100 &&
+             data.slug is string && data.slug.size() >= 1 && data.slug.size() <= 100 &&
+             data.content is string && data.content.size() >= 1 && data.content.size() <= 50000 &&
+             data.category is string &&
+             data.authorUid == request.auth.uid &&
+             data.status in ['draft', 'published'] &&
+             (!('image' in data) || isValidUrl(data.image)) &&
+             (!('date' in data) || isValidDateString(data.date)) &&
+             (!('metaTitle' in data) || (data.metaTitle is string && data.metaTitle.size() <= 100)) &&
+             (!('metaDesc' in data) || (data.metaDesc is string && data.metaDesc.size() <= 200)) &&
+             (!('keywords' in data) || (data.keywords is string && data.keywords.size() <= 200));
+    }
+
+    function isValidUser(data) {
+      return hasRequiredFields(['uid', 'email', 'role']) &&
+             data.uid == request.auth.uid &&
+             isValidEmail(data.email) &&
+             data.role in ['admin', 'editor'] &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 50));
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // Posts Collection
+    match /posts/{postId} {
+      // Public can read published posts
+      allow read: if resource.data.status == 'published' || isEditor();
+      
+      // Editors can create and update posts
+      allow create: if isEditor() && isValidPost(request.resource.data);
+      allow update: if isEditor() && isValidPost(request.resource.data) &&
+                      request.resource.data.authorUid == resource.data.authorUid;
+      allow delete: if isAdmin();
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      // Users can read their own profile, admins can read all
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Users can create their own profile (default role 'editor')
+      // Admins can create any user
+      allow create: if (isOwner(userId) && request.resource.data.role == 'editor' && isValidUser(request.resource.data)) || isAdmin();
+      
+      // Only admins can update roles
+      // Users can update their own profile but not their role
+      allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role && isValidUser(request.resource.data)) || isAdmin();
+      
+      allow delete: if isAdmin();
+    }
+
+    // Nepal Rules Collection
+    match /nepal_rules/{ruleId} {
+      // Public can read rules
+      allow read: if true;
+      
+      // Only admins can modify rules
+      allow write: if isAdmin();
+    }
+
+    // SEO Pages Collection
+    match /seo_pages/{pageId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

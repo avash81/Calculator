@@ -1,0 +1,24 @@
+{
+  "fiscalYear": "2082/83",
+  "effectiveFrom": "2025-07-17",
+  "individual": {
+    "single": [
+      { "upTo": 500000,  "rate": 0.01, "label": "1% SST" },
+      { "upTo": 700000,  "rate": 0.10, "label": "10%" },
+      { "upTo": 1000000, "rate": 0.20, "label": "20%" },
+      { "upTo": 2000000, "rate": 0.30, "label": "30%" },
+      { "upTo": 5000000, "rate": 0.36, "label": "36%" },
+      { "upTo": null,    "rate": 0.39, "label": "39%" }
+    ],
+    "married": [
+      { "upTo": 600000,  "rate": 0.01, "label": "1% SST" },
+      { "upTo": 800000,  "rate": 0.10, "label": "10%" },
+      { "upTo": 1100000, "rate": 0.20, "label": "20%" },
+      { "upTo": 2100000, "rate": 0.30, "label": "30%" },
+      { "upTo": 5100000, "rate": 0.36, "label": "36%" },
+      { "upTo": null,    "rate": 0.39, "label": "39%" }
+    ]
+  },
+  "ssfDiscount": true,
+  "ssfWaivesFirstSlab": true
+}
