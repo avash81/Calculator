@@ -1,13 +1,13 @@
 import { calcMeta } from '@/lib/calcMeta';
-import GPACalculator from './Calculator';
+import Calculator from './Calculator';
 
 export const metadata = calcMeta({
-  title: 'GPA Calculator (Nepal & US) — Free Online Tool',
-  description: 'Calculate your Grade Point Average (GPA) for Nepal (NEB, TU, KU, PU) or US grading systems. Supports credit-based GPA calculation. Free, no login required.',
+  title: 'GPA Calculator Nepal (NEB/TU) — Semester GPA Estimator',
+  description: 'Calculate your semester or terminal GPA accurately using the Nepal NEB/TU grading standard or international US 4.0 scale. Includes credit-hour weightage for university students.',
   slug: 'gpa',
-  keywords: ['gpa calculator', 'nepal gpa calculator', 'us gpa calculator', 'calculate gpa', 'cgpa calculator'],
+  keywords: ['gpa calculator nepal', 'neb gpa calculator', 'tu gpa calculator', 'semester gpa nepal', '4.0 gpa calculator', 'education calculator nepal'],
 });
 
 export default function Page() {
-  return <GPACalculator />;
+  return <Calculator />;
 }

@@ -2,10 +2,10 @@ import { calcMeta } from '@/lib/calcMeta';
 import Calculator from './Calculator';
 
 export const metadata = calcMeta({
-  title: 'CGPA Calculator — Cumulative Grade Point Average',
-  description: 'Calculate your Cumulative Grade Point Average (CGPA) across multiple semesters. Supports credit-weighted calculations for university students. Free online tool.',
+  title: 'CGPA Calculator Nepal (TU/KU) — Cumulative Grade Point Average',
+  description: 'Professional CGPA calculator for university students in Nepal (TU, KU, PU) and international systems. Calculate your Cumulative Grade Point Average across 8-12 semesters with credit weightage. WES compatible calculations.',
   slug: 'cgpa',
-  keywords: ['cgpa calculator', 'calculate cgpa', 'cumulative grade point average', 'gpa calculator', 'education tool'],
+  keywords: ['cgpa calculator nepal', 'tu cgpa calculator', 'ku cgpa calculator', 'calculate cgpa nepal', 'cumulative grade point average', 'gpa calculator nepal'],
 });
 
 export default function Page() {
