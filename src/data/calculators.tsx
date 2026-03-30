@@ -55,6 +55,11 @@ export const CALCULATORS: Calculator[] = [
     description:'Calculate simple interest quickly',
     keywords:['simple interest','si','principal'] },
 
+  { id:'savings', slug:'savings',
+    name:'Savings Calculator', icon:'💰', category:'finance',
+    description:'Calculate future value of savings',
+    keywords:['savings','compound interest','future value'] },
+
   { id:'discount', slug:'discount-calculator',
     name:'Discount Calculator', icon:'🏷️', category:'finance',
     description:'Calculate discounted price and savings',
@@ -144,6 +149,11 @@ export const CALCULATORS: Calculator[] = [
     name:'Water Intake', icon:'💧', category:'health',
     description:'Daily water intake recommendation',
     keywords:['water','hydration','daily water'] },
+
+  { id:'calorie', slug:'calorie-calculator',
+    name:'Calorie Calculator', icon:'🥗', category:'health',
+    description:'Calculate daily calorie needs (TDEE)',
+    keywords:['calories','tdee','weight loss'] },
 
   // ── EDUCATION ───────────────────────────────────────
   { id:'gpa', slug:'gpa', name:'GPA Calculator',
