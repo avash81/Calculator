@@ -253,25 +253,19 @@ export const FEATURED_NEPAL: Calculator[] = CALCULATORS.filter(
   c => c.isNepal && c.isHot
 );
 
-// Categories with their calculators
+// Categories with their calculators (6-pillar architecture as per high-fidelity UI)
 export const CATEGORIES: Category[] = [
   {
     id: 'nepal',
-    name: 'Nepal Rules & Tax',
+    name: 'Nepal Specific',
     icon: <NepalFlag />,
     calculators: CALCULATORS.filter(c => c.category === 'nepal'),
   },
   {
     id: 'finance',
-    name: 'Finance & Investment',
+    name: 'Finance Suite',
     icon: '💰',
     calculators: CALCULATORS.filter(c => c.category === 'finance'),
-  },
-  {
-    id: 'engineering',
-    name: 'Civil Engineering',
-    icon: '🏗️',
-    calculators: CALCULATORS.filter(c => c.category === 'engineering'),
   },
   {
     id: 'health',
@@ -281,7 +275,7 @@ export const CATEGORIES: Category[] = [
   },
   {
     id: 'education',
-    name: 'Education & GPA',
+    name: 'Education Hub',
     icon: '🎓',
     calculators: CALCULATORS.filter(c => c.category === 'education'),
   },
@@ -289,12 +283,12 @@ export const CATEGORIES: Category[] = [
     id: 'conversion',
     name: 'Conversion Tools',
     icon: '🔄',
-    calculators: CALCULATORS.filter(c => c.category === 'conversion'),
+    calculators: CALCULATORS.filter(c => c.category === 'conversion' || c.category === 'utility'),
   },
   {
-    id: 'utility',
-    name: 'Utility Tools',
-    icon: '🛠️',
-    calculators: CALCULATORS.filter(c => c.category === 'utility'),
+    id: 'engineering',
+    name: 'Engineering Hub',
+    icon: '🏗️',
+    calculators: CALCULATORS.filter(c => c.category === 'engineering'),
   },
 ];

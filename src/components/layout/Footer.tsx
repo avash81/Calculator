@@ -1,55 +1,23 @@
+'use client';
 import Link from 'next/link';
 
 export function Footer() {
-  const year = new Date().getFullYear();
+  const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-900 text-gray-300 py-12 border-t border-gray-800">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
-          {/* Brand */}
-          <div className="col-span-2 lg:col-span-1">
-            <Link href="/" className="flex items-center flex-shrink-0 whitespace-nowrap mb-4">
-              <span className="text-white font-semibold text-xl">Calc</span>
-              <span className="text-blue-500 font-semibold text-xl">Pro</span>
-              <span className="text-red-500 font-semibold text-xl">.np</span>
+    <footer className="bg-[#1a1c1e] text-[#f8f9fa] pt-16 pb-8">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+          
+          {/* Brand Info */}
+          <div className="space-y-6">
+            <Link href="/" className="flex items-center gap-1 group">
+              <span className="text-white font-black text-2xl tracking-tighter">CalcPro</span>
+              <span className="text-[#1A73E8] font-black text-2xl tracking-tighter">.NP</span>
             </Link>
-            <p className="text-sm text-gray-400 mb-4 leading-relaxed">
-              Nepal&apos;s most comprehensive suite of free online calculators for finance, health, education, and daily utilities.
+            <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
+              Nepal's most comprehensive free online calculator platform. Built for students, professionals, and businesses. All 39 calculators are free. Your data stays on your device.
             </p>
-          </div>
-
-          {/* Finance */}
-          <div>
-            <h3 className="text-white font-semibold mb-4 uppercase tracking-wider text-xs">Finance</h3>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/calculator/loan-emi" className="hover:text-blue-400 transition-colors">EMI Calculator</Link></li>
-              <li><Link href="/calculator/sip-calculator" className="hover:text-blue-400 transition-colors">SIP Calculator</Link></li>
-              <li><Link href="/calculator/fd-calculator" className="hover:text-blue-400 transition-colors">Fixed Deposit</Link></li>
-              <li><Link href="/calculator/compound-interest" className="hover:text-blue-400 transition-colors">Compound Interest</Link></li>
-            </ul>
-          </div>
-
-          {/* Nepal */}
-          <div>
-            <h3 className="text-white font-semibold mb-4 uppercase tracking-wider text-xs">Nepal Tools</h3>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/calculator/nepal-income-tax" className="hover:text-blue-400 transition-colors">Income Tax 2082/83</Link></li>
-              <li><Link href="/calculator/nepal-salary" className="hover:text-blue-400 transition-colors">Salary Calculator</Link></li>
-              <li><Link href="/calculator/nepal-vat" className="hover:text-blue-400 transition-colors">VAT Calculator</Link></li>
-              <li><Link href="/calculator/nepali-date" className="hover:text-blue-400 transition-colors">Nepali Date</Link></li>
-            </ul>
-          </div>
-
-          {/* Health */}
-          <div>
-            <h3 className="text-white font-semibold mb-4 uppercase tracking-wider text-xs">Health</h3>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/calculator/bmi" className="hover:text-blue-400 transition-colors">BMI Calculator</Link></li>
-              <li><Link href="/calculator/bmr" className="hover:text-blue-400 transition-colors">BMR Calculator</Link></li>
-              <li><Link href="/calculator/ideal-weight" className="hover:text-blue-400 transition-colors">Ideal Weight</Link></li>
-              <li><Link href="/calculator/body-fat" className="hover:text-blue-400 transition-colors">Body Fat %</Link></li>
-            </ul>
           </div>
 
           {/* Education */}
@@ -82,13 +50,13 @@ export function Footer() {
           </p>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
-          <p>&copy; {year} CalcPro.NP. All rights reserved.</p>
-          <div className="flex gap-4">
-            <Link href="/privacy" className="hover:text-gray-300 transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-gray-300 transition-colors">Terms of Service</Link>
-            <Link href="/sitemap" className="hover:text-gray-300 transition-colors">Sitemap</Link>
+        {/* Localized Bottom Bar */}
+        <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="text-gray-500 text-xs font-medium">
+            © {currentYear} CalcPro.NP — Free forever. No ads. No data collection.
+          </div>
+          <div className="flex items-center gap-2 text-xs font-black text-gray-500 uppercase tracking-widest">
+            Made with <span className="text-red-500 animate-pulse">❤️</span> for <span className="flex items-center gap-1.5 ml-1 text-white">🇳🇵 Nepal</span>
           </div>
         </div>
       </div>

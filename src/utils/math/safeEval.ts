@@ -230,6 +230,7 @@ function evalExpression(expr: string, isDeg: boolean): number {
         case 'cbrt':  return Math.cbrt(arg1);
         case 'pow':   return Math.pow(arg1, arg2 ?? 2);
         case 'exp':   return Math.exp(arg1);
+        case 'inv':   return 1 / arg1;
         // Rounding
         case 'abs':   return Math.abs(arg1);
         case 'round': return Math.round(arg1);

@@ -3,36 +3,18 @@ import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { safeEval } from '@/utils/math/safeEval';
-import { MoreVertical, History, Send, ChevronDown, MoveUpRight, X } from 'lucide-react';
+import { Send, MoveUpRight, Clock, ChevronRight } from 'lucide-react';
 
 type CalcMode = 'scientific' | 'solver';
 type SolverTab = 'Algebra' | 'Trigonometry' | 'Calculus';
 
-interface SolveStep {
-  step: number;
-  description: string;
-  expression?: string;
-}
-
-interface SolveResult {
-  answer: string;
-  steps: SolveStep[];
-  type: string;
-}
-
-function solveMath(input: string): SolveResult {
-  const eq = input.trim().replace(/−/g, '-').toLowerCase();
-  const steps = [{ step: 1, description: 'Analyzing expression...', expression: input }];
-  
-  // Logical placeholder for mathematical evaluation
-  if (eq.includes('=')) {
-     return { answer: 'x = 1.5', steps: [...steps, { step: 2, description: 'Simplified side coefficients', expression: '6x = 9' }], type: 'linear' };
-  }
-  return { answer: 'Solution found.', steps, type: 'basic' };
+interface CalcHistory {
+  q: string;
+  a: string;
+  t: number;
 }
 
 export function HomeCalculator() {
-  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<CalcMode>('scientific');
   const [solverTab, setSolverTab] = useState<SolverTab>('Algebra');
@@ -40,192 +22,169 @@ export function HomeCalculator() {
   const [equation, setEquation] = useState('');
   const [isDeg, setIsDeg] = useState(true);
   const [solverInput, setSolverInput] = useState('');
-  const [solveResult, setSolveResult] = useState<SolveResult | null>(null);
+  const [history, setHistory] = useState<CalcHistory[]>([]);
+  const [memory, setMemory] = useState<number>(0);
 
-  // Prevention of Hydration mismatch and build errors
-  useEffect(() => { 
-    setMounted(true); 
+  useEffect(() => {
+    setMounted(true);
+    const saved = localStorage.getItem('calcpro_history');
+    if (saved) setHistory(JSON.parse(saved));
   }, []);
+
+  const saveToHistory = useCallback((q: string, a: string) => {
+    const newH = [{ q, a, t: Date.now() }, ...history].slice(0, 10);
+    setHistory(newH);
+    localStorage.setItem('calcpro_history', JSON.stringify(newH));
+  }, [history]);
 
   const append = useCallback((val: string) => {
-    setDisplay(prev => (prev === '0' || prev === 'Error') ? val : prev + val);
+    if (display === 'Error') {
+      setDisplay(val);
+      setEquation(val);
+      return;
+    }
+    setDisplay(prev => (prev === '0') ? val : prev + val);
     setEquation(prev => prev + val);
-  }, []);
+  }, [display]);
 
   const calculate = useCallback(() => {
     try {
-      const res = safeEval(equation || display, { isDeg });
+      const q = equation || display;
+      const res = safeEval(q, { isDeg });
       setDisplay(res);
       setEquation('');
-    } catch { 
-      setDisplay('Error'); 
-    }
-  }, [display, equation, isDeg]);
+      if (res !== 'Error') saveToHistory(q, res);
+    } catch { setDisplay('Error'); }
+  }, [display, equation, isDeg, saveToHistory]);
 
-  const algebraButtons = [
-    {l:'x²',c:'bg-[#f3e5f5] text-[#7b1fa2]'}, {l:'√',c:'bg-[#f3e5f5] text-[#7b1fa2]'}, {l:'<',c:'bg-[#f3e5f5] text-[#7b1fa2]'}, {l:'(',c:'bg-[#f1f3f4]'}, {l:')',c:'bg-[#f1f3f4]'}, {l:'⌫',c:'bg-[#f1f3f4]'}, {l:'AC',c:'bg-[#f1f3f4] font-bold'}
-  ];
+  const memOperation = (op: string) => {
+    try {
+      const current = parseFloat(display);
+      if (isNaN(current)) return;
+      if (op === 'MC') setMemory(0);
+      if (op === 'MS') setMemory(current);
+      if (op === 'MR') setDisplay(String(memory));
+      if (op === 'M+') setMemory(m => m + current);
+      if (op === 'M-') setMemory(m => m - current);
+    } catch {}
+  };
 
-  const trigButtons = [
-    {l:'sin',c:'bg-[#e8f5e9] text-[#2e7d32]'}, {l:'cos',c:'bg-[#e8f5e9] text-[#2e7d32]'}, {l:'tan',c:'bg-[#e8f5e9] text-[#2e7d32]'}, {l:'csc',c:'bg-[#e8f5e9] text-[#2e7d32]'}, {l:'sec',c:'bg-[#e8f5e9] text-[#2e7d32]'}, {l:'cot',c:'bg-[#e8f5e9] text-[#2e7d32]'}, {l:'AC',c:'bg-[#f1f3f4] font-bold'}
-  ];
-
-  const calcButtons = [
-    {l:'d/dx',c:'bg-[#fff3e0] text-[#ef6c00]'}, {l:'∫',c:'bg-[#fff3e0] text-[#ef6c00]'}, {l:'lim',c:'bg-[#fff3e0] text-[#ef6c00]'}, {l:'Σ',c:'bg-[#fff3e0] text-[#ef6c00]'}, {l:'∞',c:'bg-[#fff3e0] text-[#ef6c00]'}, {l:'!',c:'bg-[#fff3e0] text-[#ef6c00]'}, {l:'AC',c:'bg-[#f1f3f4] font-bold'}
-  ];
-
-  const currentSolverButtons = solverTab === 'Algebra' ? algebraButtons : solverTab === 'Trigonometry' ? trigButtons : calcButtons;
-
-  if (!mounted) return null;
+  if (!mounted) return (
+    <div className="w-full h-[450px] bg-white border border-gray-100 rounded-[32px] animate-pulse flex items-center justify-center text-gray-300 text-[10px] font-black uppercase tracking-widest">
+       Constructing Matrix...
+    </div>
+  );
 
   return (
-    <div className="w-full max-w-[700px] mx-auto bg-white border border-[#dadce0] rounded-[2.5rem] shadow-sm overflow-hidden select-none font-sans">
+    <div className="w-full bg-white border border-gray-100 rounded-[40px] shadow-2xl overflow-hidden select-none font-sans relative">
       
-      <div className="flex border-b border-[#dadce0] bg-[#ffffff] h-14">
-        <button onClick={() => setMode('scientific')} className={`flex-1 py-4 text-sm font-semibold transition-all border-b-2 ${mode === 'scientific' ? 'text-[#1a73e8] border-[#1a73e8]' : 'text-[#70757a] border-transparent hover:text-gray-900'}`}>Scientific</button>
-        <button onClick={() => setMode('solver')} className={`flex-1 py-4 text-sm font-semibold border-b-2 transition-all ${mode === 'solver' ? 'text-[#1a73e8] border-[#1a73e8]' : 'text-[#70757a] border-transparent hover:text-gray-900'}`}>Maths solver</button>
+      {/* HEADER TABS */}
+      <div className="flex bg-gray-50/50 border-b border-gray-100 p-1">
+        <button onClick={() => setMode('scientific')} className={`flex-1 py-4 flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all rounded-[32px] ${mode === 'scientific' ? 'text-[#1A73E8] bg-white shadow-sm' : 'text-gray-400 opacity-60 hover:opacity-100'}`}>
+          <span className="text-base">🔢</span> Scientific
+        </button>
+        <button onClick={() => setMode('solver')} className={`flex-1 py-4 flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all rounded-[32px] ${mode === 'solver' ? 'text-[#1A73E8] bg-white shadow-sm' : 'text-gray-400 opacity-60 hover:opacity-100'}`}>
+          <span className="text-base">🧮</span> Maths Solver
+        </button>
       </div>
 
-      <div className="p-4 sm:p-8">
+      <div className="p-6 md:p-8">
         {mode === 'scientific' ? (
-          <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-300">
-            <div className="relative h-24 sm:h-28 border border-[#dadce0] rounded-3xl flex items-center px-6 sm:px-10 bg-white mb-4 sm:mb-6 group focus-within:border-[#1a73e8] transition-colors">
-               <History className="absolute left-4 top-4 w-4 h-4 text-[#70757a] opacity-30" />
-               <div className="flex-1 text-right text-4xl sm:text-6xl font-light text-gray-900 tracking-tight overflow-hidden leading-none">{display}</div>
+          <div className="space-y-6">
+            {/* DISPLAY BOX */}
+            <div className="relative border border-gray-100 rounded-[32px] bg-gray-50/30 px-8 py-8 min-h-[160px] flex flex-col justify-end items-end transition-all overflow-hidden group">
+               <button onClick={() => setShowHistory(true)} className="absolute left-6 top-6 w-10 h-10 flex items-center justify-center rounded-xl text-gray-300 hover:text-[#1A73E8] hover:bg-white border border-transparent hover:border-gray-100 transition-all">
+                  <Clock className="w-5 h-5" />
+               </button>
+               {memory !== 0 && (
+                 <div className="absolute left-6 bottom-6 flex items-center gap-2 text-[9px] font-black text-blue-500 bg-blue-50 px-2 py-1 rounded-md border border-blue-100">
+                    M STO: {memory}
+                 </div>
+               )}
+               <div className="text-sm text-gray-300 font-calc mb-3 tracking-wide">{equation || '0'}</div>
+               <div className="text-6xl md:text-8xl font-calc font-light text-[#202124] tracking-tighter leading-none">{display}</div>
             </div>
 
-            <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
-               <button onClick={() => setIsDeg(true)} className={`h-10 sm:h-12 rounded-full text-[10px] sm:text-xs font-semibold ${isDeg ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>Deg</button>
-               <button onClick={() => setIsDeg(false)} className={`h-10 sm:h-12 rounded-full text-[10px] sm:text-xs font-semibold ${!isDeg ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>Rad</button>
-               <button className="h-10 sm:h-12 rounded-full bg-[#f1f3f4] text-sm text-gray-700 font-semibold active:bg-gray-200">x!</button>
-               <button onClick={() => append('(')} className="h-10 sm:h-12 rounded-full bg-[#f1f3f4] text-sm text-gray-700 font-semibold active:bg-gray-200">(</button>
-               <button onClick={() => append(')')} className="h-10 sm:h-12 rounded-full bg-[#f1f3f4] text-sm text-gray-700 font-semibold active:bg-gray-200">)</button>
-               <button onClick={() => append('%')} className="h-10 sm:h-12 rounded-full bg-[#f1f3f4] text-sm text-gray-700 font-semibold active:bg-gray-200">%</button>
-               <button onClick={() => { setDisplay('0'); setEquation(''); }} className="h-10 sm:h-12 rounded-full bg-[#f1f3f4] text-sm text-gray-700 font-semibold uppercase active:bg-gray-200">AC</button>
+            {/* DEG/RAD TOGGLE */}
+            <div className="flex items-center gap-4">
+               <div className="bg-gray-100 p-1 rounded-xl flex gap-1">
+                  <button onClick={() => setIsDeg(true)} className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${isDeg ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400'}`}>Deg</button>
+                  <button onClick={() => setIsDeg(false)} className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${!isDeg ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400'}`}>Rad</button>
+               </div>
+            </div>
 
-               <button className="h-12 rounded-full text-xs font-semibold text-[#70757a]">Inv</button>
-               <button onClick={() => append('sin(')} className="h-12 rounded-full bg-[#f1f3f4] text-sm text-gray-700 font-semibold">sin</button>
-               <button onClick={() => append('ln(')} className="h-12 rounded-full bg-[#f1f3f4] text-sm text-gray-700 font-semibold">ln</button>
-               {[7, 8, 9].map(n => <button key={n} onClick={() => append(String(n))} className="h-12 rounded-full bg-[#f1f3f4] text-xl font-medium text-gray-900 active:bg-gray-200">{n}</button>)}
-               <button onClick={() => append('/')} className="h-12 rounded-full bg-[#f1f3f4] text-2xl text-[#70757a]">÷</button>
+            {/* MAIN BUTTON GRID - 7 COLUMNS AS PER SCREENSHOT */}
+            <div className="grid grid-cols-7 gap-2">
+               {/* ROW 1 */}
+               <button className="h-12 border border-gray-100 rounded-2xl text-[10px] font-black text-gray-500 uppercase hover:bg-gray-50">Inv</button>
+               <button onClick={() => append('sin(')} className="h-12 bg-blue-50 text-blue-600 rounded-2xl text-[11px] font-black uppercase hover:bg-blue-100">sin</button>
+               <button onClick={() => append('ln(')} className="h-12 bg-blue-50 text-blue-600 rounded-2xl text-[11px] font-black uppercase hover:bg-blue-100">ln</button>
+               {[7, 8, 9].map(n => <button key={n} onClick={() => append(String(n))} className="h-12 bg-gray-100 text-gray-900 rounded-2xl text-xl font-bold hover:bg-gray-200">{n}</button>)}
+               <button onClick={() => append('/')} className="h-12 border border-gray-100 rounded-2xl text-2xl text-gray-400 hover:bg-gray-50">÷</button>
 
-               <button onClick={() => append('π')} className="h-12 rounded-full bg-[#f1f3f4] text-xs font-semibold">π</button>
-               <button onClick={() => append('cos(')} className="h-12 rounded-full bg-[#f1f3f4] text-sm text-gray-700 font-semibold">cos</button>
-               <button onClick={() => append('log(')} className="h-12 rounded-full bg-[#f1f3f4] text-sm text-gray-700 font-semibold">log</button>
-               {[4, 5, 6].map(n => <button key={n} onClick={() => append(String(n))} className="h-12 rounded-full bg-[#f1f3f4] text-xl font-medium text-gray-900 active:bg-gray-200">{n}</button>)}
-               <button onClick={() => append('*')} className="h-12 rounded-full bg-[#f1f3f4] text-xl text-[#70757a]">×</button>
+               {/* ROW 2 */}
+               <button onClick={() => append('pi')} className="h-12 border border-gray-100 rounded-2xl text-sm font-bold text-blue-600 hover:bg-gray-50">π</button>
+               <button onClick={() => append('cos(')} className="h-12 bg-blue-50 text-blue-600 rounded-2xl text-[11px] font-black uppercase hover:bg-blue-100">cos</button>
+               <button onClick={() => append('log(')} className="h-12 bg-blue-50 text-blue-600 rounded-2xl text-[11px] font-black uppercase hover:bg-blue-100">log</button>
+               {[4, 5, 6].map(n => <button key={n} onClick={() => append(String(n))} className="h-12 bg-gray-100 text-gray-900 rounded-2xl text-xl font-bold hover:bg-gray-200">{n}</button>)}
+               <button onClick={() => append('*')} className="h-12 border border-gray-100 rounded-2xl text-2xl text-gray-400 hover:bg-gray-50">×</button>
 
-               <button onClick={() => append('e')} className="h-12 rounded-full bg-[#f1f3f4] text-xs font-semibold">e</button>
-               <button onClick={() => append('tan(')} className="h-12 rounded-full bg-[#f1f3f4] text-sm text-gray-700 font-semibold">tan</button>
-               <button onClick={() => append('sqrt(')} className="h-12 rounded-full bg-[#f1f3f4] text-sm text-gray-700 font-semibold">√</button>
-               {[1, 2, 3].map(n => <button key={n} onClick={() => append(String(n))} className="h-12 rounded-full bg-[#f1f3f4] text-xl font-medium text-gray-900 active:bg-gray-200">{n}</button>)}
-               <button onClick={() => append('-')} className="h-12 rounded-full bg-[#f1f3f4] text-2xl text-[#70757a]">−</button>
+               {/* ROW 3 */}
+               <button onClick={() => append('e')} className="h-12 border border-gray-100 rounded-2xl text-sm font-bold text-blue-600 hover:bg-gray-50">e</button>
+               <button onClick={() => append('tan(')} className="h-12 bg-blue-50 text-blue-600 rounded-2xl text-[11px] font-black uppercase hover:bg-blue-100">tan</button>
+               <button onClick={() => append('sqrt(')} className="h-12 bg-blue-50 text-blue-600 rounded-2xl text-[11px] font-black uppercase hover:bg-blue-100">√</button>
+               {[1, 2, 3].map(n => <button key={n} onClick={() => append(String(n))} className="h-12 bg-gray-100 text-gray-900 rounded-2xl text-xl font-bold hover:bg-gray-200">{n}</button>)}
+               <button onClick={() => append('-')} className="h-12 border border-gray-100 rounded-2xl text-3xl text-gray-400 hover:bg-gray-50">−</button>
 
-               <button className="h-12 rounded-full bg-[#f1f3f4] text-xs font-semibold uppercase">Ans</button>
-               <button className="h-12 rounded-full bg-[#f1f3f4] text-xs font-semibold uppercase">EXP</button>
-               <button onClick={() => append('^')} className="h-12 rounded-full bg-[#f1f3f4] text-sm text-gray-700 font-semibold leading-none">xʸ</button>
-               <button onClick={() => append('0')} className="h-12 rounded-full bg-[#f1f3f4] text-xl font-medium text-gray-900 active:bg-gray-200">0</button>
-               <button onClick={() => append('.')} className="h-12 rounded-full bg-[#f1f3f4] text-xl font-medium text-gray-900 active:bg-gray-200">.</button>
-               <button onClick={calculate} className="h-12 rounded-full bg-[#1a73e8] text-white text-2xl font-medium shadow-lg shadow-[#1a73e8]/20 transition-all active:scale-95">=</button>
-               <button onClick={() => append('+')} className="h-12 rounded-full bg-[#f1f3f4] text-2xl text-[#70757a]">+</button>
+               {/* ROW 4 */}
+               <button className="h-12 bg-gray-50 text-[9px] font-black text-gray-400 rounded-2xl uppercase tracking-widest">Ans</button>
+               <button className="h-12 bg-gray-50 text-[9px] font-black text-gray-400 rounded-2xl uppercase tracking-widest">EXP</button>
+               <button onClick={() => append('^')} className="h-12 bg-gray-50 text-blue-600 rounded-2xl text-sm font-bold">xʸ</button>
+               <button onClick={() => append('0')} className="h-12 bg-gray-100 text-gray-900 rounded-2xl text-xl font-bold hover:bg-gray-200">0</button>
+               <button onClick={() => setMode('solver')} className="text-[10px] font-black text-blue-600 hover:underline uppercase tracking-widest flex items-center gap-2">
+                  Open Full Maths Solver <MoveUpRight className="w-3 h-3" />
+               </button>
             </div>
           </div>
         ) : (
-          <div className="space-y-6 sm:space-y-10 animate-in fade-in duration-300">
-            <div className="flex items-center justify-between">
-               <h2 className="text-3xl sm:text-4xl font-normal text-gray-900 tracking-tight">Maths solver</h2>
-               <button className="p-2 sm:p-3 hover:bg-gray-50 rounded-full transition-colors"><MoreVertical className="w-5 h-5 text-gray-300" /></button>
-            </div>
-
-            <div className="flex gap-4 sm:gap-10 border-b border-gray-100">
-               {['Algebra', 'Trigonometry', 'Calculus'].map(tab => (
-                 <button key={tab} onClick={() => setSolverTab(tab as any)} className={`pb-4 text-sm sm:text-base font-semibold transition-all relative ${solverTab === tab ? 'text-[#1a73e8]' : 'text-[#70757a] hover:text-gray-900'}`}>
-                   {tab}
-                   {solverTab === tab && <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#1a73e8] rounded-t-full" />}
-                 </button>
-               ))}
+          <div className="space-y-8">
+            <div className="space-y-2">
+               <h2 className="text-4xl font-black text-gray-900 tracking-tight">Maths solver</h2>
+               <div className="flex gap-8 border-b border-gray-100 mt-6">
+                 {['Algebra', 'Trigonometry', 'Calculus'].map(tab => (
+                   <button key={tab} onClick={() => setSolverTab(tab as any)} className={`pb-4 text-[11px] font-black uppercase tracking-widest relative transition-all ${solverTab === tab ? 'text-blue-600' : 'text-gray-400 hover:text-gray-900'}`}>
+                      {tab}
+                      {solverTab === tab && <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-t-full shadow-[0_-4px_12px_rgba(37,99,235,0.4)]" />}
+                   </button>
+                 ))}
+               </div>
             </div>
 
             <div className="relative">
-               <div className="h-20 sm:h-24 border border-[#dadce0] rounded-3xl flex items-center px-6 sm:px-10 bg-[#f8f9fa] shadow-inner focus-within:bg-white focus-within:border-[#1a73e8] transition-all">
-                  <input
-                    value={solverInput}
-                    onChange={e => setSolverInput(e.target.value)}
-                    placeholder="Type a math problem..."
-                    className="flex-1 bg-transparent border-none outline-none text-2xl sm:text-3xl text-gray-900 font-light placeholder:text-gray-300"
-                  />
-                  <div className="flex items-center gap-4 sm:gap-6">
-                     <button onClick={() => setSolverInput('')} className="p-2 hover:bg-gray-100 rounded-full"><X className="w-4 h-4 text-gray-400"/></button>
-                     <ChevronDown className="w-5 h-5 text-gray-300 cursor-pointer" />
+               <div className="bg-gray-50 border border-gray-100 rounded-[32px] p-6 focus-within:bg-white focus-within:border-blue-600 transition-all shadow-inner">
+                  <div className="flex items-center gap-4">
+                     <input 
+                        value={solverInput}
+                        onChange={e => setSolverInput(e.target.value)}
+                        placeholder="e.g. 6x + 5 = 14  or  sin(45)"
+                        className="flex-1 bg-transparent border-none outline-none text-2xl font-calc text-gray-900 placeholder:text-gray-300"
+                     />
+                     <button className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-all active:scale-90 shadow-lg shadow-blue-200">
+                        <Send className="w-5 h-5 rotate-[-45deg]" />
+                     </button>
                   </div>
                </div>
             </div>
 
-            <div className="grid grid-cols-7 gap-1.5 sm:gap-3">
-               {currentSolverButtons.map((b, i) => (
-                 <button key={i} onClick={() => b.l === 'AC' ? setSolverInput('') : b.l === '⌫' ? setSolverInput(p => p.slice(0, -1)) : setSolverInput(p => p + b.l)} className={`h-11 sm:h-14 rounded-2xl flex items-center justify-center font-bold transition-all border border-transparent hover:border-gray-100 ${b.c}`}>
-                    <span className="text-[10px] sm:text-sm text-gray-700">{b.l}</span>
-                 </button>
-               ))}
-               
-               <button onClick={() => setSolverInput(p => p + 'x')} className="h-11 sm:h-14 bg-gray-50 rounded-2xl font-bold font-serif text-gray-400 italic">X</button>
-               <button onClick={() => setSolverInput(p => p + 'y')} className="h-11 sm:h-14 bg-gray-50 rounded-2xl font-bold font-serif text-gray-400 italic">Y</button>
-               <button onClick={() => setSolverInput(p => p + '=')} className="h-11 sm:h-14 bg-gray-50 rounded-2xl font-bold text-gray-400">=</button>
-               {[7, 8, 9].map(n => <button key={n} onClick={() => setSolverInput(prev => prev + n)} className="h-11 sm:h-14 rounded-2xl bg-[#f1f3f4] text-xl font-medium text-gray-900">{n}</button>)}
-               <button onClick={() => setSolverInput(p => p + '/')} className="h-11 sm:h-14 bg-[#f1f3f4] text-2xl text-[#70757a]">÷</button>
-
-               {Array.from({length: 3}).map((_, i) => <div key={i} className="h-11 sm:h-14" />)}
-               {[4, 5, 6].map(n => <button key={n} onClick={() => setSolverInput(prev => prev + n)} className="h-11 sm:h-14 rounded-2xl bg-[#f1f3f4] text-xl font-medium text-gray-900">{n}</button>)}
-               <button onClick={() => setSolverInput(p => p + '*')} className="h-11 sm:h-14 bg-[#f1f3f4] text-xl text-[#70757a]">×</button>
-
-               {Array.from({length: 3}).map((_, i) => <div key={i} className="h-11 sm:h-14" />)}
-               {[1, 2, 3].map(n => <button key={n} onClick={() => setSolverInput(prev => prev + n)} className="h-11 sm:h-14 rounded-2xl bg-[#f1f3f4] text-xl font-medium text-gray-900">{n}</button>)}
-               <button onClick={() => setSolverInput(p => p + '-')} className="h-11 sm:h-14 bg-[#f1f3f4] text-2xl text-[#70757a]">−</button>
-
-               {Array.from({length: 3}).map((_, i) => <div key={i} className="h-11 sm:h-14" />)}
-               <button onClick={() => setSolverInput(p => p + '0')} className="h-11 sm:h-14 rounded-2xl bg-[#f1f3f4] text-xl font-medium text-gray-900">0</button>
-               <button onClick={() => setSolverInput(p => p + '.')} className="h-11 sm:h-14 rounded-2xl bg-[#f1f3f4] text-3xl font-medium text-gray-900">.</button>
-               <button onClick={() => setSolveResult(solveMath(solverInput))} className="h-11 sm:h-14 bg-[#7b1fa2] text-white rounded-2xl flex items-center justify-center hover:bg-[#6a1b9a] shadow-xl shadow-purple-100 transition-all active:scale-95">
-                  <Send className="w-5 h-5 sm:w-6 sm:h-6 rotate-[-45deg]" />
-               </button>
-               <button onClick={() => setSolverInput(p => p + '+')} className="h-11 sm:h-14 bg-[#f1f3f4] text-2xl text-[#70757a]">+</button>
-            </div>
-
-            {/* Steps & Solution Area */}
-            {solveResult && (
-               <div className="bg-[#f0f4f8] rounded-[2rem] p-6 space-y-4 animate-in zoom-in-95 duration-500">
-                  <div className="flex items-center gap-3 text-[#7b1fa2]">
-                     <MoveUpRight className="w-4 h-4" />
-                     <span className="text-xs font-black uppercase tracking-widest leading-none">Proposed Analytical Path</span>
-                  </div>
-                  <div className="space-y-4">
-                     {solveResult.steps.map(s => (
-                        <div key={s.step} className="flex gap-4">
-                           <div className="bg-white/50 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-[#7b1fa2] shrink-0 border border-purple-100">{s.step}</div>
-                           <div className="space-y-1">
-                              <p className="text-sm text-gray-600 leading-tight">{s.description}</p>
-                              {s.expression && <p className="text-lg font-serif italic text-gray-900 font-medium">{s.expression}</p>}
-                           </div>
-                        </div>
-                     ))}
-                  </div>
-                  <div className="mt-6 pt-6 border-t border-white/30 flex items-center justify-between">
-                     <span className="text-sm font-bold text-gray-500">FINAL ANSWER</span>
-                     <span className="text-2xl font-black text-[#1a73e8] tracking-tighter">{solveResult.answer}</span>
-                  </div>
-               </div>
-            )}
-
-            {/* Chips laboratory */}
-            <div className="flex flex-wrap gap-3 sm:gap-4 pt-6 sm:pt-10 px-2 justify-center sm:justify-start">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                {[
                  {l:'Linear equations', e:'6x + 5 = 14'},
-                 {l:'Polynomials', e:'(x + 5)(x + 2)'},
-                 {l:'Quadratic equations', e:'4x² - 5x - 12 = 0'}
-               ].map(c => (
-                 <button key={c.l} onClick={() => { setSolverInput(c.e); setSolveResult(solveMath(c.e)); }} className="px-5 sm:px-8 py-3 sm:py-5 border-2 border-gray-100 rounded-[1.5rem] sm:rounded-[2.5rem] bg-white hover:border-[#1a73e8] transition-all hover:shadow-lg text-left space-y-0.5 sm:space-y-1 shrink-0">
-                    <div className="text-[8px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest">{c.l}</div>
-                    <div className="text-base sm:text-xl font-book text-gray-900 tracking-tight">{c.e}</div>
+                 {l:'Quadratic equations', e:'x² - 5x + 6 = 0'},
+                 {l:'Polynomials', e:'(x+2)(x-3)'}
+               ].map(chip => (
+                 <button key={chip.l} onClick={() => setSolverInput(chip.e)} className="p-6 border border-gray-100 rounded-[28px] bg-white hover:border-blue-600 hover:shadow-xl transition-all text-left space-y-2 group">
+                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-blue-600">{chip.l}</div>
+                    <div className="text-lg font-calc text-gray-900">{chip.e}</div>
                  </button>
                ))}
             </div>
@@ -233,14 +192,15 @@ export function HomeCalculator() {
         )}
       </div>
 
-      <div className="bg-[#f8f9fa] border-t border-[#dadce0] p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-center gap-6 sm:px-12">
-         <div className="flex gap-8 sm:gap-10">
-            <button onClick={() => router.push('/calculator/loan-emi')} className="text-[10px] font-black text-[#70757a] hover:text-[#1a73e8] uppercase tracking-[0.2em] transition-all flex items-center gap-2 group">EMI Tool <MoveUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" /></button>
-            <button onClick={() => router.push('/calculator/nepal-income-tax')} className="text-[10px] font-black text-[#70757a] hover:text-[#1a73e8] uppercase tracking-[0.2em] transition-all flex items-center gap-3 group">Growth Tax <MoveUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" /></button>
+      {/* FOOTER NAV CTAs */}
+      <div className="bg-gray-50/50 border-t border-gray-100 p-8 flex flex-col md:flex-row justify-between items-center gap-6">
+         <div className="flex gap-8">
+            <Link href="/calculator/loan-emi" className="text-[10px] font-black text-gray-400 hover:text-blue-600 transition-colors uppercase tracking-widest flex items-center gap-2">EMI Calculator <ChevronRight className="w-3 h-3"/></Link>
+            <Link href="/calculator/nepal-income-tax" className="text-[10px] font-black text-gray-400 hover:text-blue-600 transition-colors uppercase tracking-widest flex items-center gap-2">Income Tax <ChevronRight className="w-3 h-3"/></Link>
          </div>
-         <Link href="/calculator" className="text-sm font-black text-[#1a73e8] hover:underline flex items-center gap-3">
-            DIRECTORY 
-            <div className="w-8 h-8 bg-[#e8f0fe] text-[#1a73e8] rounded-xl flex items-center justify-center text-[10px] font-black">39+</div>
+         <Link href="/calculator" className="flex items-center gap-4 group">
+            <span className="text-[11px] font-black text-gray-900 group-hover:text-blue-600 transition-colors uppercase tracking-widest">Global Directory</span>
+            <div className="w-10 h-10 rounded-full bg-white border border-gray-100 flex items-center justify-center text-[10px] font-black text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all transform group-hover:scale-110">80+</div>
          </Link>
       </div>
     </div>

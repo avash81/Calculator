@@ -7,7 +7,6 @@
  *
  * @component
  */
-'use client';
 import Link from 'next/link';
 import { CALCULATORS } from '@/data/calculators';
 

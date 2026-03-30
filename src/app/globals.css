@@ -10,20 +10,25 @@
 
 /* ── CSS DESIGN TOKENS ─────────────────────────────────────── */
 :root {
-  --cp-blue: #1B4FBD;
-  --cp-blue-light: #EFF4FF;
-  --cp-blue-dark: #1440A0;
-  --cp-nepal: #E31837;
-  --cp-nepal-light: #FFF0F0;
-  --cp-green: #16a34a;
-  --cp-bg: #F8FAFB;
-  --cp-text: #111827;
-  --cp-muted: #6B7280;
-  --cp-border: #E5E7EB;
-  --nav-height: 56px;
-  /* 56px on mobile */
-  --bottom-nav: 60px;
-  /* Mobile bottom nav height */
+  --cp-blue: #1A73E8;
+  --cp-blue-dark: #1557B0;
+  --cp-blue-light: #E8F0FE;
+  --cp-nepal: #DC143C;
+  --cp-nepal-blue: #003893;
+  --cp-bg: #FFFFFF;
+  --cp-surface: #F8F9FA;
+  --cp-gray-100: #F1F3F4;
+  --cp-gray-200: #E8EAED;
+  --cp-gray-300: #DADCE0;
+  --cp-gray-500: #9AA0A6;
+  --cp-gray-700: #5F6368;
+  --cp-gray-900: #202124;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --nav-height: 60px;
+  --bottom-nav: 64px;
 }
 
 @media (min-width: 768px) {
@@ -44,11 +49,10 @@ html {
 }
 
 body {
-  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-dm-sans), var(--font-inter), system-ui, -apple-system, sans-serif;
   background-color: var(--cp-bg);
-  color: var(--cp-text);
+  color: var(--cp-gray-900);
   -webkit-font-smoothing: antialiased;
-  /* Space for mobile bottom nav + iOS home bar */
   padding-bottom: calc(var(--bottom-nav) + env(safe-area-inset-bottom, 0px));
 }
 
@@ -173,7 +177,7 @@ button:not([class*="min-h"]) {
 
 /* ── MONOSPACE NUMBERS (calculator displays) ────────────────── */
 .font-calc {
-  font-family: 'JetBrains Mono', 'Courier New', ui-monospace, monospace;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
 }
 

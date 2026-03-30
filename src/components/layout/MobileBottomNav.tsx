@@ -1,59 +1,35 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Home, Grid, Search, BookOpen } from 'lucide-react';
 import { NepalFlag } from '@/components/ui/NepalFlag';
 
 const NAV_ITEMS = [
   {
     href: '/',
     label: 'Home',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24"
-        fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2
-                  2 0 0 1-2-2z"/>
-        <polyline points="9 22 9 12 15 12 15 22"/>
-      </svg>
-    ),
+    icon: Home,
   },
   {
-    href: '/calculators',
+    href: '/calculator',
     label: 'Tools',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24"
-        fill="none" stroke="currentColor" strokeWidth="1.8">
-        <rect x="2" y="2" width="20" height="20" rx="3"/>
-        <path d="M8 6h8M8 10h8M8 14h4"/>
-      </svg>
-    ),
+    icon: Grid,
   },
   {
-    href: '/calculators/finance/nepal-income-tax',
+    href: '/calculator/nepal-income-tax',
     label: 'Nepal',
-    icon: <NepalFlag />,
+    icon: NepalFlag,
+    special: true,
+  },
+  {
+    href: '/calculator?search=true',
+    label: 'Search',
+    icon: Search,
   },
   {
     href: '/blog',
     label: 'Blog',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24"
-        fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4
-                  19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/calculators?search=true',
-    label: 'Search',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24"
-        fill="none" stroke="currentColor" strokeWidth="1.8">
-        <circle cx="11" cy="11" r="8"/>
-        <path d="M21 21l-4.35-4.35"/>
-      </svg>
-    ),
+    icon: BookOpen,
   },
 ];
 
@@ -62,44 +38,42 @@ export default function MobileBottomNav() {
 
   return (
     <nav
-      className="
-        md:hidden
-        fixed bottom-0 left-0 right-0
-        bg-white border-t border-gray-200
-        z-50
-        safe-area-pb
-      "
-      style={{
-        paddingBottom: 'env(safe-area-inset-bottom)',
-      }}
-      aria-label="Mobile navigation"
+      className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 z-[100] shadow-[0_-8px_24px_rgba(0,0,0,0.05)]"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <div className="grid grid-cols-5 h-14">
-        {NAV_ITEMS.map(item => {
-          const isActive = pathname === item.href ||
-            (item.href !== '/' &&
-             pathname.startsWith(item.href.split('?')[0]));
+      <div className="grid grid-cols-5 h-16 relative">
+        {NAV_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href.split('?')[0]));
+          
+          if (item.special) {
+            return (
+              <Link key={item.href} href={item.href} className="relative flex flex-col items-center justify-center pt-1 group">
+                <div className={`w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-lg border border-gray-100 transform -translate-y-6 transition-all active:scale-90 ${isActive ? 'ring-4 ring-blue-50 border-blue-100' : ''}`}>
+                   <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
+                      <Icon />
+                   </div>
+                </div>
+                <span className={`text-[10px] font-bold absolute bottom-2 tracking-tight ${isActive ? 'text-blue-600' : 'text-gray-400'}`}>
+                  {item.label}
+                </span>
+              </Link>
+            );
+          }
+
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`
-                flex flex-col items-center justify-center gap-0.5
-                transition-colors duration-150
-                ${isActive
-                  ? 'text-blue-600'
-                  : 'text-gray-400 hover:text-gray-600'
-                }
-              `}
+              className={`flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${isActive ? 'text-blue-600' : 'text-gray-400'}`}
             >
-              {/* Icon */}
-              <span className={isActive ? 'text-blue-600' : ''}>
-                {item.icon}
-              </span>
-              {/* Label */}
-              <span className="text-[9px] font-medium leading-none">
+              <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
+              <span className={`text-[10px] font-bold tracking-tight ${isActive ? 'opacity-100' : 'opacity-60'}`}>
                 {item.label}
               </span>
+              {isActive && (
+                <div className="absolute top-0 w-12 h-0.5 bg-blue-600 rounded-b-full shadow-[0_4px_12px_rgba(37,99,235,0.4)]" />
+              )}
             </Link>
           );
         })}
