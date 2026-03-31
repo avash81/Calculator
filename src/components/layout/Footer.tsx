@@ -50,19 +50,21 @@ export function Footer() {
             <ul className="space-y-3 text-[10.5px] font-bold text-gray-400">
               <li><Link href="/calculator/gpa" className="hover:text-google-blue transition-all">GPA Suite</Link></li>
               <li><Link href="/calculator/cgpa" className="hover:text-google-blue transition-all">CGPA Calc</Link></li>
-              <li><Link href="/calculator/engineering-gpa-calculator" className="hover:text-google-blue transition-all">Engineering</Link></li>
-              <li><Link href="/calculator/scientific-calculator" className="hover:text-google-blue transition-all">Scientific</Link></li>
+              <li><Link href="/calculator/engineering-gpa-calculator" className="hover:text-google-blue transition-all tracking-tight">Engineering GPA</Link></li>
+              <li><Link href="/calculator/concrete-mix" className="hover:text-google-blue transition-all">Civil/Concrete</Link></li>
+              <li><Link href="/calculator/geometry-3d" className="hover:text-google-blue transition-all">3D Geometry</Link></li>
+              <li><Link href="/calculator/scientific-calculator" className="hover:text-google-blue transition-all">Scientific Hub</Link></li>
             </ul>
           </div>
 
-          {/* Column 5: Engineering Hub */}
+          {/* Column 5: Utility & Converters */}
           <div>
-            <h3 className="text-white font-black mb-5 uppercase tracking-[0.2em] text-[9px] opacity-60">Technical</h3>
+            <h3 className="text-white font-black mb-5 uppercase tracking-[0.2em] text-[9px] opacity-60">Utilities</h3>
             <ul className="space-y-3 text-[10.5px] font-bold text-gray-400">
-              <li><Link href="/calculator/concrete-mix" className="hover:text-google-blue transition-all">Concrete Hub</Link></li>
-              <li><Link href="/calculator/unit-converter" className="hover:text-google-blue transition-all">Unit Switch</Link></li>
+              <li><Link href="/calculator/unit-converter" className="hover:text-google-blue transition-all">Unit Converter</Link></li>
               <li><Link href="/calculator/percentage" className="hover:text-google-blue transition-all">Percentages</Link></li>
-              <li><Link href="/calculator/geometry-3d" className="hover:text-google-blue transition-all">Geometry (Area)</Link></li>
+              <li><Link href="/calculator/qr-generator" className="hover:text-google-blue transition-all">QR Generator</Link></li>
+              <li><Link href="/calculator/nepali-date" className="hover:text-google-blue transition-all">Date Converter</Link></li>
             </ul>
           </div>
 

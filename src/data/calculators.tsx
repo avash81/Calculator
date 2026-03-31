@@ -285,27 +285,27 @@ export const CALCULATORS: Calculator[] = [
     description:'Find Least Common Multiple and Greatest Common Factor',
     keywords:['lcm','gcf','hcf','multiple','factor','math'] },
 
-  // ── ENGINEERING ─────────────────────────────────────
+  // ── ENGINEERING MOVED TO EDUCATION ──────────────────
   { id:'concrete', slug:'concrete-mix',
-    name:'Concrete Mix', icon:'🏗️', category:'engineering',
+    name:'Concrete Mix', icon:'🏗️', category:'education',
     isNew:true, isHot:true,
     description:'Estimate cement, sand and stone for concrete',
     keywords:['concrete','civil','cement bags','sand','aggregate'] },
 
   { id:'brick', slug:'brick-calculator',
-    name:'Bricks Calculator', icon:'🧱', category:'engineering',
+    name:'Bricks Calculator', icon:'🧱', category:'education',
     isNew:true,
     description:'Calculate number of bricks for a wall',
     keywords:['bricks','wall','construction','quantity'] },
 
   { id:'paint-cost', slug:'paint-cost-calculator',
-    name:'Nepal Paint Cost', icon:'🎨', category:'engineering',
+    name:'Nepal Paint Cost', icon:'🎨', category:'education',
     isNepal:true,
     description:'Estimate paint quantity and cost for your room in NPR',
     keywords:['paint cost','nepal house','painting','sq ft'] },
 
   { id:'solar-calc', slug:'solar-requirement',
-    name:'Solar Panel Calc', icon:'☀️', category:'engineering',
+    name:'Solar Panel Calc', icon:'☀️', category:'education',
     description:'Estimate solar plates and battery needed for your home',
     keywords:['solar','nepal solar','plates','battery','backup'] },
 
@@ -433,11 +433,5 @@ export const CATEGORIES: Category[] = [
     name: 'Conversion Tools',
     icon: '🔄',
     calculators: CALCULATORS.filter(c => c.category === 'conversion' || c.category === 'utility'),
-  },
-  {
-    id: 'engineering',
-    name: 'Engineering Hub',
-    icon: '🏗️',
-    calculators: CALCULATORS.filter(c => c.category === 'engineering'),
-  },
+  }
 ];
