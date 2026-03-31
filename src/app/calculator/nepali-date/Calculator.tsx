@@ -126,14 +126,27 @@ export default function NepaliDateConverter() {
                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
                   {tab === 'ad2bs' ? 'Enter English Date (AD)' : 'Enter Nepali Date (BS)'}
                 </label>
-                <input
-                  type={tab === 'ad2bs' ? 'date' : 'text'}
-                  placeholder={tab === 'bs2ad' ? 'YYYY-MM-DD' : ''}
-                  value={inputDate}
-                  onChange={e => setInputDate(e.target.value)}
-                  className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold text-gray-900 bg-white"
-                />
-                {tab === 'bs2ad' && <p className="text-xs text-gray-400 mt-1">Format: YYYY-MM-DD (e.g., 2080-01-15)</p>}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="YYYY-MM-DD"
+                    value={inputDate}
+                    onChange={e => setInputDate(e.target.value)}
+                    className="w-full border-2 border-gray-200 rounded-lg pl-4 pr-12 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold text-gray-900 bg-white"
+                  />
+                  {tab === 'ad2bs' && (
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center overflow-hidden rounded-md hover:bg-gray-100 transition-colors">
+                      <input
+                        type="date"
+                        value={inputDate || todayAD}
+                        onChange={e => setInputDate(e.target.value)}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-[200%] h-[200%] -top-1/2 -left-1/2"
+                      />
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 pointer-events-none"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-gray-400 mt-2">Format: YYYY-MM-DD (e.g., {tab === 'ad2bs' ? '2024-05-15' : '2080-01-15'})</p>
               </div>
               
               <div className="flex gap-2">
