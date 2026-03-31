@@ -49,7 +49,7 @@ export function Footer() {
             <h3 className="text-white font-black mb-5 uppercase tracking-[0.2em] text-[9px] opacity-60">Academic</h3>
             <ul className="space-y-3 text-[10.5px] font-bold text-gray-400">
               <li><Link href="/calculator/gpa" className="hover:text-google-blue transition-all">GPA Suite</Link></li>
-              <li><Link href="/calculator/see-gpa-calculator" className="hover:text-google-blue transition-all">SEE GPA</Link></li>
+              <li><Link href="/calculator/cgpa" className="hover:text-google-blue transition-all">CGPA Calc</Link></li>
               <li><Link href="/calculator/engineering-gpa-calculator" className="hover:text-google-blue transition-all">Engineering</Link></li>
               <li><Link href="/calculator/scientific-calculator" className="hover:text-google-blue transition-all">Scientific</Link></li>
             </ul>
@@ -62,7 +62,7 @@ export function Footer() {
               <li><Link href="/calculator/concrete-mix" className="hover:text-google-blue transition-all">Concrete Hub</Link></li>
               <li><Link href="/calculator/unit-converter" className="hover:text-google-blue transition-all">Unit Switch</Link></li>
               <li><Link href="/calculator/percentage" className="hover:text-google-blue transition-all">Percentages</Link></li>
-              <li><Link href="/calculator/area-calculator" className="hover:text-google-blue transition-all">Area Finder</Link></li>
+              <li><Link href="/calculator/geometry-3d" className="hover:text-google-blue transition-all">Geometry (Area)</Link></li>
             </ul>
           </div>
 

@@ -195,7 +195,8 @@ export function HomeCalculator() {
                   </button>
                 ))}
                 
-                {['x', 'y'].map(k => (
+                {/* Specific Keys for Algebra / Trigonometry / Calculus */}
+                {solverTab === 'Algebra' && ['x', 'y'].map(k => (
                   <button 
                     key={k} 
                     type="button"
@@ -209,6 +210,41 @@ export function HomeCalculator() {
                     {k}
                   </button>
                 ))}
+
+                {solverTab === 'Trigonometry' && ['sin', 'cos', 'tan', 'π'].map(k => (
+                  <button 
+                    key={k} 
+                    type="button"
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      setSolverResult('');
+                      setSolverInput(s => s + (k === 'π' ? 'pi' : k + '('));
+                    }}
+                    className="h-11 bg-orange-50 text-orange-600 text-xs font-black rounded-xl border border-orange-100 cursor-pointer"
+                  >
+                    {k}
+                  </button>
+                ))}
+
+                {solverTab === 'Calculus' && ['d/dx', '∫', 'lim', '∞'].map(k => (
+                  <button 
+                    key={k} 
+                    type="button"
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      setSolverResult('');
+                      if (k === 'd/dx') setSolverInput(s => s + 'd/dx(');
+                      else if (k === '∫') setSolverInput(s => s + 'int(');
+                      else if (k === 'lim') setSolverInput(s => s + 'lim(');
+                      else if (k === '∞') setSolverInput(s => s + 'infinity');
+                    }}
+                    className="h-11 bg-green-50 text-green-600 text-xs font-black rounded-xl border border-green-100 cursor-pointer"
+                  >
+                    {k}
+                  </button>
+                ))}
+
+                {/* Shared Operations */}
                 {['=', '+', '-', '*', '/'].map(k => (
                     <button 
                       key={k} 
@@ -221,12 +257,13 @@ export function HomeCalculator() {
                            setSolverInput(s => s + k);
                         }
                       }}
-                      className={`h-11 text-lg font-bold rounded-xl cursor-pointer ${k === '=' ? 'bg-google-blue text-white shadow-lg shadow-blue-500/20' : 'bg-google-gray text-google-blue'}`}
+                      className={`h-11 text-lg font-bold rounded-xl cursor-pointer ${k === '=' ? 'bg-google-blue text-white shadow-lg shadow-blue-500/20 col-span-2' : 'bg-google-gray text-google-blue'} ${solverTab !== 'Algebra' && k === '=' ? 'col-span-1' : ''}`}
                     >
                       {k}
                     </button>
                 ))}
                 
+                {/* Numbers */}
                 {[7,8,9,4,5,6,1,2,3,0,'.'].map(n => 
                   <button 
                     key={n} 
@@ -244,7 +281,7 @@ export function HomeCalculator() {
                 
                 <Link 
                   href="/calculator/matrices"
-                  className="col-span-3 h-11 bg-google-blue text-white rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95 transition-all text-[10px] font-black uppercase tracking-wider"
+                  className={`${solverTab !== 'Algebra' ? 'col-span-2' : 'col-span-3'} h-11 bg-google-blue text-white rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95 transition-all text-[10px] font-black uppercase tracking-wider`}
                 >
                   Solve Matrix <Play className="w-3.5 h-3.5 fill-white" />
                 </Link>
