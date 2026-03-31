@@ -9,8 +9,8 @@ export function MobileBottomNav() {
   const tabs = [
     { name: 'Home', icon: Home, path: '/' },
     { name: 'Search', icon: Search, path: '/calculator' },
-    { name: 'Nepal', icon: Globe, path: '/nepal', isSpecial: true },
-    { name: 'Tools', icon: Grid, path: '/categories' },
+    { name: 'Nepal', icon: Globe, path: '/calculator?cat=nepal', isSpecial: true },
+    { name: 'Tools', icon: Grid, path: '/calculator' },
     { name: 'Blog', icon: BookOpen, path: '/blog' },
   ];
 

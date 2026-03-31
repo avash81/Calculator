@@ -21,6 +21,7 @@
     "@tiptap/starter-kit": "^2.27.2",
     "clsx": "^2.1.1",
     "firebase": "^12.11.0",
+    "gray-matter": "^4.0.3",
     "jose": "^6.2.2",
     "lucide-react": "^0.378.0",
     "motion": "^12.38.0",

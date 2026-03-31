@@ -66,17 +66,17 @@ export default function BMRCalculator() {
 
             <div>
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Age (Years)</label>
-              <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" pattern="[0-9]*" value={age} onChange={e => setAge(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
+              <input type="number" inputMode="numeric" pattern="[0-9]*" value={age} onChange={e => setAge(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
             </div>
 
             <div>
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Weight (kg)</label>
-              <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="decimal" value={weight} onChange={e => setWeight(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
+              <input type="number" inputMode="decimal" pattern="[0-9.]*" value={weight} onChange={e => setWeight(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
             </div>
 
             <div>
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Height (cm)</label>
-              <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="decimal" value={height} onChange={e => setHeight(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
+              <input type="number" inputMode="decimal" pattern="[0-9.]*" value={height} onChange={e => setHeight(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
             </div>
           </div>
 

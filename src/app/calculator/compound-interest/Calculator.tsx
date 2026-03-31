@@ -68,7 +68,7 @@ export default function CompoundInterestCalculator() {
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Initial Investment</label>
                 <span className="text-sm font-semibold text-blue-600">NPR {fmt(principal)}</span>
               </div>
-              <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" pattern="[0-9]*" value={principal} onChange={e => setPrincipal(Number(e.target.value))} className="w-full border-2 border-gray-200 rounded-lg px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono mb-2 text-gray-900 bg-white" />
+              <input type="number" inputMode="numeric" pattern="[0-9]*" value={principal} onChange={e => setPrincipal(Number(e.target.value))} className="w-full border-2 border-gray-200 rounded-lg px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono mb-2 text-gray-900 bg-white" />
               <input type="range" min={10000} max={10000000} step={10000} value={principal} onChange={e => setPrincipal(Number(e.target.value))} className="w-full accent-blue-600" />
             </div>
 
@@ -77,7 +77,7 @@ export default function CompoundInterestCalculator() {
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Interest Rate (Yearly)</label>
                 <span className="text-sm font-semibold text-blue-600">{rate}%</span>
               </div>
-              <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="decimal" value={rate} onChange={e => setRate(Number(e.target.value))} className="w-full border-2 border-gray-200 rounded-lg px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono mb-2 text-gray-900 bg-white" />
+              <input type="number" inputMode="decimal" pattern="[0-9.]*" value={rate} onChange={e => setRate(Number(e.target.value))} className="w-full border-2 border-gray-200 rounded-lg px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono mb-2 text-gray-900 bg-white" />
               <input type="range" min={1} max={30} step={0.1} value={rate} onChange={e => setRate(Number(e.target.value))} className="w-full accent-blue-600" />
             </div>
 
@@ -86,7 +86,7 @@ export default function CompoundInterestCalculator() {
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Time Period (Years)</label>
                 <span className="text-sm font-semibold text-blue-600">{years} Years</span>
               </div>
-              <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" pattern="[0-9]*" value={years} onChange={e => setYears(Number(e.target.value))} className="w-full border-2 border-gray-200 rounded-lg px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono mb-2 text-gray-900 bg-white" />
+              <input type="number" inputMode="numeric" pattern="[0-9]*" value={years} onChange={e => setYears(Number(e.target.value))} className="w-full border-2 border-gray-200 rounded-lg px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono mb-2 text-gray-900 bg-white" />
               <input type="range" min={1} max={50} step={1} value={years} onChange={e => setYears(Number(e.target.value))} className="w-full accent-blue-600" />
             </div>
 

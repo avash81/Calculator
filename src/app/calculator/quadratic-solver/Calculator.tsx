@@ -47,17 +47,17 @@ export default function QuadraticSolver() {
             <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
               <div className="flex items-center gap-4 justify-center py-8 overflow-x-auto">
                 <div className="flex flex-col items-center gap-2">
-                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={a} onChange={e => setA(+e.target.value)} className="w-16 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                  <input type="number" inputMode="numeric" pattern="[0-9.]*" value={a} onChange={e => setA(+e.target.value)} className="w-16 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">a</span>
                 </div>
                 <span className="text-2xl font-bold text-gray-300">x² +</span>
                 <div className="flex flex-col items-center gap-2">
-                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={b} onChange={e => setB(+e.target.value)} className="w-16 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                  <input type="number" inputMode="numeric" pattern="[0-9.]*" value={b} onChange={e => setB(+e.target.value)} className="w-16 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">b</span>
                 </div>
                 <span className="text-2xl font-bold text-gray-300">x +</span>
                 <div className="flex flex-col items-center gap-2">
-                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={c} onChange={e => setC(+e.target.value)} className="w-16 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                  <input type="number" inputMode="numeric" pattern="[0-9.]*" value={c} onChange={e => setC(+e.target.value)} className="w-16 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">c</span>
                 </div>
                 <span className="text-2xl font-bold text-gray-300">= 0</span>

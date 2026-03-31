@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 import { CATEGORIES } from '@/data/calculators';
 import { MoveRight } from 'lucide-react';
 import { Sidebar } from '@/components/home/Sidebar';
@@ -22,6 +23,7 @@ const CAT_STYLES: Record<string, { icon: string, color: string, bg: string, acce
 };
 
 export default function HomePageClient() {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
@@ -32,8 +34,8 @@ export default function HomePageClient() {
     <div className="min-h-screen bg-white font-sans selection:bg-google-blue-light selection:text-google-blue overflow-x-hidden">
       
       {/* HERO SECTION */}
-      <section className="pt-24 pb-16 px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto text-center space-y-10">
+      <section className="pt-14 pb-6 px-6 lg:px-12">
+        <div className="max-w-7xl mx-auto text-center space-y-5">
           
           <div className="inline-flex items-center gap-2 bg-google-blue-light text-google-blue px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-google-blue/10">
              <div className="w-1.5 h-1.5 rounded-full bg-google-blue animate-pulse" />
@@ -46,15 +48,15 @@ export default function HomePageClient() {
                <span className="text-google-blue">Nepal & Beyond</span>
              </h1>
              <p className="text-base md:text-lg text-gray-500 font-medium tracking-tight max-w-2xl mx-auto leading-relaxed">
-               39 free calculators for taxes, finance, health & education. <br />
+               75+ free calculators for taxes, finance, health & education. <br />
                Built for Nepal&apos;s FY 2082/83. Private. Fast. No login needed.
              </p>
           </div>
 
           {/* Key Stats Row */}
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16 pt-8 border-t border-google-border max-w-3xl mx-auto">
+          <div className="flex flex-wrap justify-center gap-6 md:gap-10 pt-8 border-t border-google-border max-w-3xl mx-auto">
              {[
-               { l: 'Free Tools', v: '39' },
+               { l: 'Free Tools', v: '75+' },
                { l: 'Audit Score', v: '98%' },
                { l: 'Nepal Tax Updated', v: 'FY 2082/83' },
                { l: 'Data Stored', v: '0' }
@@ -69,13 +71,17 @@ export default function HomePageClient() {
           {/* QUICK ACCESS PILLS - IMAGE 8 */}
           <div className="flex flex-wrap justify-center gap-2 md:gap-3 py-4 max-w-4xl mx-auto">
              {[
-               { n: 'Income Tax', i: '📋' },
-               { n: 'EMI Calculator', i: '🏦' },
-               { n: 'GPA Calculator', i: '🎓' },
-               { n: 'SIP', i: '📈' },
-               { n: 'Nepali Date', i: '📅' }
+               { n: 'Income Tax', i: '📋', s: 'nepal-income-tax' },
+               { n: 'EMI Calculator', i: '🏦', s: 'loan-emi' },
+               { n: 'GPA Calculator', i: '🎓', s: 'gpa' },
+               { n: 'SIP', i: '📈', s: 'sip-calculator' },
+               { n: 'Nepali Date', i: '📅', s: 'nepali-date' }
              ].map(p => (
-               <button key={p.n} className="flex items-center gap-2 px-4 py-2 bg-white border border-google-border rounded-full hover:border-google-blue hover:text-google-blue transition-all group shadow-sm">
+               <button 
+                key={p.n} 
+                onClick={() => router.push(`/calculator/${p.s}`)}
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-google-border rounded-full hover:border-google-blue hover:text-google-blue transition-all group shadow-sm"
+               >
                   <span className="text-sm">{p.i}</span>
                   <span className="text-[10px] font-bold uppercase tracking-wider">{p.n}</span>
                </button>
@@ -85,7 +91,7 @@ export default function HomePageClient() {
       </section>
 
       {/* SEARCH OR CALCULATORS */}
-      <main className="max-w-7xl mx-auto px-6 lg:px-12 pb-32 space-y-24">
+      <main className="max-w-7xl mx-auto px-6 lg:px-12 pb-12 space-y-12">
         
         {/* Main Matrix: Calc + Sidebar */}
         <div className="flex flex-col lg:flex-row gap-12 items-start">
@@ -119,15 +125,20 @@ export default function HomePageClient() {
                          </div>
                          
                          <div className="space-y-4 mb-8">
-                            {cat.calculators.slice(0, 5).map(c => (
+                            {cat.calculators.slice(0, 7).map(c => (
                               <Link key={c.id} href={`/calculator/${c.slug}`} className="group/link flex items-center justify-between">
                                  <span className="text-sm font-semibold text-gray-500 group-hover/link:text-gray-900 group-hover/link:translate-x-1 transition-all">{c.name}</span>
                                  {c.isHot && <span className="text-[8px] font-bold bg-orange-500 text-white px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">HOT</span>}
                               </Link>
                             ))}
+                            {cat.calculators.length > 7 && (
+                              <Link href={`/calculator/category/${cat.id}`} className="text-[10px] font-black text-gray-300 uppercase tracking-widest hover:text-google-blue transition-colors">
+                                 +{cat.calculators.length - 7} more tools →
+                              </Link>
+                            )}
                          </div>
 
-                         <Link href={`/calculator?cat=${cat.id}`} className="flex items-center gap-2 text-[10px] font-black text-google-blue uppercase tracking-widest group-hover:gap-4 transition-all">
+                         <Link href={`/calculator/category/${cat.id}`} className="flex items-center gap-2 text-[10px] font-black text-google-blue uppercase tracking-widest group-hover:gap-4 transition-all">
                             Explore {cat.name} <MoveRight className="w-3 h-3" />
                          </Link>
                       </div>

@@ -45,11 +45,11 @@ export default function WaterIntakeCalculator() {
             <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
               <div>
                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Weight (kg)</label>
-                <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={weight} onChange={e => setWeight(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                <input type="number" inputMode="numeric" pattern="[0-9.]*" value={weight} onChange={e => setWeight(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Daily Exercise (minutes)</label>
-                <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={activity} onChange={e => setActivity(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                <input type="number" inputMode="numeric" pattern="[0-9.]*" value={activity} onChange={e => setActivity(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
               </div>
             </div>
           </div>

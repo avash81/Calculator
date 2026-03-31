@@ -70,7 +70,7 @@ export default function CalorieCalculator() {
                 <div key={l}>
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5 tracking-wide">{l}</label>
                   <div className="relative">
-                    <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={v} onChange={e => s(+e.target.value||0)} min={min} max={max}
+                    <input type="number" inputMode="numeric" pattern="[0-9.]*" value={v} onChange={e => s(+e.target.value||0)} min={min} max={max}
                       className="w-full border-2 border-gray-200 rounded-lg px-2 py-2.5 pr-7 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono text-gray-900 bg-white" />
                     <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400">{u}</span>
                   </div>

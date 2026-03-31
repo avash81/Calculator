@@ -47,7 +47,7 @@ export default function QRGenerator() {
                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Size (px)</label>
                 <div className="flex gap-4 items-center">
                   <input 
-                    type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" 
+                    type="number" inputMode="numeric" pattern="[0-9.]*" 
                     value={size} 
                     onChange={e => setSize(+e.target.value)} 
                     className="w-32 h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" 

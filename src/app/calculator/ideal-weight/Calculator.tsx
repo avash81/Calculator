@@ -59,7 +59,7 @@ export default function IdealWeightCalculator() {
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Height (cm)</label>
-                <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={heightCm} onChange={e => setHeightCm(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                <input type="number" inputMode="numeric" pattern="[0-9.]*" value={heightCm} onChange={e => setHeightCm(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
                 <input type="range" min={100} max={250} step={1} value={heightCm} onChange={e => setHeightCm(+e.target.value)} className="w-full mt-2 accent-blue-600 h-1.5" />
               </div>
             </div>

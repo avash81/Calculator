@@ -50,9 +50,9 @@ export default function PercentageCalculator() {
             <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6">What is X% of Y?</h3>
             <div className="flex flex-wrap items-center gap-4">
               <span className="text-gray-500 font-medium">What is</span>
-              <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={val1} onChange={e => setVal1(+e.target.value)} className="w-24 h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+              <input type="number" inputMode="numeric" pattern="[0-9.]*" value={val1} onChange={e => setVal1(+e.target.value)} className="w-24 h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
               <span className="text-gray-500 font-medium">% of</span>
-              <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={val2} onChange={e => setVal2(+e.target.value)} className="w-32 h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+              <input type="number" inputMode="numeric" pattern="[0-9.]*" value={val2} onChange={e => setVal2(+e.target.value)} className="w-32 h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
               <span className="text-gray-500 font-medium">?</span>
               <div className="flex-1 min-w-[150px] bg-blue-50 rounded-xl px-6 py-3 border border-blue-100">
                 <span className="text-[10px] font-bold text-blue-600 uppercase block mb-0.5 tracking-widest">Result</span>
@@ -72,9 +72,9 @@ export default function PercentageCalculator() {
           <div className="bg-white border border-gray-200 rounded-2xl p-6">
             <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6">X is what % of Y?</h3>
             <div className="flex flex-wrap items-center gap-4">
-              <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={val3} onChange={e => setVal3(+e.target.value)} className="w-32 h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+              <input type="number" inputMode="numeric" pattern="[0-9.]*" value={val3} onChange={e => setVal3(+e.target.value)} className="w-32 h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
               <span className="text-gray-500 font-medium">is what % of</span>
-              <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={val4} onChange={e => setVal4(+e.target.value)} className="w-32 h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+              <input type="number" inputMode="numeric" pattern="[0-9.]*" value={val4} onChange={e => setVal4(+e.target.value)} className="w-32 h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
               <span className="text-gray-500 font-medium">?</span>
               <div className="flex-1 min-w-[150px] bg-green-50 rounded-xl px-6 py-3 border border-green-100">
                 <span className="text-[10px] font-bold text-green-600 uppercase block mb-0.5 tracking-widest">Result</span>

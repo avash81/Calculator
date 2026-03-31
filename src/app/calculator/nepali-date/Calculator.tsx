@@ -64,8 +64,12 @@ export default function NepaliDateConverter() {
       if (!isNaN(d.getTime())) dayIndex = d.getDay();
     } else {
       converted = convertBStoAD(inputDate) || '';
-      const d = new NepaliDate(inputDate);
-      dayIndex = d.getDay();
+      try {
+        const d = new NepaliDate(inputDate);
+        dayIndex = d.getDay();
+      } catch (e) {
+        dayIndex = 0;
+      }
     }
 
     if (!converted) return null;

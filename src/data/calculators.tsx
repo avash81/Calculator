@@ -21,7 +21,7 @@ export interface Category {
   calculators: Calculator[];
 }
 
-// ALL 80+ CALCULATORS:
+// ALL 70+ CALCULATORS:
 export const CALCULATORS: Calculator[] = [
 
   // ── FINANCE ─────────────────────────────────────────
@@ -119,6 +119,18 @@ export const CALCULATORS: Calculator[] = [
     description:'Comprehensive mortgage with tax and insurance',
     keywords:['mortgage','property tax','home insurance'] },
 
+  { id:'nepal-tds', slug:'nepal-tds-calculator',
+    name:'Freelance TDS Calc', icon:'💼',
+    category:'nepal', isNepal:true,
+    description:'Calculate TDS on freelance and consulting payments (1.5% or 15%)',
+    keywords:['tds','nepal tds','freelance','tax deduction'] },
+
+  { id:'nepse-bonus', slug:'nepse-bonus-tax',
+    name:'Bonus Share Tax', icon:'💎',
+    category:'nepal', isNepal:true,
+    description:'Calculate 5% tax on bonus shares for NEPSE investors',
+    keywords:['bonus tax','nepse','share tax','dividend tax'] },
+
   // ── HEALTH ──────────────────────────────────────────
   { id:'bmi', slug:'bmi', name:'BMI Calculator',
     icon:'⚖️', category:'health', isHot:true,
@@ -155,6 +167,17 @@ export const CALCULATORS: Calculator[] = [
     description:'Calculate daily calorie needs (TDEE)',
     keywords:['calories','tdee','weight loss'] },
 
+  { id:'momo-calorie', slug:'momo-calorie-counter',
+    name:'Momo Calorie Counter', icon:'🥟', category:'health',
+    isNepal:true,
+    description:'Calculate calories for Buff, Chicken, and Veg Momos',
+    keywords:['momo','nepal food','calories','buff momo'] },
+
+  { id:'sleep-calc', slug:'sleep-calculator',
+    name:'Sleep Calculator', icon:'💤', category:'health',
+    description:'Find the perfect time to wake up based on sleep cycles',
+    keywords:['sleep','wake up','rem cycle','rest'] },
+
   // ── EDUCATION ───────────────────────────────────────
   { id:'gpa', slug:'gpa', name:'GPA Calculator',
     icon:'🎓', category:'education', isHot:true,
@@ -180,6 +203,18 @@ export const CALCULATORS: Calculator[] = [
     name:'Marks Required', icon:'🎯', category:'education',
     description:'Calculate marks needed to achieve target grade',
     keywords:['marks needed','minimum marks','target grade'] },
+
+  { id:'see-gpa', slug:'see-gpa-calculator',
+    name:'SEE GPA 2081/82', icon:'🏫', category:'education',
+    isNepal:true, isHot:true,
+    description:'Calculate Class 10 SEE GPA with latest grading rules',
+    keywords:['see gpa','class 10','grading system'] },
+
+  { id:'ioe-credit', slug:'engineering-gpa-calculator',
+    name:'Engineering GPA', icon:'⚙️', category:'education',
+    isNepal:true,
+    description:'Universal marks to GPA converter for TU, KU and IOE engineering students',
+    keywords:['engineering gpa','ioe gpa','credit hours','tu gpa'] },
 
   // ── CONVERSION ──────────────────────────────────────
   { id:'age', slug:'age-calculator', name:'Age Calculator',
@@ -262,6 +297,104 @@ export const CALCULATORS: Calculator[] = [
     isNew:true,
     description:'Calculate number of bricks for a wall',
     keywords:['bricks','wall','construction','quantity'] },
+
+  { id:'paint-cost', slug:'paint-cost-calculator',
+    name:'Nepal Paint Cost', icon:'🎨', category:'engineering',
+    isNepal:true,
+    description:'Estimate paint quantity and cost for your room in NPR',
+    keywords:['paint cost','nepal house','painting','sq ft'] },
+
+  { id:'solar-calc', slug:'solar-requirement',
+    name:'Solar Panel Calc', icon:'☀️', category:'engineering',
+    description:'Estimate solar plates and battery needed for your home',
+    keywords:['solar','nepal solar','plates','battery','backup'] },
+
+  // ── ADVANCED EDUCATION ADDITIONS ────────────────────
+  { id:'linear-solver', slug:'linear-solver',
+    name:'Linear Equations', icon:'📉', category:'education',
+    description:'Solve linear equation systems (2 and 3 variables)',
+    keywords:['linear','equations','solver','algebra'] },
+
+  { id:'statistics-plus', slug:'statistics-plus',
+    name:'Mean, Median, Mode', icon:'📊', category:'education',
+    description:'Find average, median, mode and range of datasets',
+    keywords:['statistics','mean','median','mode','average'] },
+
+  { id:'ratio-proportion', slug:'ratio-proportion',
+    name:'Ratio & Proportion', icon:'⚖️', category:'education',
+    description:'Solve ratio equations and proportional scaling',
+    keywords:['ratio','proportion','math','scaling'] },
+
+  { id:'geometry-3d', slug:'geometry-3d',
+    name:'3D Geometry (Volume)', icon:'🧊', category:'education',
+    description:'Calculate Volume & Surface Area of 3D shapes',
+    keywords:['geometry','volume','surface area','sphere','cone'] },
+
+  { id:'probability', slug:'probability',
+    name:'Probability Calc', icon:'🎲', category:'education',
+    description:'Calculate probability of single and multiple events',
+    keywords:['probability','chance','stats','odds'] },
+
+  { id:'date-duration', slug:'date-duration',
+    name:'Date Duration', icon:'⏳', category:'conversion',
+    description:'Calculate years, months, days between two dates',
+    keywords:['date','duration','time','days between'] },
+
+  { id:'matrices', slug:'matrices',
+    name:'Matrix Calculator', icon:'🔳', category:'education',
+    description:'Add, Multiply, Find Determinant & Inverse of Matrices',
+    keywords:['matrix','determinant','inverse','math'] },
+
+  { id:'z-score', slug:'z-score',
+    name:'Z-Score Calculator', icon:'📈', category:'education',
+    description:'Calculate Z-score and standard normal distribution',
+    keywords:['z-score','normal distribution','stats','bell curve'] },
+
+  { id:'physics-force', slug:'physics-force',
+    name:'Force (F=ma)', icon:'⚡', category:'education',
+    description:'Calculate Newton force, mass, or acceleration',
+    keywords:['physics','force','newton','newton second law'] },
+
+  { id:'physics-energy', slug:'physics-energy',
+    name:'Kinetic Energy', icon:'🔋', category:'education',
+    description:'Calculate energy, mass or velocity of moving object',
+    keywords:['energy','kinetic energy','physics','velocity'] },
+
+  { id:'chemistry-molar', slug:'chemistry-molar',
+    name:'Molar Mass', icon:'🧪', category:'education',
+    description:'Calculate molar mass and periodic weights of compounds',
+    keywords:['chemistry','molar mass','periodic table','dalton'] },
+
+  { id:'rounding', slug:'rounding',
+    name:'Rounding Calc', icon:'📏', category:'education',
+    description:'Round numbers to nearest whole, decimal, or sig-fig',
+    keywords:['rounding','math','decimal','significant figures'] },
+
+  { id:'base-converter', slug:'base-converter',
+    name:'Base Converter', icon:'🔢', category:'education',
+    description:'Convert between Binary, Octal, Decimal and Hexadecimal',
+    keywords:['binary','hex','octal','base conversion','computer science'] },
+
+  // ── ADDED UTILITIES ──────────────────────────────────
+  { id:'area-calc', slug:'area-calculator',
+    name:'Shape Area Calc', icon:'📐', category:'education',
+    description:'Calculate area of Circle, Square, Triangle and more',
+    keywords:['area','geometry','math','circle'] },
+
+  { id:'bmi-child', slug:'bmi-child',
+    name:'BMI for Kids', icon:'👦', category:'health',
+    description:'Specialized BMI for children and adolescents',
+    keywords:['bmi kids','child weight','pediatric'] },
+
+  { id:'decimal-fraction', slug:'decimal-to-fraction',
+    name:'Decimal to Fraction', icon:'🔢', category:'education',
+    description:'Convert repeating and simple decimals to fractions',
+    keywords:['decimal','fraction','math','convert'] },
+
+  { id:'simple-calc', slug:'simple-calculator',
+    name:'Simple Calculator', icon:'🧮', category:'utility',
+    description:'Basic arithmetic calculator for quick math',
+    keywords:['calculator','math','basic'] },
 ];
 
 // Featured Nepal calculators (shown in red section)

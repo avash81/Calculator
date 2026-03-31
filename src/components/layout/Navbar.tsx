@@ -66,7 +66,10 @@ export function Navbar() {
           {/* Desktop Central Search (Google Style) */}
           <div className="hidden md:flex flex-1 max-w-xl relative group">
              <div className={`w-full flex items-center bg-[#F1F3F4] rounded-xl px-4 py-2 gap-3 transition-all duration-300 border ${isSearchFocused ? 'bg-white border-[#1A73E8] shadow-md ring-4 ring-blue-50' : 'border-transparent hover:bg-[#E8EAED]'}`}>
-                <Search className={`w-4 h-4 transition-colors ${isSearchFocused ? 'text-[#1A73E8]' : 'text-[#5F6368]'}`} />
+                <Search 
+                  className={`w-4 h-4 cursor-pointer transition-colors ${isSearchFocused ? 'text-[#1A73E8]' : 'text-[#5F6368]'}`}
+                  onClick={() => q.trim() && router.push('/search?q=' + encodeURIComponent(q.trim()))}
+                />
                 <input 
                   type="text" 
                   value={q}
@@ -74,7 +77,7 @@ export function Navbar() {
                   onKeyDown={handleKey}
                   onFocus={() => setIsSearchFocused(true)}
                   onBlur={() => setIsSearchFocused(false)}
-                  placeholder="Search 39 calculators..." 
+                  placeholder="Search 60+ calculators..." 
                   className="bg-transparent border-none outline-none text-sm text-[#202124] w-full font-medium placeholder:text-[#5F6368]"
                 />
              </div>
@@ -117,7 +120,10 @@ export function Navbar() {
           <div className="p-4 flex-1 overflow-y-auto">
             {/* Drawer Search */}
             <div className="relative mb-8">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search 
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 cursor-pointer" 
+                onClick={() => q.trim() && router.push('/search?q=' + encodeURIComponent(q.trim()))}
+              />
               <input 
                 type="text" 
                 value={q}
@@ -132,8 +138,8 @@ export function Navbar() {
             <div className="space-y-6 px-2">
                {[
                  { n: 'All Tools', i: '🗂️', p: '/calculator' },
-                 { n: 'Nepal Calculators', i: '🇳🇵', p: '/calculator?cat=nepal' },
-                 { n: 'Finance', i: '💰', p: '/calculator?cat=finance' },
+                 { n: 'Nepal Calculators', i: '🇳🇵', p: '/calculator/category/nepal' },
+                 { n: 'Finance', i: '💰', p: '/calculator/category/finance' },
                  { n: 'Blog', i: '📖', p: '/blog' },
                  { n: 'About', i: 'ℹ️', p: '/about' }
                ].map(cat => (

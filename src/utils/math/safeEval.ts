@@ -248,6 +248,23 @@ function evalExpression(expr: string, isDeg: boolean): number {
           while (b) { [a, b] = [b, a % b]; }
           return a;
         }
+        case 'hcf': {
+          let a = Math.abs(Math.round(arg1));
+          let b = Math.abs(Math.round(arg2 ?? 0));
+          while (b) { [a, b] = [b, a % b]; }
+          return a;
+        }
+        case 'lcm': {
+          let a = Math.abs(Math.round(arg1));
+          let b = Math.abs(Math.round(arg2 ?? 0));
+          if (a === 0 || b === 0) return 0;
+          let gcdVal = a;
+          let tempB = b;
+          while (tempB) { [gcdVal, tempB] = [tempB, gcdVal % tempB]; }
+          return Math.abs(a * b) / gcdVal;
+        }
+        case 'npr': return factorial(arg1) / factorial(arg1 - (arg2 ?? 0));
+        case 'ncr': return factorial(arg1) / (factorial(arg2 ?? 0) * factorial(arg1 - (arg2 ?? 0)));
         default: return NaN;
       }
     }

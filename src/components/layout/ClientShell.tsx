@@ -12,6 +12,7 @@
  * @component
  */
 'use client';
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
@@ -49,6 +50,11 @@ interface ClientShellProps {
  * include dynamic imports with ssr:false.
  */
 export function ClientShell({ children }: ClientShellProps) {
+  useEffect(() => {
+    console.log('--- CALCPRO.NP V2026 HEARTBEAT ---');
+    console.log('PLATFORM: 75+ PRECISION TOOLS HUB');
+  }, []);
+
   return (
     <ErrorBoundary>
       <Navbar />

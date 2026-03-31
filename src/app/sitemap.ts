@@ -15,6 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/about',
     '/privacy',
     '/terms',
+    '/search',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
@@ -26,7 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const categoryPaths = [
     'nepal', 'finance', 'health', 'education', 'conversion', 'utility', 'engineering'
   ].map((cat) => ({
-    url: `${baseUrl}/calculator?cat=${cat}`,
+    url: `${baseUrl}/calculator/category/${cat}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.8,

@@ -115,31 +115,33 @@ export default function BMICalculator() {
               <>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Weight (kg)</label>
-                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="decimal" value={weight} onChange={e => setWeight(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" value={weight} onChange={e => setWeight(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Height (cm)</label>
-                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="decimal" value={height} onChange={e => setHeight(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" value={height} onChange={e => setHeight(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
                 </div>
               </>
             ) : (
               <>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Weight (lbs)</label>
-                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="decimal" value={lbs} onChange={e => setLbs(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
+                  <input type="number" inputMode="decimal" pattern="[0-9.]*" value={lbs} onChange={e => setLbs(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Height (ft)</label>
-                    <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" pattern="[0-9]*" value={feet} onChange={e => setFeet(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
+                    <input type="number" inputMode="numeric" pattern="[0-9]*" value={feet} onChange={e => setFeet(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Height (in)</label>
-                    <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" pattern="[0-9]*" value={inches} onChange={e => setInches(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
+                    <input type="number" inputMode="numeric" pattern="[0-9]*" value={inches} onChange={e => setInches(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
                   </div>
                 </div>
               </>
             )}
+
+            <button onClick={() => { setWeight(70); setHeight(170); setFeet(5); setInches(7); setLbs(154); }} className="w-full py-4 mt-6 border-2 border-dashed border-gray-100 rounded-xl text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:bg-red-50 hover:border-red-100 hover:text-red-500 transition-all">Reset Entry / Backspace</button>
           </div>
 
           <div className="space-y-4 lg:sticky lg:top-20">

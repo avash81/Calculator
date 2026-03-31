@@ -22,14 +22,14 @@ const PILLARS = [
   { 
     icon: ShieldCheck, 
     title: 'No Account Required', 
-    desc: 'We value your privacy. Access all 39+ professional tools without ever signing up.',
+    desc: 'We value your privacy. Access all 75+ professional tools without ever signing up.',
     color: 'text-gray-400'
   },
 ];
 
 export function TrustBand() {
   return (
-    <section className="py-20 bg-white border-t border-gray-50">
+    <section className="py-12 bg-white border-t border-gray-50/50">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 text-center">
           {PILLARS.map((pillar) => (

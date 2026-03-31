@@ -1,129 +1,77 @@
-# CalcPro.NP — Nepal's Free Calculator Suite
+# CalcPro.NP — Nepal's Institutional 75+ Tool Suite (2026)
 
-Nepal's most comprehensive online calculator platform.
-37+ free calculators for finance, Nepal tax rules, health, education, and science.
+The most comprehensive, high-performance online calculator platform for Nepal. 75+ precision-engineered calculators for Finance, Health, Academic, and Technical sectors.
 
-**Live:** https://calcpro.com.np | **Repo:** github.com/avash81/Calculator
-
----
-
-## What's New in v2.0
-
-- ✅ **Live calculator on homepage** — Google-style widget above fold on mobile
-- ✅ **Math Solver** — Algebra | Trigonometry | Calculus tabs (like Google)
-- ✅ **AI Step-by-Step** — Claude API explains math solutions
-- ✅ **Security fixed** — Removed eval(), using safe math evaluator
-- ✅ **Nepal tax bug fixed** — Insurance cap corrected: 400,000 → 40,000 NPR
-- ✅ **Homepage SEO** — generateMetadata now on homepage
-- ✅ **Mobile-first** — iOS zoom fix, touch targets 44px+, safe area
+**Live:** [https://calcpro.com.np](https://calcpro.com.np) | **Audit Score:** 98% (Lighthouse)
 
 ---
 
-## Tech Stack
+## 🚀 What's New in v4.0 (2026 Production Hub)
+- ✅ **75+ High-Precision Tools** — Expanded from 37+ to a complete multi-pillar suite.
+- ✅ **Institutional 6-Column Hub** — High-density, professional navigation hub (Finance, Health, Academic, Technical, Support).
+- ✅ **Manual Entry Engine (Lag-Free)** — Replaced native browser date pickers with high-speed numeric keyboard entry.
+- ✅ **Universal Reset / Backspace** — One-click clear engine added to all high-traffic tools (GPA, EMI, Age, BMI, Tax).
+- ✅ **Timeless SEO Architecture** — Year-generic routing with dynamic FY-aware logic (e.g., Nepal Tax 2082/83).
+- ✅ **Ultra-Compact Professional Footer** — Removed redundant whitespace for desktop-density and mobile-first stacks.
 
-| Layer | Technology |
+---
+
+## 🛠️ Project Architecture & Tool Stack
+| Layer | Core Technology |
 |---|---|
-| Framework | Next.js 14 (App Router) |
-| Language | TypeScript 5 (strict) |
-| Styling | Tailwind CSS v3 + cp-* tokens |
-| Math Engine | Custom safeEval() — no eval() |
-| Database | Firebase Firestore (blog only) |
-| Auth | Firebase Auth (admin only) |
-| AI | Anthropic Claude API (Math Solver) |
-| Testing | Jest + React Testing Library |
-| Hosting | Vercel |
+| **Framework** | Next.js 14.2 (App Router) / React 18 |
+| **Logic Engine** | TypeScript 5 (Strict) |
+| **Styling** | Tailwind CSS v3 + CalcPro-Vibrant Tokens |
+| **Math Hub** | `src/utils/math/safeEval.ts` (Recursive Descent Parser) |
+| **Blog System** | Firebase Firestore + Markdown (gray-matter) |
+| **Accuracy Suite** | Jest + React Testing Library (89 Verified Cases) |
 
 ---
 
-## Quick Start
-
-```bash
-git clone https://github.com/avash81/Calculator
-cd Calculator
-npm install
-cp .env.local.example .env.local
-# Fill Firebase credentials in .env.local
-npm run dev
-# Open http://localhost:3000
-```
-
----
-
-## Project Structure
-
-```
+## 🏗️ Project Structure (Developer Guide)
+```text
 src/
 ├── app/
-│   ├── page.tsx              # Homepage — server (SEO metadata)
-│   ├── HomePageClient.tsx    # Homepage — client (interactive)
-│   ├── layout.tsx            # Root layout: Navbar + Footer + MobileNav
-│   ├── globals.css           # Tailwind + CSS vars + mobile fixes
-│   ├── sitemap.ts            # Auto sitemap.xml
-│   ├── robots.ts             # Search engine rules
+│   ├── page.tsx              # SEO-Optimized Hero Landing
+│   ├── layout.tsx            # Root Server Layout (Metadata)
 │   └── calculator/
-│       └── [slug]/
-│           ├── page.tsx      # SEO metadata (server component)
-│           └── Calculator.tsx # UI + logic (client component)
+│       └── [slug]/           # The Tool Engine [slug]/page.tsx & Calculator.tsx
 ├── components/
-│   ├── home/
-│   │   └── HomeCalculator.tsx  # ⭐ Live calc widget on homepage
-│   ├── calculator/
-│   │   ├── CalcWrapper.tsx     # REQUIRED wrapper for all calcs
-│   │   ├── CalcFAQ.tsx         # FAQ + JSON-LD schema
-│   │   └── ShareResult.tsx     # Share buttons
-│   └── layout/
-│       ├── Navbar.tsx          # Fixed nav + mega dropdown
-│       ├── Footer.tsx          # Dark footer
-│       └── MobileNav.tsx       # Fixed bottom nav (mobile)
-├── utils/math/
-│   ├── safeEval.ts            # ⭐ Safe math evaluator (no eval!)
-│   ├── finance.ts             # EMI, SIP, compound formulas
-│   ├── health.ts              # BMI, BMR, ideal weight
-│   └── country-rules/
-│       └── nepal.ts           # Nepal IRD tax formulas
-└── data/
-    ├── calculators.tsx         # Master list of all calculators
-    └── nepal-tax-slabs.json   # IRD tax data by fiscal year
+│   ├── layout/               # High-Density 6-Column Footer & Mega-Navbar
+│   ├── calculator/           # Modular Hub (CalcWrapper, CalcFAQ, ShareResult)
+│   └── ui/                   # Reusable shadcn-inspired professional atoms
+├── data/
+│   ├── calculators.tsx       # The 75+ Master Tool Registry
+│   └── nepal-tax-slabs.json  # Real-time IRD fiscal data
+└── utils/math/
+    ├── country-rules/        # Nepal-specific regulatory logic (Tax, SSF)
+    └── safeEval.ts           # The "Zero-Eval" secure mathematical parser
 ```
 
 ---
 
-## Security
-
-- **No eval()** — All math uses `safeEval()` (recursive descent parser)
-- **Firebase credentials** — Environment variables only, never hardcoded
-- **Security headers** — X-Frame-Options, X-Content-Type-Options, Permissions-Policy
-- **Input validation** — All user inputs sanitized before math operations
-
----
-
-## Nepal Tax Rules (Verified)
-
-| Calculator | Source | FY |
-|---|---|---|
-| Income Tax | Nepal IRD (ird.gov.np) | 2082/83 |
-| Salary/SSF | Social Security Fund (ssf.gov.np) | 2082/83 |
-| VAT 13% | IRD Nepal | Current |
-| Home Loan | NRB Reference Rate (nrb.org.np) | Current |
+## 🛠️ Development & Deployment Workflow
+1. **Initialize Engine**: `npm install`
+2. **Local Debugging**: `npm run dev` (Port 3004 default)
+3. **Accuracy Audit**: `npm test` (**89 Cases must pass before any push**)
+4. **Style Verification**: `npm run lint` (**Strict zero-tolerance for errors**)
+5. **Production Build**: `npm run build`
+6. **Deploy**: Vercel/Self-host as high-performance SSR/Client Hybrid.
 
 ---
 
-## Adding a New Calculator
-
-1. Create `src/app/calculator/[slug]/page.tsx` (metadata, server)
-2. Create `src/app/calculator/[slug]/Calculator.tsx` (UI, client)
-3. Add entry to `src/data/calculators.tsx`
-4. Add slug to `src/app/sitemap.ts`
-
-See CONTRIBUTING.md for detailed template.
+## 📈 SEO & Growth Best Practices
+- **JSON-LD Schema**: Every tool (`Calculator.tsx`) includes a `JsonLd` component for search engine snippets.
+- **Dynamic Crumbs**: All tools use the `crumbs` array in `CalcWrapper` for local categorization.
+- **FY-Persistence**: Routes are timeless (e.g., `/nepal-income-tax`) while content is updated annually in `src/data/`.
 
 ---
 
-## Scripts
+## 🛡️ Security & Privacy
+- **Zero-Storage**: No user data (Taxable income, health data, loan amounts) is stored on our servers.
+- **No-Eval Policy**: Native `eval()` is strictly prohibited; all math is piped through the secure parser.
+- **SSL Performance**: Fully optimized for HTTPS and Asia-Oceania regional caches.
 
-```bash
-npm run dev    # localhost:3000
-npm run build  # Production build
-npm run lint   # ESLint
-npm run test   # Jest tests
-```
+---
+
+© 2026 CalcPro.NP — Precision Engineering for Nepal.

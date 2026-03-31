@@ -19,7 +19,7 @@ export function CalcWrapper({
 }: Props) {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
-      <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+      <div className="max-w-4xl mx-auto px-4 py-4 sm:py-6">
 
         {/* ── BREADCRUMBS & BACK BUTTON ──────────────────────────── */}
         <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -47,7 +47,7 @@ export function CalcWrapper({
         </div>
 
         {/* ── HEADER ────────────────────────────────────────────── */}
-        <header className="mb-12">
+        <header className="mb-8">
           <h1 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">
             {title}
           </h1>
@@ -64,13 +64,13 @@ export function CalcWrapper({
         </header>
 
         {/* ── MAIN TOOL ─────────────────────────────────────────── */}
-        <main className="mb-16">
+        <main className="mb-8">
           {children}
         </main>
 
         {/* ── METHODOLOGY ───────────────────────────────────────── */}
         {formula && (
-           <section className="mt-16 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl p-8 mb-16">
+           <section className="mt-8 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl p-6 mb-8">
               <h2 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
                 <div className="w-1 h-3 bg-blue-600 rounded-full" />
                 Calculation Methodology
@@ -143,6 +143,13 @@ export function CalcWrapper({
                       'item': c.href ? `https://calcpro.com.np${c.href}` : undefined
                     })).filter(x => x.item)
                   ]
+                },
+                {
+                   '@type': 'SoftwareApplication',
+                   'name': title,
+                   'operatingSystem': 'All',
+                   'applicationCategory': 'FinanceApplication, EducationalApplication',
+                   'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'NPR' }
                 }
               ]
             }),

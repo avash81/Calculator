@@ -42,18 +42,18 @@ export default function TipCalculator() {
               <div>
                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Total Bill</label>
                 <div className="relative">
-                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={bill} onChange={e => setBill(+e.target.value)} className="w-full h-12 pl-4 pr-12 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                  <input type="number" inputMode="numeric" pattern="[0-9.]*" value={bill} onChange={e => setBill(+e.target.value)} className="w-full h-12 pl-4 pr-12 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">NPR</span>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Tip (%)</label>
-                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" value={tipPercent} onChange={e => setTipPercent(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                  <input type="number" inputMode="numeric" pattern="[0-9.]*" value={tipPercent} onChange={e => setTipPercent(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">People</label>
-                  <input type="number" inputMode="decimal" pattern="[0-9.]*" inputMode="numeric" min={1} value={people} onChange={e => setPeople(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                  <input type="number" inputMode="numeric" pattern="[0-9.]*" min={1} value={people} onChange={e => setPeople(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
                 </div>
               </div>
             </div>

@@ -76,9 +76,7 @@ export default function NepalVATCalculator() {
                 </label>
                 <div className="relative">
                   <input
-                    type="number" inputMode="decimal" pattern="[0-9.]*"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
+                    type="number" inputMode="numeric" pattern="[0-9]*"
                     value={amount}
                     onChange={e => setAmount(Number(e.target.value))}
                     className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 pr-12 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold text-gray-900 bg-white"
