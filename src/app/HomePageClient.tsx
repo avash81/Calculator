@@ -19,7 +19,6 @@ const CAT_STYLES: Record<string, { icon: string, color: string, bg: string, acce
   health: { icon: '❤️', color: 'text-red-600', bg: 'bg-red-50', accent: 'border-red-100' },
   education: { icon: '🎓', color: 'text-purple-600', bg: 'bg-purple-50', accent: 'border-purple-100' },
   conversion: { icon: '🔄', color: 'text-orange-600', bg: 'bg-orange-50', accent: 'border-orange-100' },
-  engineering: { icon: '📐', color: 'text-blue-600', bg: 'bg-blue-50', accent: 'border-blue-100' }
 };
 
 export default function HomePageClient() {

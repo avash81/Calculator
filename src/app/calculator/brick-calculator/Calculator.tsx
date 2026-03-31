@@ -38,7 +38,7 @@ export default function BrickCalculator() {
       <CalcWrapper
         title="Bricks Calculator"
         description="Estimate the number of bricks required for your wall construction based on wall dimensions and brick size."
-        crumbs={[{label:'engineering',href:'/calculator?cat=engineering'}, {label:'brick calculator'}]}
+        crumbs={[{label:'Education',href:'/calculator?cat=education'}, {label:'brick calculator'}]}
         relatedCalcs={[{name:'Concrete Mix',slug:'concrete-mix'}]}
       >
         <div className="flex flex-col-reverse lg:grid lg:grid-cols-[1fr_300px] gap-8">

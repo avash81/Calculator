@@ -67,11 +67,11 @@ export default function ConcreteCalculator() {
       <CalcWrapper
         title="Concrete Mix Calculator"
         description="Estimate the quantity of cement bags, sand, and stone aggregate required for your construction project based on volume and concrete grade."
-        crumbs={[{label:'engineering',href:'/calculator?cat=engineering'}, {label:'concrete mix'}]}
+        crumbs={[{label:'Education', href:'/calculator?cat=education'}, {label:'concrete mix'}]}
         relatedCalcs={[
-          {name:'Brick Calculator',slug:'brick-calculator'},
-          {name:'Plaster Calculator',slug:'plaster-calculator'},
-          {name:'Flooring Calculator',slug:'flooring-calculator'},
+          {name:'Brick Calculator', slug:'brick-calculator'},
+          {name:'Geometry (Volume)', slug:'geometry-3d'},
+          {name:'Unit Converter', slug:'unit-converter'},
         ]}
       >
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
