@@ -244,6 +244,12 @@ export const CALCULATORS: Calculator[] = [
     description:'Calculate log with any base',
     keywords:['log','logarithm','base'] },
 
+  { id:'lcm-gcf', slug:'lcm-gcf-calculator',
+    name:'LCM & GCF Calculator', icon:'🔢', category:'education',
+    isNew:true,
+    description:'Find Least Common Multiple and Greatest Common Factor',
+    keywords:['lcm','gcf','hcf','multiple','factor','math'] },
+
   // ── ENGINEERING ─────────────────────────────────────
   { id:'concrete', slug:'concrete-mix',
     name:'Concrete Mix', icon:'🏗️', category:'engineering',

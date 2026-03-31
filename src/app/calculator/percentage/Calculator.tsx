@@ -16,6 +16,18 @@ export default function PercentageCalculator() {
   const [val4, setVal4] = useState(600);
   const r2 = useMemo(() => (val4 > 0 ? (val3 / val4) * 100 : 0), [val3, val4]);
 
+  const [val5, setVal5] = useState(375);
+  const [val6, setVal6] = useState(15);
+  const r3 = useMemo(() => (val6 !== 0 ? val5 / (val6 / 100) : 0), [val5, val6]);
+
+  const [val7, setVal7] = useState(100);
+  const [val8, setVal8] = useState(120);
+  const r4 = useMemo(() => {
+    if (val7 === 0) return { diff: 0, pct: 0, dir: 'nc' };
+    const diff = val8 - val7;
+    return { diff, pct: Math.abs(diff / val7) * 100, dir: diff > 0 ? 'increase' : diff < 0 ? 'decrease' : 'no change' };
+  }, [val7, val8]);
+
   return (
     <>
       <JsonLd type="calculator"
@@ -75,6 +87,53 @@ export default function PercentageCalculator() {
                 result={`${r2.toFixed(2)}%`} 
                 calcUrl={`https://calcpro.com.np/calculator/percentage?v3=${val3}&v4=${val4}`} 
               />
+            </div>
+          </div>
+
+          {/* Type 3: X is Y% of what? */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-6">
+            <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6">Find the Original Number</h3>
+            <div className="flex flex-wrap items-center gap-4">
+              <input type="number" inputMode="decimal" pattern="[0-9.]*" value={val5} onChange={e => setVal5(+e.target.value)} className="w-32 h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold text-gray-900 bg-white" />
+              <span className="text-gray-500 font-medium">is</span>
+              <input type="number" inputMode="decimal" pattern="[0-9.]*" value={val6} onChange={e => setVal6(+e.target.value)} className="w-24 h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold text-gray-900 bg-white" />
+              <span className="text-gray-500 font-medium">% of what?</span>
+              <div className="flex-1 min-w-[150px] bg-purple-50 rounded-xl px-6 py-3 border border-purple-100">
+                <span className="text-[10px] font-bold text-purple-600 uppercase block mb-0.5 tracking-widest">Result</span>
+                <span className="text-2xl font-bold text-purple-700 font-mono">{r3.toLocaleString()}</span>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <ShareResult title={`${val5} is ${val6}% of X`} result={r3.toLocaleString()} calcUrl={`https://calcpro.com.np/calculator/percentage`} />
+            </div>
+          </div>
+
+          {/* Type 4: Percentage Increase / Decrease */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-6">
+            <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6">Percentage Change (Increase/Decrease)</h3>
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="text-gray-500 font-medium">From</span>
+              <input type="number" inputMode="decimal" pattern="[0-9.]*" value={val7} onChange={e => setVal7(+e.target.value)} className="w-32 h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold text-gray-900 bg-white" />
+              <span className="text-gray-500 font-medium">to</span>
+              <input type="number" inputMode="decimal" pattern="[0-9.]*" value={val8} onChange={e => setVal8(+e.target.value)} className="w-32 h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold text-gray-900 bg-white" />
+              <span className="text-gray-500 font-medium">?</span>
+              
+              <div className={`flex-1 min-w-[150px] rounded-xl px-6 py-3 border ${r4.dir === 'increase' ? 'bg-red-50 border-red-100' : r4.dir === 'decrease' ? 'bg-teal-50 border-teal-100' : 'bg-gray-50 border-gray-100'}`}>
+                <span className={`text-[10px] font-bold uppercase block mb-0.5 tracking-widest ${r4.dir === 'increase' ? 'text-red-600' : r4.dir === 'decrease' ? 'text-teal-600' : 'text-gray-500'}`}>
+                  {r4.dir === 'increase' ? 'Increase' : r4.dir === 'decrease' ? 'Decrease' : 'Change'}
+                </span>
+                <span className={`text-2xl font-bold font-mono ${r4.dir === 'increase' ? 'text-red-700' : r4.dir === 'decrease' ? 'text-teal-700' : 'text-gray-700'}`}>
+                  {r4.pct.toFixed(2)}%
+                </span>
+                {r4.diff !== 0 && (
+                  <span className="text-xs ml-2 opacity-60">
+                    ({r4.diff > 0 ? '+' : ''}{r4.diff.toLocaleString()} diff)
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <ShareResult title={`% Change from ${val7} to ${val8}`} result={`${r4.pct.toFixed(2)}% ${r4.dir}`} calcUrl={`https://calcpro.com.np/calculator/percentage`} />
             </div>
           </div>
         </div>
