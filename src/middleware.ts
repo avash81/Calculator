@@ -35,8 +35,10 @@ export async function middleware(req: NextRequest) {
 
   // 2. Admin Router Protection
   if (url.pathname.startsWith('/admin')) {
-    // Allow login page
-    if (url.pathname === '/admin/login') return NextResponse.next();
+    // Allow login and setup pages
+    if (url.pathname === '/admin/login' || url.pathname === '/admin/setup') {
+      return NextResponse.next();
+    }
 
     // Check for admin token cookie
     const token = req.cookies.get('admin_token')?.value;

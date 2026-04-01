@@ -3,6 +3,7 @@ import { Calendar, ArrowLeft, Clock } from 'lucide-react';
 import { InternalLinks } from '@/components/seo/InternalLinks';
 import { ShareResult } from '@/components/calculator/ShareResult';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
+import { Calculator, ArrowRight, BookOpen, Target } from 'lucide-react';
 
 function renderContent(content: string): string {
   if (!content) return '';
@@ -13,12 +14,51 @@ function renderContent(content: string): string {
     .replace(/`(.+?)`/g, '<code class="bg-gray-100 text-blue-700 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
     .replace(/^\d+\. (.+)$/gm, '<li class="ml-5 list-decimal mb-1">$1</li>')
     .replace(/^- (.+)$/gm, '<li class="ml-5 list-disc mb-1">$1</li>')
+    .replace(/!\[(.+?)\]\((.+?)\)/g, '<img src="$2" alt="$1" loading="lazy" class="w-full h-auto rounded-2xl border border-gray-100 shadow-sm my-8" />')
     .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" class="text-blue-600 underline hover:text-blue-800">$1</a>')
     .replace(/^(?!<[hlo]).+$/gm, (l) => l.trim() ? `<p class="mb-4 text-gray-700 leading-relaxed">${l}</p>` : '');
 }
 
 export default function BlogPostContent({ post, related }: { post: any; related: any[] }) {
-  const html = renderContent(post.content || '');
+  let html = renderContent(post.content || '');
+
+  // Dynamic Image Middle Injection (after first H2)
+  if (post.imageMiddle) {
+    const parts = html.split('</h2>');
+    if (parts.length > 1) {
+      const middleImageHtml = `</h2><img src="${post.imageMiddle}" alt="${post.title} Details" loading="lazy" class="w-full h-auto rounded-3xl border border-gray-100 shadow-xl my-10 object-cover" />`;
+      html = parts[0] + middleImageHtml + parts.slice(1).join('</h2>');
+    } else {
+      // Fallback if no H2 exists
+      html += `<img src="${post.imageMiddle}" alt="${post.title} Flow" loading="lazy" class="w-full h-auto rounded-3xl border border-gray-100 shadow-xl my-10 object-cover" />`;
+    }
+  }
+
+  // --- AUTOMATED SEO LINKING (User Priority #1: Salary) ---
+  const lowerTitle = (post.title || '').toLowerCase();
+  const lowerContent = (post.content || '').toLowerCase();
+  
+  const isSalaryPost = lowerTitle.includes('salary') || lowerContent.includes('salary');
+  const isTaxPost = lowerTitle.includes('tax') || lowerContent.includes('tax');
+  const isGPAPost = lowerTitle.includes('gpa') || lowerContent.includes('percentage');
+  
+  // SEO Action Card Data
+  const seoNudge = isSalaryPost ? {
+    title: 'Precision Salary Planning',
+    desc: 'Calculate your exact net salary with SSF, CIT, and 2082 tax slabs.',
+    href: '/calculator/nepal-salary',
+    label: 'Salary Calculator'
+  } : isTaxPost ? {
+    title: 'Tax Season Readiness',
+    desc: 'Calculate your personal income tax liability with latest 2082/83 slabs.',
+    href: '/calculator/nepal-income-tax',
+    label: 'Tax Optimizer'
+  } : isGPAPost ? {
+      title: 'Academic Goal Tracker',
+      desc: 'Predict your final CGPA and track semester progress with TU/KU scales.',
+      href: '/calculator/engineering-gpa-calculator',
+      label: 'GPA Planner'
+  } : null;
   
   // Parse FAQs from content for rich results
   const faqs = (() => {
@@ -86,12 +126,47 @@ export default function BlogPostContent({ post, related }: { post: any; related:
           <span>{wordCount} words</span>
         </div>
 
+        {/* Top Image (Feature) */}
+        {post.imageTop && (
+          <div className="mb-10 w-full overflow-hidden rounded-[2rem] shadow-2xl border border-gray-100">
+             <img src={post.imageTop} alt={`${post.title} Overview`} loading="eager" className="w-full h-auto object-cover max-h-[500px]" />
+          </div>
+        )}
+
         {/* Article body */}
         <div
           className="prose prose-sm max-w-none text-[#3C4043]
                      prose-a:text-[#1A73E8] prose-a:font-bold prose-headings:text-[#202124]"
           dangerouslySetInnerHTML={{ __html: html }}
         />
+
+        {/* Bottom Image (Visual Summary) */}
+        {post.imageBottom && (
+          <div className="mt-12 w-full overflow-hidden rounded-[2rem] shadow-2xl border border-gray-100">
+             <img src={post.imageBottom} alt={`${post.title} Summary`} loading="lazy" className="w-full h-auto object-cover max-h-[500px]" />
+          </div>
+        )}
+
+        {/* --- AUTOMATED CALCULATOR NUDGE (Approved SEO Strategy) --- */}
+        {seoNudge && (
+            <div className="mt-12 bg-blue-600 rounded-[2.5rem] p-8 sm:p-12 text-white relative overflow-hidden group shadow-2xl shadow-blue-600/20">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-white/10 transition-all duration-700" />
+                <div className="relative z-10">
+                    <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.4em] text-blue-100 mb-6">
+                        <Target className="w-4 h-4" /> Recommended Tool
+                    </div>
+                    <h3 className="text-2xl sm:text-4xl font-black mb-4 tracking-tight leading-tight">
+                        {seoNudge.title}
+                    </h3>
+                    <p className="text-blue-100/80 mb-8 max-w-2xl font-medium leading-relaxed">
+                        {seoNudge.desc}
+                    </p>
+                    <Link href={seoNudge.href} className="inline-flex items-center gap-4 bg-white text-blue-600 px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 hover:scale-[1.02] active:scale-95 transition-all">
+                        Launch {seoNudge.label} <ArrowRight className="w-4 h-4" />
+                    </Link>
+                </div>
+            </div>
+        )}
 
         {/* FAQ section (Client Island) */}
         {faqs.length >= 2 && (
@@ -157,6 +232,24 @@ export default function BlogPostContent({ post, related }: { post: any; related:
           </Link>
         </div>
       </div>
+
+      {/* --- ARTICLE SCHEMA (SEO MASTER) --- */}
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "headline": post.title,
+            "description": post.excerpt || post.content.substring(0, 150),
+            "datePublished": post.date,
+            "author": { "@type": "Person", "name": post.author || "CalcPro Editor" },
+            "publisher": { "@type": "Organization", "name": "CalcPro.NP" },
+            "mainEntityOfPage": { "@type": "WebPage", "@id": `https://calcpro.com.np/blog/${post.slug}` }
+          })
+        }}
+      />
     </div>
   );
 }

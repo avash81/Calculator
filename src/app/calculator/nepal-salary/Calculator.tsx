@@ -1,252 +1,281 @@
 'use client';
-import { useState, useMemo } from 'react';
-import { CalcWrapper } from '@/components/calculator/CalcWrapper';
-import { useDebounce } from '@/hooks/useDebounce';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { useMemo } from 'react';
+import { ValidatedInput } from '@/components/calculator/ValidatedInput';
+import { ResultCard } from '@/components/calculator/ResultCard';
+import { CalculatorErrorBoundary } from '@/components/calculator/CalculatorErrorBoundary';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { TAX_YEARS } from '@/config/tax-config';
+import { Wallet, Landmark, TrendingUp, Info, PieChart } from 'lucide-react';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
-import { ShareResult } from '@/components/calculator/ShareResult';
 
-const SLABS = {
-  single: [
-    {limit:500000, rate:0.01},
-    {limit:200000, rate:0.10},
-    {limit:300000, rate:0.20},
-    {limit:1000000,rate:0.30},
-    {limit:3000000,rate:0.36},
-    {limit:Infinity,rate:0.39},
-  ],
-  married: [
-    {limit:600000, rate:0.01},
-    {limit:200000, rate:0.10},
-    {limit:300000, rate:0.20},
-    {limit:1000000,rate:0.30},
-    {limit:3000000,rate:0.36},
-    {limit:Infinity,rate:0.39},
-  ],
+const DEFAULT_STATE = {
+  fiscalYear: '2082/83' as keyof typeof TAX_YEARS,
+  basic: 60000,
+  allowance: 15000,
+  married: false,
+  ssf: true,
+  cit: false,
+  citAmount: 5000,
 };
 
-function calcTax(income:number, married:boolean, ssf:boolean, ssfAmt:number) {
-  const taxable = ssf ? Math.max(0, income - ssfAmt) : income;
-  const slabs = married ? SLABS.married : SLABS.single;
-  let rem = taxable, total = 0;
-  slabs.forEach((s, i) => {
-    if (rem <= 0) return;
-    const chunk = Math.min(rem, s.limit);
-    const waived = i === 0 && ssf;
-    const tax = waived ? 0 : chunk * s.rate;
-    total += tax;
-    rem -= chunk;
-  });
-  return total;
-}
-
-function fmt(n: number) {
-  return Math.round(n).toLocaleString('en-IN');
-}
-
 export default function NepalSalaryCalculator() {
-  const [basic, setBasic] = useState(50000);
-  const [allowance, setAllowance] = useState(10000);
-  const [married, setMarried] = useState(false);
-  const [ssf, setSsf] = useState(true);
-  const [cit, setCit] = useState(false);
+  const [state, setState] = useLocalStorage('calcpro_salary_v2', DEFAULT_STATE);
+  const { fiscalYear, basic, allowance, married, ssf, cit, citAmount } = state;
 
-  const debBasic = useDebounce(basic, 300);
-  const debAllowance = useDebounce(allowance, 300);
+  const updateState = (updates: Partial<typeof DEFAULT_STATE>) => {
+    setState({ ...state, ...updates });
+  };
 
-  const result = useMemo(() => {
-    const b = debBasic;
-    const a = debAllowance;
-    const grossMonthly = b + a;
+  const calculation = useMemo(() => {
+    const grossMonthly = basic + allowance;
     const grossAnnual = grossMonthly * 12;
 
-    let ssfEmp = 0;
-    let ssfEmpr = 0;
-    let citEmp = 0;
-    let citEmpr = 0;
+    // Deductions
+    const ssfEmployee = ssf ? Math.round(basic * 0.11) : 0;
+    const ssfEmployer = ssf ? Math.round(basic * 0.20) : 0;
+    const citDeduction = cit ? citAmount : 0;
 
-    if (ssf) {
-      ssfEmp = b * 0.11;
-      ssfEmpr = b * 0.20;
+    const totalMonthlyDeductions = ssfEmployee + citDeduction;
+    const annualTaxableIncome = (grossMonthly - totalMonthlyDeductions) * 12;
+
+    // Tax Logic (Using centralized config)
+    const yearConfig = TAX_YEARS[fiscalYear];
+    let annualTax = 0;
+    let rem = annualTaxableIncome;
+
+    if (yearConfig) {
+      for (let i = 0; i < yearConfig.slabs.length; i++) {
+        const slab = yearConfig.slabs[i];
+        if (rem <= 0) break;
+        const chunk = Math.min(rem, slab.max - slab.min);
+        
+        // Social Security 1% is waived if SSF is active
+        const rate = (i === 0 && ssf) ? 0 : slab.rate;
+        annualTax += chunk * rate;
+        rem -= (slab.max - slab.min);
+      }
     }
-    
-    if (cit) {
-      citEmp = b * 0.10;
-      citEmpr = b * 0.10;
-    }
 
-    const totalDeductionsMonthly = ssfEmp + citEmp;
-    const totalDeductionsAnnual = totalDeductionsMonthly * 12;
-
-    const annualTax = calcTax(grossAnnual, married, ssf, totalDeductionsAnnual);
-    const monthlyTax = annualTax / 12;
-
-    const netMonthly = grossMonthly - totalDeductionsMonthly - monthlyTax;
-    const ctcMonthly = grossMonthly + ssfEmpr + citEmpr;
+    const monthlyTax = Math.round(annualTax / 12);
+    const netMonthly = grossMonthly - totalMonthlyDeductions - monthlyTax;
+    const ctcMonthly = grossMonthly + ssfEmployer;
 
     return {
-      grossMonthly, grossAnnual,
-      ssfEmp, ssfEmpr, citEmp, citEmpr,
-      totalDeductionsMonthly,
-      monthlyTax, annualTax,
-      netMonthly, ctcMonthly
+      grossMonthly,
+      grossAnnual,
+      ssfEmployee,
+      ssfEmployer,
+      citDeduction,
+      monthlyTax,
+      annualTax,
+      netMonthly,
+      ctcMonthly,
+      effectiveTaxRate: (annualTax / grossAnnual) * 100
     };
-  }, [debBasic, debAllowance, married, ssf, cit]);
+  }, [fiscalYear, basic, allowance, married, ssf, cit, citAmount]);
+
+  const formatNPR = (n: number) =>
+    new Intl.NumberFormat('en-NP', {
+      style: 'currency',
+      currency: 'NPR',
+      maximumFractionDigits: 0,
+    }).format(n);
 
   return (
-    <>
-      <JsonLd type="calculator"
-        name="Nepal Salary Calculator"
-        description="Calculate your net take-home salary in Nepal after SSF, CIT, and Income Tax deductions. Updated for 2082/83 fiscal year."
-        url="https://calcpro.com.np/calculator/nepal-salary" />
+    <CalculatorErrorBoundary calculatorName="Nepal Salary">
+      <div className="max-w-6xl mx-auto space-y-8">
+        
+        {/* Header */}
+        <div className="text-center space-y-4 py-8">
+          <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-emerald-100 mb-2">
+             <div className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+             Employee Benefits
+          </div>
+          <h1 className="text-4xl sm:text-6xl font-black text-gray-900 dark:text-white tracking-tight">
+            Take-Home <span className="text-emerald-600">Salary</span>
+          </h1>
+          <p className="max-w-2xl mx-auto text-lg text-gray-500 dark:text-gray-400 font-medium">
+             Calculate your exact in-hand income after SSF, CIT, and Income Tax deductions based on the latest 2082/83 budget.
+          </p>
+        </div>
 
-      <CalcWrapper
-        title="Nepal Salary Calculator"
-        description="Calculate your net take-home salary after SSF, CIT, and Income Tax deductions based on Nepal IRD rules. Includes CTC breakdown."
-        crumbs={[{label:'nepal rules',href:'/calculator?cat=nepal'}, {label:'salary calculator'}]}
-        isNepal
-        relatedCalcs={[
-          {name:'Income Tax 2082/83',slug:'nepal-income-tax'},
-          {name:'Provident Fund',slug:'nepal-provident-fund'},
-        ]}
-      >
-        <div className="flex flex-col-reverse gap-5 lg:grid lg:grid-cols-[1fr_350px] lg:items-start">
-          <div className="border border-gray-200 rounded-xl p-5 space-y-6 bg-white">
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Monthly Basic Salary</label>
-              <div className="relative">
-                <input type="number" inputMode="numeric" pattern="[0-9]*" value={basic} onChange={e => setBasic(Number(e.target.value))} className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 pr-12 text-base text-gray-900 bg-white focus:outline-none focus:border-blue-500 font-mono font-bold" />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-bold">NPR</span>
-              </div>
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Inputs */}
+          <div className="lg:col-span-2 space-y-8 bg-white dark:bg-gray-900 p-8 sm:p-10 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-xl shadow-gray-200/20 dark:shadow-none">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <ValidatedInput label="Monthly Basic Salary" value={basic} onChange={(v) => updateState({ basic: v })} prefix="NPR" step={500} required />
+              <ValidatedInput label="Monthly Allowances" value={allowance} onChange={(v) => updateState({ allowance: v })} prefix="NPR" step={500} />
             </div>
 
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Monthly Allowances</label>
-              <div className="relative">
-                <input type="number" inputMode="numeric" pattern="[0-9]*" value={allowance} onChange={e => setAllowance(Number(e.target.value))} className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 pr-12 text-base text-gray-900 bg-white focus:outline-none focus:border-blue-500 font-mono font-bold" />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-bold">NPR</span>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Marital Status</label>
-              <div className="grid grid-cols-2 gap-2">
-                {[{v:false,l:'Single'},{v:true,l:'Married'}].map(({v,l}) => (
-                  <button key={l} onClick={()=>setMarried(v)} className={`py-3 text-xs font-bold uppercase tracking-widest rounded-lg border-2 transition-all min-h-[44px] ${married===v ?'border-blue-500 bg-blue-50 text-blue-700' :'border-gray-200 text-gray-400'}`}>
-                    {l}
+            {/* Deductions Toggle Section */}
+            <div className="pt-8 border-t border-gray-100 dark:border-gray-800 space-y-6">
+               <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Retirement & Savings</h3>
+               
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* SSF Toggle */}
+                  <button 
+                    onClick={() => updateState({ ssf: !ssf })}
+                    className={`flex items-center justify-between p-6 rounded-[2rem] border-2 transition-all ${ssf ? 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-800' : 'bg-gray-50 dark:bg-gray-800/50 border-transparent'}`}
+                  >
+                     <div className="flex items-center gap-4">
+                        <div className={`p-3 rounded-2xl ${ssf ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-400'}`}>
+                           <Landmark className="w-5 h-5" />
+                        </div>
+                        <div className="text-left">
+                           <div className="text-sm font-black uppercase text-gray-900 dark:text-gray-100">SSF Contributor</div>
+                           <div className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">11% Combined Contribution</div>
+                        </div>
+                     </div>
+                     <div className={`w-12 h-6 rounded-full relative transition-all ${ssf ? 'bg-emerald-600' : 'bg-gray-300'}`}>
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${ssf ? 'right-1' : 'left-1'}`} />
+                     </div>
                   </button>
-                ))}
-              </div>
+
+                  {/* CIT Toggle */}
+                  <button 
+                    onClick={() => updateState({ cit: !cit })}
+                    className={`flex items-center justify-between p-6 rounded-[2rem] border-2 transition-all ${cit ? 'bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-800' : 'bg-gray-50 dark:bg-gray-800/50 border-transparent'}`}
+                  >
+                     <div className="flex items-center gap-4">
+                        <div className={`p-3 rounded-2xl ${cit ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-400'}`}>
+                           <Wallet className="w-5 h-5" />
+                        </div>
+                        <div className="text-left">
+                           <div className="text-sm font-black uppercase text-gray-900 dark:text-gray-100">CIT / Provident</div>
+                           <div className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Optional Regular Savings</div>
+                        </div>
+                     </div>
+                     <div className={`w-12 h-6 rounded-full relative transition-all ${cit ? 'bg-blue-600' : 'bg-gray-300'}`}>
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${cit ? 'right-1' : 'left-1'}`} />
+                     </div>
+                  </button>
+               </div>
+
+               {cit && (
+                 <div className="p-8 bg-blue-50 dark:bg-blue-900/10 rounded-[2rem] border border-blue-100 dark:border-blue-800 animate-in fade-in slide-in-from-top-2">
+                    <ValidatedInput 
+                      label="Monthly CIT Contribution" 
+                      value={citAmount} 
+                      onChange={(v) => updateState({ citAmount: v })}
+                      prefix="NPR"
+                      hint="Total monthly savings"
+                    />
+                 </div>
+               )}
             </div>
 
-            <div className="space-y-3 pt-2">
-              <label className="flex items-center gap-3 cursor-pointer min-h-[44px]">
-                <button onClick={()=>setSsf(!ssf)} className={`relative w-10 h-5 rounded-full transition-colors ${ssf?'bg-blue-500':'bg-gray-200'}`}>
-                  <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${ssf?'left-5':'left-0.5'}`}/>
-                </button>
-                <div>
-                  <div className="text-sm font-bold text-gray-900 uppercase tracking-tight">SSF Contributor</div>
-                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">11% Employee, 20% Employer</div>
-                </div>
-              </label>
+            {/* Fiscal Year & Status */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-gray-100 dark:border-gray-800">
+               <div className="space-y-3">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Fiscal Year</label>
+                  <select 
+                    value={fiscalYear}
+                    onChange={(e) => updateState({ fiscalYear: e.target.value as any })}
+                    className="w-full h-14 bg-gray-50 dark:bg-gray-950 border-2 border-gray-100 dark:border-gray-800 rounded-2xl px-6 font-bold outline-none focus:border-emerald-500 transition-all"
+                  >
+                     <option value="2082/83">2082/83 (Latest)</option>
+                     <option value="2083/84">2083/84 (Projected)</option>
+                  </select>
+               </div>
 
-              <label className="flex items-center gap-3 cursor-pointer min-h-[44px]">
-                <button onClick={()=>setCit(!cit)} className={`relative w-10 h-5 rounded-full transition-colors ${cit?'bg-blue-500':'bg-gray-200'}`}>
-                  <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${cit?'left-5':'left-0.5'}`}/>
-                </button>
-                <div>
-                  <div className="text-sm font-bold text-gray-900 uppercase tracking-tight">CIT / Provident Fund</div>
-                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">10% Employee, 10% Employer</div>
-                </div>
-              </label>
+               <div className="space-y-3">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Marital Status</label>
+                  <div className="flex gap-2 p-1 bg-gray-50 dark:bg-gray-800 rounded-2xl">
+                     {[
+                       { v: false, l: 'Single' },
+                       { v: true, l: 'Married' }
+                     ].map(opt => (
+                       <button
+                        key={opt.l}
+                        onClick={() => updateState({ married: opt.v })}
+                        className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${married === opt.v ? 'bg-white dark:bg-gray-700 text-emerald-600 shadow-sm' : 'text-gray-400'}`}
+                       >
+                         {opt.l}
+                       </button>
+                     ))}
+                  </div>
+               </div>
             </div>
           </div>
 
-          <div className="space-y-4 lg:sticky lg:top-20">
-            <div className="bg-green-600 rounded-xl p-6 text-center text-white shadow-lg">
-              <div className="text-[10px] font-bold opacity-75 uppercase tracking-widest mb-2">Net Take-Home / Month</div>
-              <div className="text-4xl font-bold font-mono mb-2">NPR {fmt(result.netMonthly)}</div>
-            </div>
+          {/* Results Side */}
+          <div className="space-y-6 lg:sticky lg:top-8 h-fit">
+             <ResultCard
+                label="Monthly In-Hand Salary"
+                value={calculation.netMonthly}
+                unit=" / mo"
+                color="green"
+                title="Disposable Income"
+                copyValue={`My monthly net salary: ${formatNPR(calculation.netMonthly)}`}
+             />
 
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-              <div className="bg-gray-50 px-4 py-3 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Salary Breakdown (Monthly)</div>
-              <div className="p-4 space-y-3">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500 font-medium">Gross Salary</span>
-                  <span className="font-mono font-bold text-gray-900">{fmt(result.grossMonthly)}</span>
+             <div className="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 space-y-5 shadow-sm">
+                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 dark:border-gray-800 pb-3">Monthly Outflow</div>
+                
+                <div className="space-y-3">
+                   <div className="flex justify-between items-center text-xs font-bold">
+                      <span className="text-gray-400 uppercase">Gross Salary</span>
+                      <span className="text-gray-900 dark:text-white font-black">{formatNPR(calculation.grossMonthly)}</span>
+                   </div>
+                   <div className="flex justify-between items-center text-xs font-bold">
+                      <span className="text-gray-400 uppercase">Total Tax</span>
+                      <span className="text-rose-600 font-black">-{formatNPR(calculation.monthlyTax)}</span>
+                   </div>
+                   <div className="flex justify-between items-center text-xs font-bold">
+                      <span className="text-gray-400 uppercase">SSF Contribution</span>
+                      <span className="text-rose-600 font-black">-{formatNPR(calculation.ssfEmployee)}</span>
+                   </div>
+                   {cit && (
+                     <div className="flex justify-between items-center text-xs font-bold">
+                        <span className="text-gray-400 uppercase">CIT Savings</span>
+                        <span className="text-rose-600 font-black">-{formatNPR(calculation.citDeduction)}</span>
+                     </div>
+                   )}
                 </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500 font-medium">SSF Deduction (11%)</span>
-                  <span className="font-mono font-bold text-red-500">-{fmt(result.ssfEmp)}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500 font-medium">CIT Deduction (10%)</span>
-                  <span className="font-mono font-bold text-red-500">-{fmt(result.citEmp)}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500 font-medium">Income Tax</span>
-                  <span className="font-mono font-bold text-red-500">-{fmt(result.monthlyTax)}</span>
-                </div>
-                <div className="pt-3 border-t border-gray-100 flex justify-between items-center">
-                  <span className="text-xs font-bold text-gray-900 uppercase tracking-widest">Net Salary</span>
-                  <span className="font-mono font-bold text-green-600 text-xl">{fmt(result.netMonthly)}</span>
-                </div>
-              </div>
-            </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-              <div className="bg-gray-50 px-4 py-3 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cost to Company (CTC)</div>
-              <div className="p-4 space-y-3">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500 font-medium">Gross Salary</span>
-                  <span className="font-mono font-bold text-gray-900">{fmt(result.grossMonthly)}</span>
+                <div className="pt-4 border-t border-gray-50 dark:border-gray-800 flex justify-between items-center">
+                   <span className="text-[11px] font-black text-gray-900 dark:text-white uppercase tracking-widest">Net Salary</span>
+                   <span className="text-2xl font-black text-emerald-600 tracking-tighter">{formatNPR(calculation.netMonthly)}</span>
                 </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500 font-medium">Employer SSF (20%)</span>
-                  <span className="font-mono font-bold text-blue-600">+{fmt(result.ssfEmpr)}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500 font-medium">Employer CIT (10%)</span>
-                  <span className="font-mono font-bold text-blue-600">+{fmt(result.citEmpr)}</span>
-                </div>
-                <div className="pt-3 border-t border-gray-100 flex justify-between items-center">
-                  <span className="text-xs font-bold text-gray-900 uppercase tracking-widest">Total CTC / Month</span>
-                  <span className="font-mono font-bold text-gray-900 text-xl">{fmt(result.ctcMonthly)}</span>
-                </div>
-              </div>
-            </div>
+             </div>
 
-            <ShareResult 
-              title="Salary Calculation" 
-              result={`NPR ${fmt(result.netMonthly)}/mo`} 
-              calcUrl={`https://calcpro.com.np/calculator/nepal-salary?b=${basic}&a=${allowance}&m=${married}`} 
-            />
+             <div className="bg-gray-900 text-white p-8 rounded-[2.5rem] space-y-4">
+                <div className="flex items-center gap-2">
+                   <TrendingUp className="w-5 h-5 text-blue-400" />
+                   <h3 className="text-sm font-black uppercase tracking-widest">Employer cost (CTC)</h3>
+                </div>
+                <div className="text-3xl font-black tracking-tighter">{formatNPR(calculation.ctcMonthly)}</div>
+                <p className="text-[10px] text-gray-400 font-bold leading-relaxed">
+                   This includes yours gross plus the 20% employer SSF contribution.
+                </p>
+             </div>
           </div>
         </div>
 
-        <CalcFAQ faqs={[
-          {
-            question: 'How is net salary calculated in Nepal?',
-            answer: 'Net salary is calculated by subtracting mandatory deductions (like Social Security Fund - SSF, Provident Fund, CIT) and Income Tax from your gross salary (Basic + Allowances).',
-          },
-          {
-            question: 'What is the SSF contribution rate in Nepal?',
-            answer: 'Under the Social Security Fund (SSF) rules, the employee contributes 11% of their basic salary, and the employer contributes 20%, making a total of 31% contribution.',
-          },
-          {
-            question: 'Is CIT deduction tax-free in Nepal?',
-            answer: 'Yes, contributions to the Citizen Investment Trust (CIT) are deducted from your gross income before calculating income tax, up to certain limits (usually 1/3 of total income or NPR 300,000 per year, whichever is lower).',
-          },
-          {
-            question: 'What is CTC (Cost to Company)?',
-            answer: 'CTC is the total amount an employer spends on an employee per year. It includes the gross salary plus all employer-side contributions like SSF (20%), CIT (10%), and other benefits.',
-          },
-          {
-            question: 'How much income tax do I pay on my salary in Nepal?',
-            answer: 'Income tax in Nepal is progressive, starting at 1% (waived for SSF contributors) for the first slab (NPR 500k for single, 600k for married) and going up to 39% for high earners.',
-          },
-        ]} />
-      </CalcWrapper>
-    </>
+        {/* FAQ Section */}
+        <div className="pt-8">
+           <CalcFAQ
+              faqs={[
+                {
+                  question: 'How is the 11% SSF contribution calculated?',
+                  answer: 'The 11% contribution is calculated on your Basic Salary, not your Total Gross (which includes allowances). Your employer also contributes an additional 20% of your basic salary to the fund.'
+                },
+                {
+                  question: 'Does CIT contribution reduce my tax liability?',
+                  answer: 'Yes. Any amount contributed to the Citizen Investment Trust (CIT) or Employee Provident Fund (EPF) is subtracted from your gross income before tax slabs are applied, potentially lowering your tax bracket.'
+                },
+                {
+                  question: 'Is the 1% Social Security Tax always applicable?',
+                  answer: 'In Nepal, the first 1% tax slab is often waived for employees who are regular contributors to the SSF system, according to the latest IRD directive.'
+                }
+              ]}
+           />
+        </div>
+
+      </div>
+    </CalculatorErrorBoundary>
   );
 }

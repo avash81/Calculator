@@ -47,6 +47,9 @@ async function getPage(slug: string) {
       content:      f.content?.stringValue || '',
       schemaType:   f.schemaType?.stringValue || 'Article',
       ogImage:      f.ogImage?.stringValue || '',
+      imageTop:     f.imageTop?.stringValue || '',
+      imageMiddle:  f.imageMiddle?.stringValue || '',
+      imageBottom:  f.imageBottom?.stringValue || '',
       relatedCalcs: f.relatedCalcs?.arrayValue?.values?.map((v: any) => v.stringValue) || [],
       author:       f.author?.stringValue || 'CalcPro.NP',
       date:         f.date?.stringValue || new Date().toISOString(),
@@ -92,5 +95,54 @@ export default async function GuidePage({
   const page = await getPage(params.slug);
   if (!page) notFound();
 
-  return <SEOGuidePage page={page} />;
+  return (
+    <>
+      {/* Breadcrumb Schema */}
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://calcpro.com.np" },
+              { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://calcpro.com.np/blog?type=guides" },
+              { "@type": "ListItem", "position": 3, "name": page.title, "item": `https://calcpro.com.np/guide/${page.slug}` }
+            ]
+          }),
+        }}
+      />
+
+      {/* FAQ Schema (Automatic Pattern Detection) */}
+      {(() => {
+        const matches = [...(page.content || '').matchAll(/^### (.+\?)\n([\s\S]+?)(?=\n###|\n##|$)/gm)];
+        if (matches.length > 0) {
+          return (
+            <script
+              type="application/ld+json"
+              suppressHydrationWarning
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "FAQPage",
+                  "mainEntity": matches.slice(0, 8).map(m => ({
+                    "@type": "Question",
+                    "name": m[1],
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": m[2].trim().replace(/[*#`]/g, '').substring(0, 600)
+                    }
+                  }))
+                })
+              }}
+            />
+          );
+        }
+        return null;
+      })()}
+
+      <SEOGuidePage page={page} />
+    </>
+  );
 }

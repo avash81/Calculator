@@ -29,6 +29,9 @@ interface GuidePageData {
   content: string;
   schemaType: string;
   ogImage: string;
+  imageTop?: string;
+  imageMiddle?: string;
+  imageBottom?: string;
   relatedCalcs: string[];
   author: string;
   date: string;
@@ -45,6 +48,7 @@ function renderMarkdown(md: string): string {
     .replace(/`(.+?)`/g, '<code class="bg-gray-100 text-blue-700 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
     .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-5 list-decimal mb-1">$2</li>')
     .replace(/^- (.+)$/gm, '<li class="ml-5 list-disc mb-1">$1</li>')
+    .replace(/!\[(.+?)\]\((.+?)\)/g, '<img src="$2" alt="$1" loading="lazy" class="w-full h-auto rounded-2xl border border-gray-100 shadow-sm my-8" />')
     .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" class="text-blue-600 underline hover:text-blue-800">$1</a>')
     .replace(/^(?!<[hlo]).+$/gm, (line) => line.trim() ? `<p class="mb-4 text-gray-700 leading-relaxed">${line}</p>` : '')
     .replace(/(<\/li>\n<li)/g, '</li><li')
@@ -105,7 +109,22 @@ function buildSchema(page: GuidePageData): object {
 }
 
 export default function SEOGuidePage({ page }: { page: GuidePageData }) {
-  const html = useMemo(() => renderMarkdown(page.content), [page.content]);
+  const html = useMemo(() => {
+    let rawHtml = renderMarkdown(page.content);
+    // Dynamic Image Middle Injection (after first H2)
+    if (page.imageMiddle) {
+      const parts = rawHtml.split('</h2>');
+      if (parts.length > 1) {
+        const middleImageHtml = `</h2><img src="${page.imageMiddle}" alt="${page.title} Details" loading="lazy" class="w-full h-auto rounded-3xl border border-gray-100 shadow-xl my-10 object-cover" />`;
+        rawHtml = parts[0] + middleImageHtml + parts.slice(1).join('</h2>');
+      } else {
+        // Fallback if no H2 exists
+        rawHtml += `<img src="${page.imageMiddle}" alt="${page.title} Flow" loading="lazy" class="w-full h-auto rounded-3xl border border-gray-100 shadow-xl my-10 object-cover" />`;
+      }
+    }
+    return rawHtml;
+  }, [page.content, page.imageMiddle, page.title]);
+  
   const toc  = useMemo(() => extractTOC(page.content), [page.content]);
   const schema = useMemo(() => buildSchema(page), [page]);
 
@@ -235,12 +254,26 @@ export default function SEOGuidePage({ page }: { page: GuidePageData }) {
                 </div>
               )}
 
+              {/* Top Image (Feature) */}
+              {page.imageTop && (
+                <div className="mb-10 w-full overflow-hidden rounded-[2rem] shadow-2xl border border-gray-100">
+                   <img src={page.imageTop} alt={`${page.title} Overview`} loading="eager" className="w-full h-auto object-cover max-h-[500px]" />
+                </div>
+              )}
+
               {/* Article body */}
               <div
                 className="prose prose-sm max-w-none text-gray-700
                            prose-headings:text-gray-900 prose-a:text-blue-600"
                 dangerouslySetInnerHTML={{ __html: html }}
               />
+
+              {/* Bottom Image (Visual Summary) */}
+              {page.imageBottom && (
+                <div className="mt-12 w-full overflow-hidden rounded-[2rem] shadow-2xl border border-gray-100">
+                   <img src={page.imageBottom} alt={`${page.title} Summary`} loading="lazy" className="w-full h-auto object-cover max-h-[500px]" />
+                </div>
+              )}
 
               {/* FAQ section (if detected) */}
               {faqs.length >= 2 && (

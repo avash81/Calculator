@@ -33,6 +33,9 @@ async function getPostData(slug: string) {
           relatedCalcs: f.relatedCalcs?.arrayValue?.values?.map((v: any) => v.stringValue) || [],
           ogImage: f.ogImage?.stringValue || '',
           author: f.author?.stringValue || 'CalcPro.NP',
+          imageTop: f.imageTop?.stringValue || '',
+          imageMiddle: f.imageMiddle?.stringValue || '',
+          imageBottom: f.imageBottom?.stringValue || '',
         };
         allPublished.push(parsed);
         if (parsed.slug === slug) {
@@ -112,6 +115,31 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
           }),
         }}
       />
+      {/* FAQ Schema for PAA Dominance */}
+      {(() => {
+        const matches = [...(data.post.content || '').matchAll(/^### (.+\?)\n([\s\S]+?)(?=\n###|\n##|$)/gm)];
+        if (matches.length === 0) return null;
+        return (
+          <script
+            type="application/ld+json"
+            suppressHydrationWarning
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": matches.map(m => ({
+                  "@type": "Question",
+                  "name": m[1],
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": m[2].trim().replace(/[*#`]/g, '').substring(0, 400)
+                  }
+                }))
+              })
+            }}
+          />
+        );
+      })()}
       <BlogPostContent post={data.post} related={data.related} />
     </>
   );

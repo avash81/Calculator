@@ -131,6 +131,12 @@ export const CALCULATORS: Calculator[] = [
     description:'Calculate 5% tax on bonus shares for NEPSE investors',
     keywords:['bonus tax','nepse','share tax','dividend tax'] },
 
+  { id:'nepal-land', slug:'nepal-land',
+    name:'Nepal Land Calculator', icon:'🗺️',
+    category:'nepal', isNepal:true, isHot:true,
+    description:'Convert between Ropani, Bigha, Kattha and Intl units',
+    keywords:['nepal land','ropani','bigha','kattha','aana','dhur','land conversion'] },
+
   // ── HEALTH ──────────────────────────────────────────
   { id:'bmi', slug:'bmi', name:'BMI Calculator',
     icon:'⚖️', category:'health', isHot:true,
@@ -211,10 +217,10 @@ export const CALCULATORS: Calculator[] = [
     keywords:['see gpa','class 10','grading system'] },
 
   { id:'ioe-credit', slug:'engineering-gpa-calculator',
-    name:'Engineering GPA', icon:'⚙️', category:'education',
-    isNepal:true,
-    description:'Universal marks to GPA converter for TU, KU and IOE engineering students',
-    keywords:['engineering gpa','ioe gpa','credit hours','tu gpa'] },
+    name:'Engineering GPA Suite', icon:'⚙️', category:'education',
+    isNepal:true, isHot:true,
+    description:'Advanced GPA converter for TU (IOE), KU and PU with faculty-specific presets (Civil, Computer, etc.)',
+    keywords:['engineering gpa','ioe gpa','credit hours','tu gpa','ku gpa','pu gpa','civil','computer'] },
 
   // ── CONVERSION ──────────────────────────────────────
   { id:'age', slug:'age-calculator', name:'Age Calculator',

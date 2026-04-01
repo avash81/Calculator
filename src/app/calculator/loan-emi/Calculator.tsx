@@ -1,158 +1,284 @@
 'use client';
-import { useState, useMemo } from 'react';
-import { CalcWrapper } from '@/components/calculator/CalcWrapper';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { useMemo, useCallback } from 'react';
+import { CalculatorErrorBoundary } from '@/components/calculator/CalculatorErrorBoundary';
+import { ValidatedInput } from '@/components/calculator/ValidatedInput';
+import { QuickPresets } from '@/components/calculator/QuickPresets';
+import { ResultCard } from '@/components/calculator/ResultCard';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
-import { ShareResult } from '@/components/calculator/ShareResult';
-import { PiggyBank, Briefcase, FileCheck, Info } from 'lucide-react';
+import { safeCalculateEMI } from '@/utils/math/safeCalculations';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+
+const LOAN_PRESETS: any[] = [
+  {
+    name: 'Personal Loan',
+    description: 'NPR 5 Lakh @ 12%',
+    icon: 'briefcase',
+    values: { principal: 500000, rate: 12, tenure: 3, method: 'reducing' },
+  },
+  {
+    name: 'Home Loan',
+    description: 'NPR 50 Lakh @ 8.5%',
+    icon: 'home',
+    values: { principal: 5000000, rate: 8.5, tenure: 20, method: 'reducing' },
+  },
+  {
+    name: 'Auto Loan',
+    description: 'NPR 25 Lakh @ 10%',
+    icon: 'car',
+    values: { principal: 1500000, rate: 10, tenure: 5, method: 'reducing' },
+  },
+  {
+    name: 'Education',
+    description: 'NPR 10 Lakh @ 9%',
+    icon: 'graduation',
+    values: { principal: 1000000, rate: 9, tenure: 10, method: 'reducing' },
+  },
+];
+
+const DEFAULT_STATE = {
+  principal: 1000000,
+  rate: 11.5,
+  tenure: 15,
+  method: 'reducing' as 'reducing' | 'flat',
+  fee: 1,
+};
 
 export default function LoanEMICalculator() {
-  const [loan, setLoan] = useState(1000000);
-  const [rate, setRate] = useState(11.5);
-  const [tenure, setTenure] = useState(15);
-  const [method, setMethod] = useState<'reducing' | 'flat'>('reducing');
-  const [fee, setFee] = useState(1);
+  const [state, setState] = useLocalStorage('calcpro_emi_v2', DEFAULT_STATE);
 
+  const { principal, rate, tenure, method, fee } = state;
+
+  const updateState = (updates: Partial<typeof DEFAULT_STATE>) => {
+    setState({ ...state, ...updates });
+  };
+
+  // Safe calculation
   const result = useMemo(() => {
-    const P = loan;
-    const processingFee = (fee / 100) * P;
-    const totalPrincipal = P + processingFee;
-    
-    if (method === 'flat') {
-      const totalInterest = (P * (rate / 100) * tenure);
-      const totalPayment = P + totalInterest;
-      const emi = totalPayment / (tenure * 12);
-      return {
-        emi: Math.round(emi),
-        totalInterest: Math.round(totalInterest),
-        totalPayment: Math.round(totalPayment),
-        feeAmount: Math.round(processingFee)
-      };
-    } else {
-      const monthlyRate = rate / 12 / 100;
-      const months = tenure * 12;
-      const emi = (P * monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
-      const totalPayment = emi * months;
-      const totalInterest = totalPayment - P;
-      return {
-        emi: Math.round(emi),
-        totalInterest: Math.round(totalInterest),
-        totalPayment: Math.round(totalPayment),
-        feeAmount: Math.round(processingFee)
-      };
-    }
-  }, [loan, rate, tenure, method, fee]);
+    return safeCalculateEMI(principal, rate, tenure, method);
+  }, [principal, rate, tenure, method]);
 
-  const nf = (n: number) => new Intl.NumberFormat('en-NP', { style:'currency', currency:'NPR', maximumFractionDigits:0 }).format(n);
+  // Add fee to principal for total cost
+  const feeAmount = useMemo(() => {
+    return Math.round((fee / 100) * principal);
+  }, [fee, principal]);
+
+  const totalWithFee = useMemo(() => {
+    if (!result.success || !result.data) return 0;
+    return Math.round(result.data.totalPayment + feeAmount);
+  }, [result, feeAmount]);
+
+  // Format currency
+  const formatNPR = (n: number) => {
+    return new Intl.NumberFormat('en-NP', {
+      style: 'currency',
+      currency: 'NPR',
+      maximumFractionDigits: 0,
+    }).format(n);
+  };
+
+  // Preset handler
+  const handlePresetSelect = useCallback((preset: any) => {
+    updateState({
+      principal: preset.values.principal,
+      rate: preset.values.rate,
+      tenure: preset.values.tenure,
+      method: preset.values.method
+    });
+  }, [state, setState]);
 
   return (
-    <>
-      <JsonLd type="calculator" name="Advanced EMI Calculator (NPR)" description="Professional EMI calculator for Home, Car, and Personal loans in Nepal. Supports Flat and Reducing rates." url="https://calcpro.com.np/calculator/loan-emi" />
+    <CalculatorErrorBoundary calculatorName="Loan EMI">
+      <div className="max-w-6xl mx-auto space-y-8">
+        
+        {/* Header Section */}
+        <div className="text-center space-y-4 py-8">
+          <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-blue-100 mb-2">
+             <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+             Finance Suite
+          </div>
+          <h1 className="text-4xl sm:text-6xl font-black text-gray-900 dark:text-white tracking-tight">
+            Loan EMI <span className="text-blue-600">Calculator</span>
+          </h1>
+          <p className="max-w-2xl mx-auto text-lg text-gray-500 dark:text-gray-400 font-medium">
+            Plan your personal, home, or auto loan repayment with our advanced reducing balance and flat rate engine.
+          </p>
+        </div>
 
-      <CalcWrapper
-        title="EMI Calculator"
-        description="Professional financial tool for calculating equated monthly installments with support for processing fees and multiple calculation methods."
-        crumbs={[{label:'finance',href:'/calculator?cat=finance'}, {label:'emi calculator'}]}
-        relatedCalcs={[{name:'Home Loan',slug:'nepal-home-loan'},{name:'Personal Loan',slug:'loan-emi'}]}
-      >
-        <div className="flex flex-col-reverse lg:grid lg:grid-cols-[1fr_360px] gap-10">
+        {/* Quick Presets */}
+        <QuickPresets
+          presets={LOAN_PRESETS}
+          onSelect={handlePresetSelect}
+        />
+
+        {/* Main Calculator Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          <div className="bg-white dark:bg-gray-900 rounded-[3rem] p-8 sm:p-12 shadow-2xl shadow-gray-200/40 border border-gray-50 dark:border-gray-800 space-y-10">
+          {/* Input Panel */}
+          <div className="lg:col-span-2 space-y-8 bg-white dark:bg-gray-900 p-8 sm:p-10 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-xl shadow-gray-200/20 dark:shadow-none">
             
-            <div className="flex bg-gray-50/80 dark:bg-gray-800/20 p-2 rounded-[2rem] border border-gray-100 dark:border-gray-800">
-               <button onClick={() => setMethod('reducing')} className={`flex-1 py-4 text-[10px] font-black uppercase tracking-[0.2em] rounded-[1.5rem] transition-all ${method === 'reducing' ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-sm' : 'text-gray-400'}`}>Reducing Rate</button>
-               <button onClick={() => setMethod('flat')} className={`flex-1 py-4 text-[10px] font-black uppercase tracking-[0.2em] rounded-[1.5rem] transition-all ${method === 'flat' ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-sm' : 'text-gray-400'}`}>Flat Rate</button>
+            {/* Method Toggle */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center px-1">
+                <label className="text-sm font-black text-gray-400 uppercase tracking-widest">
+                  Interest Method
+                </label>
+                <span className="text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full">
+                  Recommended: Reducing
+                </span>
+              </div>
+              <div className="flex gap-2 bg-gray-50 dark:bg-gray-800/50 p-1.5 rounded-3xl border border-gray-100 dark:border-gray-800">
+                {['reducing', 'flat'].map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => updateState({ method: m as 'reducing' | 'flat' })}
+                    className={`flex-1 py-4 rounded-[1.25rem] text-sm font-black uppercase tracking-widest transition-all ${
+                      method === m
+                        ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm border border-gray-100 dark:border-gray-600'
+                        : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                    }`}
+                  >
+                    {m} Balance
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="space-y-8">
-               <div className="space-y-4">
-                  <div className="flex justify-between items-center px-1">
-                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Loan Principal (Rs.)</label>
-                     <span className="text-sm font-black text-blue-600 bg-blue-50 px-4 py-1 rounded-full border border-blue-100">{nf(loan)}</span>
-                  </div>
-                  <input type="range" min="100000" max="20000000" step="100000" value={loan} onChange={e => setLoan(Number(e.target.value))} className="w-full accent-blue-600 opacity-80 hover:opacity-100 transition-opacity cursor-pointer h-2 bg-gray-100 rounded-lg" />
-                  <input type="number" inputMode="decimal" pattern="[0-9.]*" value={loan} onChange={e => setLoan(Number(e.target.value))} className="w-full h-14 bg-gray-50 dark:bg-gray-950 border-2 border-transparent focus:border-blue-500 rounded-2xl px-6 font-black text-xl text-gray-900 dark:text-white outline-none transition-all" />
-               </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <ValidatedInput
+                label="Loan Amount"
+                value={principal}
+                onChange={(v) => updateState({ principal: v })}
+                min={10000}
+                max={500000000} // 50Cr max
+                step={50000}
+                prefix="NPR"
+                formatter={(n) => formatNPR(n)}
+                hint="Principal amount"
+                required
+              />
 
-               <div className="grid grid-cols-2 gap-8">
-                  <div className="space-y-2">
-                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Interest Rate (%)</label>
-                     <input type="number" inputMode="decimal" pattern="[0-9.]*" value={rate} onChange={e => setRate(Number(e.target.value))} className="w-full h-14 bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-2xl px-5 font-black text-lg text-gray-900 outline-none transition-all" />
-                  </div>
-                  <div className="space-y-2">
-                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Tenure (Years)</label>
-                     <input type="number" inputMode="decimal" pattern="[0-9.]*" value={tenure} onChange={e => setTenure(Number(e.target.value))} className="w-full h-14 bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-2xl px-5 font-black text-lg text-gray-900 outline-none transition-all" />
-                  </div>
-               </div>
+              <ValidatedInput
+                label="Interest Rate"
+                value={rate}
+                onChange={(v) => updateState({ rate: v })}
+                min={0}
+                max={40}
+                step={0.1}
+                suffix="%"
+                hint="Per Annum (%)"
+                required
+              />
 
-               <div className="p-8 bg-blue-50/30 dark:bg-blue-900/10 rounded-[2.5rem] border border-blue-50 dark:border-blue-900/30 flex items-center gap-6">
-                  <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-                     <PiggyBank className="w-7 h-7" />
-                  </div>
-                  <div className="flex-1">
-                     <div className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">Processing Fee</div>
-                     <div className="flex items-center gap-3">
-                        <input type="number" inputMode="decimal" pattern="[0-9.]*" value={fee} onChange={e => setFee(Number(e.target.value))} className="w-20 bg-transparent text-xl font-black text-gray-900 outline-none" />
-                        <span className="text-xl font-black text-gray-400">%</span>
-                        <div className="ml-auto text-sm font-bold text-blue-600 bg-white/80 px-3 py-1 rounded-lg border border-blue-100">{nf(result.feeAmount)}</div>
-                     </div>
-                  </div>
-               </div>
+              <ValidatedInput
+                label="Loan Tenure"
+                value={tenure}
+                onChange={(v) => updateState({ tenure: v })}
+                min={1}
+                max={50}
+                step={1}
+                suffix="Years"
+                hint="Repayment period"
+                required
+              />
+
+               <ValidatedInput
+                label="Processing Fee"
+                value={fee}
+                onChange={(v) => updateState({ fee: v })}
+                min={0}
+                max={10}
+                step={0.1}
+                suffix="%"
+                formatter={(n) => formatNPR((n / 100) * principal)}
+                hint="Typically 0.5% - 2%"
+              />
             </div>
           </div>
 
-          <div className="space-y-8 lg:sticky lg:top-10">
-            <div className="bg-gray-900 rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden group">
-               <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-600/10 rounded-full blur-3xl group-hover:scale-150 transition-transform" />
-               <div className="text-[10px] font-black uppercase tracking-[0.4em] mb-6 text-gray-400">Monthly EMI</div>
-               <div className="text-6xl font-black mb-8 tracking-tighter text-blue-500">{nf(result.emi)}</div>
-               
-               <div className="space-y-4 pt-6 border-t border-white/5">
-                 <div className="flex justify-between items-center text-xs">
-                    <span className="font-bold text-gray-500 uppercase tracking-widest">Total Interest</span>
-                    <span className="font-black text-gray-200">{nf(result.totalInterest)}</span>
-                 </div>
-                 <div className="flex justify-between items-center text-xs pb-4">
-                    <span className="font-bold text-gray-500 uppercase tracking-widest">Total Repayment</span>
-                    <span className="font-black text-white">{nf(result.totalPayment)}</span>
-                 </div>
-               </div>
+          {/* Result Panel */}
+          <div className="space-y-6 lg:sticky lg:top-8 h-fit">
+            {result.success && result.data ? (
+              <>
+                <ResultCard
+                  label="Estimated Monthly EMI"
+                  value={result.data.emi}
+                  unit=" / mo"
+                  color="blue"
+                  title="Loan EMI"
+                  copyValue={`Monthly EMI: ${formatNPR(result.data.emi)}`}
+                />
 
-               <div className="mt-8">
-                  <div className="w-full bg-white/5 rounded-full h-1.5 mb-4">
-                     <div className="bg-blue-600 h-full rounded-full" style={{width: `${(loan/result.totalPayment)*100}%`}} />
+                <div className="bg-gray-50 dark:bg-gray-800 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700 space-y-5">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-bold text-gray-500 uppercase tracking-widest text-[10px]">Total Interest</span>
+                    <span className="font-black text-gray-900 dark:text-white">{formatNPR(result.data.totalInterest)}</span>
                   </div>
-                  <div className="flex justify-between text-[8px] font-black text-gray-500 uppercase tracking-widest">
-                     <span>Principal: {Math.round((loan/result.totalPayment)*100)}%</span>
-                     <span>Interest: {Math.round((result.totalInterest/result.totalPayment)*100)}%</span>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-bold text-gray-500 uppercase tracking-widest text-[10px]">Total Repayment</span>
+                    <span className="font-black text-gray-900 dark:text-white">{formatNPR(result.data.totalPayment)}</span>
                   </div>
-               </div>
-            </div>
+                  {fee > 0 && (
+                    <div className="pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center text-sm">
+                      <span className="font-bold text-gray-500 uppercase tracking-widest text-[10px]">Processing Fee</span>
+                      <span className="font-black text-blue-600">{formatNPR(feeAmount)}</span>
+                    </div>
+                  )}
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                    <span className="font-black text-gray-900 dark:text-white uppercase tracking-widest text-[11px]">Total Cost</span>
+                    <span className="text-2xl font-black text-blue-600 tracking-tighter">{formatNPR(totalWithFee)}</span>
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-2 gap-4">
-               <div className="bg-white border border-gray-100 p-6 rounded-3xl text-center">
-                  <Briefcase className="w-5 h-5 text-gray-300 mx-auto mb-2" />
-                  <div className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Fee Coverage</div>
-                  <div className="text-sm font-black text-gray-900">{nf(result.feeAmount)}</div>
-               </div>
-               <div className="bg-white border border-gray-100 p-6 rounded-3xl text-center">
-                  <FileCheck className="w-5 h-5 text-gray-300 mx-auto mb-2" />
-                  <div className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Status</div>
-                  <div className="text-sm font-black text-green-500 uppercase">Verified</div>
-               </div>
-            </div>
-
-            <ShareResult title="My EMI Projection" result={`${nf(result.emi)} per month`} calcUrl="https://calcpro.com.np/calculator/loan-emi" />
+                {/* VISUAL BREAKDOWN */}
+                <div className="bg-white dark:bg-gray-900 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-800 space-y-4">
+                   <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
+                      <span>Principal</span>
+                      <span>Interest</span>
+                   </div>
+                   <div className="h-4 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden flex gap-0.5">
+                      <div 
+                        className="h-full bg-blue-600 transition-all duration-700" 
+                        style={{ width: `${(principal / result.data.totalPayment) * 100}%` }}
+                      />
+                      <div 
+                        className="h-full bg-blue-300 dark:bg-blue-800 transition-all duration-700" 
+                        style={{ width: `${(result.data.totalInterest / result.data.totalPayment) * 100}%` }}
+                      />
+                   </div>
+                   <p className="text-[10px] text-center text-gray-400 font-bold">
+                      Interest makes up {Math.round((result.data.totalInterest / result.data.totalPayment) * 100)}% of your total repayment.
+                   </p>
+                </div>
+              </>
+            ) : (
+              <div className="p-8 bg-rose-50 dark:bg-rose-900/10 border-2 border-rose-100 dark:border-rose-900/30 rounded-[2.5rem] text-rose-600 text-center space-y-2">
+                <p className="font-black uppercase tracking-widest text-xs">Error Found</p>
+                <p className="font-bold">{result.error}</p>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="mt-20">
-          <CalcFAQ faqs={[
-            { question: 'What is Reducing vs Flat Rate?', answer: 'Reducing balance calculates interest only on the outstanding principal, meaning interest decreases over time. Flat rate calculates interest on the initial loan amount for the entire duration.' },
-            { question: 'Do I need to pay a Processing Fee?', answer: 'Most banks in Nepal charge 0.5% to 1.5% as a one-time processing fee which is normally deducted from the sanctioned loan amount.' }
-          ]} />
+        {/* FAQ Section */}
+        <div className="pt-8">
+           <CalcFAQ
+              faqs={[
+                {
+                  question: 'Reducing vs Flat Rate: Which is better?',
+                  answer: 'Reducing balance is almost always better for the borrower. Interest is only charged on the outstanding balance. Flat rate charges interest on the original loan amount for the entire period, making it much more expensive in reality.'
+                },
+                {
+                  question: 'Can I pay off my loan early in Nepal?',
+                  answer: 'Most A, B, and C class banks in Nepal allow partial or full prepayment. However, be aware of "Prepayment Fees" which typically range from 0.5% to 2% of the principal being paid early.'
+                },
+                {
+                  question: 'How do processing fees affect my loan?',
+                  answer: 'Processing fees are one-time costs paid upfront. While they don\'t change your monthly EMI, they increase the "Total Cost of Loan". It is often better to pay a slightly higher interest rate with zero fees than a low rate with high fees.'
+                }
+              ]}
+           />
         </div>
-      </CalcWrapper>
-    </>
+      </div>
+    </CalculatorErrorBoundary>
   );
 }

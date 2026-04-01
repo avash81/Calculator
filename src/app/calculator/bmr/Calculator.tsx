@@ -1,149 +1,179 @@
 'use client';
-import { useState, useMemo } from 'react';
-import { CalcWrapper } from '@/components/calculator/CalcWrapper';
-import { useDebounce } from '@/hooks/useDebounce';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { useMemo } from 'react';
+import { ValidatedInput } from '@/components/calculator/ValidatedInput';
+import { ResultCard } from '@/components/calculator/ResultCard';
+import { CalculatorErrorBoundary } from '@/components/calculator/CalculatorErrorBoundary';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { Activity, Flame, Heart, Info, Scale, User } from 'lucide-react';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
-import { ShareResult } from '@/components/calculator/ShareResult';
+
+const DEFAULT_STATE = {
+  gender: 'male' as 'male' | 'female',
+  age: 28,
+  weight: 75,
+  height: 175,
+  activity: 'moderate' as 'sedentary' | 'light' | 'moderate' | 'active' | 'extra',
+};
+
+const ACTIVITY_MULTIPLIERS = {
+  sedentary: { label: 'Sedentary', desc: 'Little or no exercise', factor: 1.2 },
+  light: { label: 'Lightly Active', desc: 'Exercise 1-3 times/week', factor: 1.375 },
+  moderate: { label: 'Moderately Active', desc: 'Exercise 4-5 times/week', factor: 1.55 },
+  active: { label: 'Very Active', desc: 'Intense exercise daily', factor: 1.725 },
+  extra: { label: 'Extra Active', desc: 'Physical job or 2x training', factor: 1.9 },
+};
 
 export default function BMRCalculator() {
-  const [gender, setGender] = useState<'male' | 'female'>('male');
-  const [age, setAge] = useState(30);
-  const [weight, setWeight] = useState(70);
-  const [height, setHeight] = useState(170);
+  const [state, setState] = useLocalStorage('calcpro_bmr_v2', DEFAULT_STATE);
+  const { gender, age, weight, height, activity } = state;
 
-  const debAge = useDebounce(age, 300);
-  const debW = useDebounce(weight, 300);
-  const debH = useDebounce(height, 300);
+  const updateState = (updates: Partial<typeof DEFAULT_STATE>) => {
+    setState({ ...state, ...updates });
+  };
 
-  const result = useMemo(() => {
-    let bmr = 0;
-    if (gender === 'male') {
-      bmr = (10 * debW) + (6.25 * debH) - (5 * debAge) + 5;
-    } else {
-      bmr = (10 * debW) + (6.25 * debH) - (5 * debAge) - 161;
-    }
+  const analysis = useMemo(() => {
+    // Mifflin-St Jeor Equation
+    let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+    bmr = gender === 'male' ? bmr + 5 : bmr - 161;
 
-    const tdee = {
-      sedentary: Math.round(bmr * 1.2),
-      light: Math.round(bmr * 1.375),
-      moderate: Math.round(bmr * 1.55),
-      active: Math.round(bmr * 1.725),
-      veryActive: Math.round(bmr * 1.9),
+    const tdee = Math.round(bmr * ACTIVITY_MULTIPLIERS[activity].factor);
+
+    return {
+      bmr: Math.round(bmr),
+      tdee,
     };
-
-    return { bmr: Math.round(bmr), tdee };
-  }, [gender, debAge, debW, debH]);
+  }, [gender, age, weight, height, activity]);
 
   return (
-    <>
-      <JsonLd type="calculator"
-        name="BMR Calculator"
-        description="Calculate your Basal Metabolic Rate (BMR) and Total Daily Energy Expenditure (TDEE) to understand your daily calorie needs for weight management."
-        url="https://calcpro.com.np/calculator/bmr" />
-
-      <CalcWrapper
-        title="BMR Calculator"
-        description="Calculate your Basal Metabolic Rate (BMR) and Total Daily Energy Expenditure (TDEE) to understand your daily calorie needs."
-        crumbs={[{label:'health',href:'/calculator?cat=health'}, {label:'bmr calculator'}]}
-        relatedCalcs={[
-          {name:'BMI Calculator',slug:'bmi'},
-          {name:'Ideal Weight',slug:'ideal-weight'},
-        ]}
-      >
-        <div className="flex flex-col-reverse gap-5 lg:grid lg:grid-cols-[1fr_350px] lg:items-start">
-          <div className="border border-gray-200 rounded-xl p-5 space-y-6">
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Gender</label>
-              <div className="grid grid-cols-2 gap-2">
-                {[{v:'male',l:'Male'},{v:'female',l:'Female'}].map(({v,l}) => (
-                  <button key={l} onClick={()=>setGender(v as any)} className={`py-3 text-[10px] font-bold rounded-lg border-2 transition-all min-h-[44px] uppercase tracking-widest ${gender===v ?'border-blue-500 bg-blue-50 text-blue-700' :'border-gray-100 text-gray-500 hover:border-gray-200'}`}>
-                    {l}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Age (Years)</label>
-              <input type="number" inputMode="numeric" pattern="[0-9]*" value={age} onChange={e => setAge(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Weight (kg)</label>
-              <input type="number" inputMode="decimal" pattern="[0-9.]*" value={weight} onChange={e => setWeight(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Height (cm)</label>
-              <input type="number" inputMode="decimal" pattern="[0-9.]*" value={height} onChange={e => setHeight(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
-            </div>
+    <CalculatorErrorBoundary calculatorName="BMR">
+      <div className="max-w-6xl mx-auto space-y-8">
+        
+        {/* Header */}
+        <div className="text-center space-y-4 py-8">
+          <div className="inline-flex items-center gap-2 bg-orange-50 text-orange-600 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-orange-100 mb-2">
+             <div className="w-1.5 h-1.5 rounded-full bg-orange-600 animate-pulse" />
+             Metabolic Science
           </div>
-
-          <div className="space-y-4 lg:sticky lg:top-20">
-            <div className="bg-orange-500 rounded-xl p-6 text-center text-white shadow-lg shadow-orange-900/20">
-              <div className="text-[10px] font-bold opacity-75 uppercase tracking-widest mb-2">Your BMR</div>
-              <div className="text-5xl font-bold font-mono mb-1">{result.bmr}</div>
-              <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">Calories / Day</div>
-            </div>
-
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-              <div className="bg-gray-50 px-4 py-2.5 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Daily Calorie Needs (TDEE)</div>
-              <div className="p-4 space-y-3">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500 font-medium">Sedentary</span>
-                  <span className="font-mono font-bold text-gray-900">{result.tdee.sedentary}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500 font-medium">Lightly active</span>
-                  <span className="font-mono font-bold text-gray-900">{result.tdee.light}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500 font-medium">Moderately active</span>
-                  <span className="font-mono font-bold text-gray-900">{result.tdee.moderate}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500 font-medium">Very active</span>
-                  <span className="font-mono font-bold text-gray-900">{result.tdee.active}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500 font-medium">Extra active</span>
-                  <span className="font-mono font-bold text-gray-900">{result.tdee.veryActive}</span>
-                </div>
-              </div>
-            </div>
-
-            <ShareResult 
-              title="BMR Result" 
-              result={`${result.bmr} kcal/day (BMR)`} 
-              calcUrl={`https://calcpro.com.np/calculator/bmr`} 
-            />
-          </div>
+          <h1 className="text-4xl sm:text-6xl font-black text-gray-900 dark:text-white tracking-tight">
+            BMR <span className="text-orange-600">Engine</span>
+          </h1>
+          <p className="max-w-2xl mx-auto text-lg text-gray-500 dark:text-gray-400 font-medium">
+             Calculate your Basal Metabolic Rate (BMR) and Total Daily Energy Expenditure (TDEE) for precision weight management and fitness tracking.
+          </p>
         </div>
 
-        <CalcFAQ faqs={[
-          {
-            question: 'What is BMR?',
-            answer: 'BMR (Basal Metabolic Rate) is the number of calories your body needs to perform basic life-sustaining functions while at rest, such as breathing, circulation, and cell production.',
-          },
-          {
-            question: 'What is TDEE?',
-            answer: 'TDEE (Total Daily Energy Expenditure) is the total number of calories you burn in a day, including physical activity. It is calculated by multiplying your BMR by an activity factor.',
-          },
-          {
-            question: 'How can I use BMR to lose weight?',
-            answer: 'To lose weight, you need to consume fewer calories than your TDEE. Knowing your BMR helps you set a realistic calorie goal that ensures your body still gets enough energy for basic functions.',
-          },
-          {
-            question: 'Does BMR change with age?',
-            answer: 'Yes, BMR typically decreases as you get older, mainly due to a loss of muscle mass and changes in hormonal and neurological processes.',
-          },
-          {
-            question: 'How accurate is the BMR calculation?',
-            answer: 'Our calculator uses the Mifflin-St Jeor Equation, which is considered one of the most accurate formulas for predicting BMR. However, individual factors like body composition and genetics can cause variations.',
-          },
-        ]} />
-      </CalcWrapper>
-    </>
+        {/* Form Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          <div className="lg:col-span-2 space-y-8 bg-white dark:bg-gray-900 p-8 sm:p-10 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-xl shadow-gray-200/20 dark:shadow-none">
+             
+             {/* Identity Selection */}
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Biological Gender</label>
+                   <div className="flex gap-2 p-1 bg-gray-50 dark:bg-gray-800 rounded-2xl">
+                      {['male', 'female'].map((g) => (
+                        <button
+                          key={g}
+                          onClick={() => updateState({ gender: g as 'male' | 'female' })}
+                          className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${gender === g ? 'bg-white dark:bg-gray-700 text-orange-600 shadow-sm border border-gray-100 dark:border-gray-600' : 'text-gray-400'}`}
+                        >
+                          {g}
+                        </button>
+                      ))}
+                   </div>
+                </div>
+                <ValidatedInput label="Current Age" value={age} onChange={(v) => updateState({ age: v })} min={5} max={110} suffix="Years" required />
+             </div>
+
+             {/* Metrics */}
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <ValidatedInput label="Weight" value={weight} onChange={(v) => updateState({ weight: v })} min={5} max={500} step={0.1} suffix="kg" required />
+                <ValidatedInput label="Height" value={height} onChange={(v) => updateState({ height: v })} min={50} max={300} step={0.1} suffix="cm" required />
+             </div>
+
+             {/* Activity Selector */}
+             <div className="pt-8 border-t border-gray-100 dark:border-gray-800 space-y-6">
+                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Weekly Activity Intensity</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                   {Object.entries(ACTIVITY_MULTIPLIERS).map(([key, data]) => (
+                     <button
+                        key={key}
+                        onClick={() => updateState({ activity: key as any })}
+                        className={`p-6 rounded-[2rem] border-2 text-left transition-all group ${activity === key ? 'bg-orange-50 dark:bg-orange-900/10 border-orange-200 dark:border-orange-800' : 'bg-gray-50 dark:bg-gray-800/50 border-transparent hover:border-gray-200 dark:hover:border-gray-700'}`}
+                     >
+                        <div className={`text-xs font-black uppercase tracking-tight ${activity === key ? 'text-orange-600' : 'text-gray-900 dark:text-gray-100'}`}>{data.label}</div>
+                        <div className="text-[10px] text-gray-400 font-bold leading-relaxed">{data.desc}</div>
+                     </button>
+                   ))}
+                </div>
+             </div>
+          </div>
+
+          {/* Results Side */}
+          <div className="space-y-6 lg:sticky lg:top-8 h-fit">
+             <ResultCard
+                label="Basal Metabolic Rate"
+                value={analysis.bmr}
+                unit=" kcal"
+                color="yellow"
+                title="Resting Energy"
+                copyValue={`My BMR is ${analysis.bmr} kcal/day.`}
+             />
+
+             <ResultCard
+                label="Daily Energy Spending"
+                value={analysis.tdee}
+                unit=" kcal"
+                color="red"
+                title="In-Motion Burn"
+                copyValue={`My TDEE is ${analysis.tdee} kcal/day.`}
+             />
+
+             <div className="bg-gray-950 text-white p-8 rounded-[2.5rem] space-y-5 border border-white/5">
+                <div className="flex items-center gap-2 mb-2">
+                   <Flame className="w-5 h-5 text-orange-500" />
+                   <h3 className="text-sm font-black uppercase tracking-widest">Weight Goal Targets</h3>
+                </div>
+                <div className="space-y-3">
+                   <div className="flex justify-between items-center text-xs font-bold">
+                      <span className="text-gray-500 uppercase">Weight Loss (-0.5kg/wk)</span>
+                      <span className="text-emerald-400">{analysis.tdee - 500} kcal</span>
+                   </div>
+                   <div className="flex justify-between items-center text-xs font-bold">
+                      <span className="text-gray-500 uppercase">Maintain Weight</span>
+                      <span className="text-blue-400">{analysis.tdee} kcal</span>
+                   </div>
+                   <div className="flex justify-between items-center text-xs font-bold">
+                      <span className="text-gray-500 uppercase">Weight Gain (+0.5kg/wk)</span>
+                      <span className="text-orange-400">{analysis.tdee + 500} kcal</span>
+                   </div>
+                </div>
+             </div>
+          </div>
+
+        </div>
+
+        {/* FAQ Section */}
+        <div className="pt-8">
+           <CalcFAQ
+              faqs={[
+                {
+                  question: 'What is the difference between BMR and TDEE?',
+                  answer: 'BMR (Basal Metabolic Rate) is the energy your body needs just to stay alive at complete rest (breathing, heart beating). TDEE (Total Daily Energy Expenditure) is your BMR plus all the physical activity you perform throughout the day.'
+                },
+                {
+                  question: 'How accurate is the Mifflin-St Jeor formula?',
+                  answer: 'Research shows it is one of the most reliable methods for estimating calorie needs in clinical settings, typically accurate within 10% for most individuals.'
+                },
+                {
+                  question: 'Should I eat below my BMR to lose weight?',
+                  answer: 'Generally, it is not recommended to eat significantly below your BMR for long periods, as your body needs those calories for basic organ function. Aim to stay between your BMR and TDEE for safe, sustainable weight loss.'
+                }
+              ]}
+           />
+        </div>
+      </div>
+    </CalculatorErrorBoundary>
   );
 }

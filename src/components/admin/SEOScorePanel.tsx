@@ -14,6 +14,7 @@
  */
 'use client';
 import { useMemo } from 'react';
+import { HelpCircle, Sparkles, Lightbulb } from 'lucide-react';
 
 interface SEOScorePanelProps {
   title: string;

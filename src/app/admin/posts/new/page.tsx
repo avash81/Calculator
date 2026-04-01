@@ -16,6 +16,9 @@ export default function NewPostPage() {
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDesc, setMetaDesc] = useState('');
   const [keywords, setKeywords] = useState('');
+  const [imageTop, setImageTop] = useState('');
+  const [imageMiddle, setImageMiddle] = useState('');
+  const [imageBottom, setImageBottom] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -41,6 +44,9 @@ export default function NewPostPage() {
         metaTitle,
         metaDesc,
         keywords,
+        imageTop,
+        imageMiddle,
+        imageBottom,
         author: getFirebaseAuth()?.currentUser?.displayName || 'Admin',
         authorUid: getFirebaseAuth()?.currentUser?.uid,
         status: 'published', // Default to published for now
@@ -183,6 +189,33 @@ export default function NewPostPage() {
               <div className="aspect-video rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-slate-400 hover:border-blue-500 hover:text-blue-500 transition-all cursor-pointer">
                 <ImageIcon className="w-8 h-8 mb-2" />
                 <span className="text-xs font-bold">Upload Image</span>
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                <ImageIcon className="w-4 h-4" /> Multi-Image SEO Slots
+              </h3>
+              <p className="text-xs text-slate-400 mb-4 leading-relaxed">Boost Google Image Search traffic by assigning images to dynamic content slots.</p>
+              <div className="space-y-4">
+                <Input 
+                  label="Top Image URL" 
+                  value={imageTop} 
+                  onChange={setImageTop} 
+                  placeholder="https://... (Appears below title)"
+                />
+                <Input 
+                  label="Middle Image URL" 
+                  value={imageMiddle} 
+                  onChange={setImageMiddle} 
+                  placeholder="https://... (Injected after 1st H2)"
+                />
+                <Input 
+                  label="Bottom Image URL" 
+                  value={imageBottom} 
+                  onChange={setImageBottom} 
+                  placeholder="https://... (Appears above FAQs)"
+                />
               </div>
             </Card>
           </div>

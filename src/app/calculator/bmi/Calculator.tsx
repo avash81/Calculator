@@ -1,246 +1,304 @@
 'use client';
-import { useState, useMemo } from 'react';
-import { CalcWrapper } from '@/components/calculator/CalcWrapper';
-import { useDebounce } from '@/hooks/useDebounce';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { useMemo, useState } from 'react';
+import { ValidatedInput } from '@/components/calculator/ValidatedInput';
+import { ResultCard } from '@/components/calculator/ResultCard';
+import { safeCalculateBMI } from '@/utils/math/safeCalculations';
+import { CalculatorErrorBoundary } from '@/components/calculator/CalculatorErrorBoundary';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { TrendingDown, TrendingUp, History, Info, Scale } from 'lucide-react';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
-import { ShareResult } from '@/components/calculator/ShareResult';
+
+interface BMIReading {
+  date: string;
+  bmi: number;
+  weight: number;
+  status: string;
+}
+
+const DEFAULT_STATE = {
+  unit: 'metric' as 'metric' | 'imperial',
+  weight: 70,
+  height: 170, // cm
+  feet: 5,
+  inches: 7,
+  lbs: 154,
+};
 
 export default function BMICalculator() {
-  const [unit, setUnit] = useState<'metric' | 'imperial'>('metric');
-  const [weight, setWeight] = useState(70);
-  const [height, setHeight] = useState(170);
-  const [feet, setFeet] = useState(5);
-  const [inches, setInches] = useState(7);
-  const [lbs, setLbs] = useState(154);
+  const [state, setState] = useLocalStorage('calcpro_bmi_v2', DEFAULT_STATE);
+  const [readings, setReadings] = useLocalStorage<BMIReading[]>('calcpro_bmi_history', []);
+  const [showHistory, setShowHistory] = useState(false);
 
-  const debW = useDebounce(weight, 300);
-  const debH = useDebounce(height, 300);
-  const debF = useDebounce(feet, 300);
-  const debI = useDebounce(inches, 300);
-  const debL = useDebounce(lbs, 300);
+  const { unit, weight, height, feet, inches, lbs } = state;
 
+  const updateState = (updates: Partial<typeof DEFAULT_STATE>) => {
+    setState({ ...state, ...updates });
+  };
+
+  // Calculate BMI
   const result = useMemo(() => {
-    let bmi = 0;
-    let h = 0; // height in meters
-    
     if (unit === 'metric') {
-      h = debH / 100;
-      bmi = debW / (h * h);
+      return safeCalculateBMI(weight, height, 'metric');
     } else {
-      const totalInches = (debF * 12) + debI;
-      h = totalInches * 0.0254;
-      bmi = (debL / (totalInches * totalInches)) * 703;
+      const totalInches = feet * 12 + inches;
+      return safeCalculateBMI(lbs, totalInches, 'imperial');
     }
+  }, [unit, weight, height, feet, inches, lbs]);
 
-    let category = '';
-    let color = '';
-    let bg = '';
-
-    if (bmi < 18.5) {
-      category = 'Underweight';
-      color = 'text-blue-500';
-      bg = 'bg-blue-50 border-blue-200';
-    } else if (bmi < 25) {
-      category = 'Normal Weight';
-      color = 'text-green-500';
-      bg = 'bg-green-50 border-green-200';
-    } else if (bmi < 30) {
-      category = 'Overweight';
-      color = 'text-yellow-500';
-      bg = 'bg-yellow-50 border-yellow-200';
-    } else {
-      category = 'Obese';
-      color = 'text-red-500';
-      bg = 'bg-red-50 border-red-200';
+  const getStatusColor = (status: string): "blue" | "green" | "yellow" | "red" | "gray" => {
+    switch (status) {
+      case 'underweight': return 'blue';
+      case 'normal': return 'green';
+      case 'overweight': return 'yellow';
+      case 'obese': return 'red';
+      default: return 'gray';
     }
+  };
 
-    const minWeightKg = 18.5 * (h * h);
-    const maxWeightKg = 24.9 * (h * h);
-    
-    const minWeight = unit === 'metric' ? minWeightKg : minWeightKg * 2.20462;
-    const maxWeight = unit === 'metric' ? maxWeightKg : maxWeightKg * 2.20462;
-    const unitLabel = unit === 'metric' ? 'kg' : 'lbs';
-
-    return { 
-      bmi: isNaN(bmi) || !isFinite(bmi) ? '0.0' : bmi.toFixed(1), 
-      category, 
-      color, 
-      bg,
-      minWeight: minWeight.toFixed(1), 
-      maxWeight: maxWeight.toFixed(1),
-      unitLabel,
-      bmiValue: bmi
-    };
-  }, [unit, debW, debH, debF, debI, debL]);
-
-  // Calculate position for the gauge
-  const gaugePos = Math.min(Math.max((result.bmiValue - 15) / (40 - 15) * 100, 0), 100);
+  const saveReading = () => {
+    if (result.success && result.data) {
+      const newReading: BMIReading = {
+        date: new Date().toLocaleDateString('en-NP'),
+        bmi: result.data.bmi,
+        weight: unit === 'metric' ? weight : lbs,
+        status: result.data.status,
+      };
+      setReadings([newReading, ...readings].slice(0, 10)); // Keep last 10
+    }
+  };
 
   return (
-    <>
-      <JsonLd type="calculator"
-        name="BMI Calculator"
-        description="Calculate your Body Mass Index (BMI) to determine your healthy weight range based on WHO standards. Supports metric and imperial units."
-        url="https://calcpro.com.np/calculator/bmi" />
+    <CalculatorErrorBoundary calculatorName="BMI">
+      <div className="max-w-6xl mx-auto space-y-8">
+        
+        {/* Header */}
+        <div className="text-center space-y-4 py-8">
+          <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-emerald-100 mb-2">
+             <div className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+             Health & Wellness
+          </div>
+          <h1 className="text-4xl sm:text-6xl font-black text-gray-900 dark:text-white tracking-tight">
+            BMI <span className="text-emerald-600">Calculator</span>
+          </h1>
+          <p className="max-w-2xl mx-auto text-lg text-gray-500 dark:text-gray-400 font-medium">
+             Check your Body Mass Index (BMI) and discover your ideal weight range based on WHO health standards.
+          </p>
+        </div>
 
-      <CalcWrapper
-        title="BMI Calculator"
-        description="Calculate your Body Mass Index (BMI) to determine your healthy weight range based on WHO standards."
-        crumbs={[{label:'health',href:'/calculator?cat=health'}, {label:'bmi calculator'}]}
-        relatedCalcs={[
-          {name:'BMR Calculator',slug:'bmr'},
-          {name:'Ideal Weight',slug:'ideal-weight'},
-          {name:'Body Fat %',slug:'body-fat'},
-        ]}
-      >
-        <div className="flex flex-col-reverse gap-5 lg:grid lg:grid-cols-[1fr_300px] lg:items-start">
-          <div className="border border-gray-200 rounded-xl p-5 space-y-6">
-            <div className="flex bg-gray-100 p-1 rounded-lg">
+        {/* Unit Toggle */}
+        <div className="flex justify-center pb-4">
+          <div className="flex gap-2 bg-gray-50 dark:bg-gray-800/50 p-1.5 rounded-3xl border border-gray-100 dark:border-gray-800 w-full max-w-md">
+            {[
+              { u: 'metric', l: 'Metric (kg/cm)' },
+              { u: 'imperial', l: 'Imperial (lbs/ft)' },
+            ].map(({ u, l }) => (
               <button
-                onClick={() => setUnit('metric')}
-                className={`flex-1 py-2 text-[10px] font-bold rounded-md transition-colors min-h-[44px] uppercase tracking-widest ${unit === 'metric' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                key={u}
+                onClick={() => updateState({ unit: u as any })}
+                className={`flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                  unit === u
+                    ? 'bg-white dark:bg-gray-700 text-emerald-600 dark:text-emerald-400 shadow-sm border border-gray-100 dark:border-gray-600'
+                    : 'text-gray-400'
+                }`}
               >
-                Metric
+                {l}
               </button>
-              <button
-                onClick={() => setUnit('imperial')}
-                className={`flex-1 py-2 text-[10px] font-bold rounded-md transition-colors min-h-[44px] uppercase tracking-widest ${unit === 'imperial' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                Imperial
-              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Inputs */}
+          <div className="lg:col-span-2 space-y-8 bg-white dark:bg-gray-900 p-8 sm:p-10 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-xl shadow-gray-200/20 dark:shadow-none">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {unit === 'metric' ? (
+                <>
+                  <ValidatedInput
+                    label="Weight"
+                    value={weight}
+                    onChange={(v) => updateState({ weight: v })}
+                    min={2}
+                    max={500}
+                    step={0.1}
+                    suffix="kg"
+                    hint="2kg - 500kg"
+                    required
+                  />
+                  <ValidatedInput
+                    label="Height"
+                    value={height}
+                    onChange={(v) => updateState({ height: v })}
+                    min={30}
+                    max={300}
+                    step={0.1}
+                    suffix="cm"
+                    hint="30cm - 300cm"
+                    required
+                  />
+                </>
+              ) : (
+                <>
+                  <ValidatedInput
+                    label="Weight"
+                    value={lbs}
+                    onChange={(v) => updateState({ lbs: v })}
+                    min={5}
+                    max={1100}
+                    suffix="lbs"
+                    hint="5 - 1100 lbs"
+                    required
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <ValidatedInput
+                      label="Feet"
+                      value={feet}
+                      onChange={(v) => updateState({ feet: v })}
+                      min={1}
+                      max={9}
+                      suffix="ft"
+                    />
+                    <ValidatedInput
+                      label="Inches"
+                      value={inches}
+                      onChange={(v) => updateState({ inches: v })}
+                      min={0}
+                      max={11.9}
+                      suffix="in"
+                    />
+                  </div>
+                </>
+              )}
             </div>
 
-            {unit === 'metric' ? (
+            {/* WHO HEALTH INFO */}
+            {result.success && result.data && (
+              <div className="p-8 bg-emerald-50 dark:bg-emerald-900/10 rounded-[2rem] border border-emerald-100 dark:border-emerald-900/30 space-y-4">
+                <div className="flex items-center gap-2">
+                   <Info className="w-5 h-5 text-emerald-600" />
+                   <h4 className="text-sm font-black text-emerald-600 uppercase tracking-widest">Ideal Weight Range</h4>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter">
+                     {unit === 'metric' ? ((18.5 * (height/100)**2).toFixed(1)) : ((18.5 * (feet*12+inches)**2 / 703).toFixed(1))} - {unit === 'metric' ? ((25 * (height/100)**2).toFixed(1)) : ((25 * (feet*12+inches)**2 / 703).toFixed(1))}
+                  </span>
+                  <span className="text-lg font-bold text-gray-400 capitalize">{unit === 'metric' ? 'kg' : 'lbs'}</span>
+                </div>
+                <p className="text-xs text-gray-500 font-medium leading-relaxed">
+                  Calculated based on World Health Organization (WHO) standards for your height.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Results Side */}
+          <div className="space-y-6 lg:sticky lg:top-8 h-fit">
+            {result.success && result.data ? (
               <>
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Weight (kg)</label>
-                  <input type="number" inputMode="decimal" pattern="[0-9.]*" value={weight} onChange={e => setWeight(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
+                <ResultCard
+                  label="Computed Body Mass Index"
+                  value={result.data.bmi}
+                  unit=" BMI"
+                  color={getStatusColor(result.data.status)}
+                  title={result.data.category}
+                  copyValue={`BMI: ${result.data.bmi} (${result.data.category})`}
+                />
+
+                {/* BMI Gauge */}
+                <div className="bg-white dark:bg-gray-900 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 space-y-6 shadow-sm">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    <span>Underweight</span>
+                    <span>Obese</span>
+                  </div>
+                  <div className="h-4 w-full bg-gradient-to-r from-blue-400 via-green-400 via-yellow-400 to-red-400 rounded-full relative overflow-hidden">
+                    <div 
+                      className="absolute top-0 bottom-0 w-2 bg-white dark:bg-gray-900 border-2 border-gray-900 dark:border-white rounded-full transition-all duration-1000 shadow-xl"
+                      style={{ 
+                        left: `${Math.min(Math.max((result.data.bmi / 40) * 100, 2), 98)}%`,
+                        transform: 'translateX(-50%)'
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[10px] font-bold text-gray-400 px-1">
+                    <span>18.5</span>
+                    <span>25</span>
+                    <span>30</span>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Height (cm)</label>
-                  <input type="number" inputMode="decimal" pattern="[0-9.]*" value={height} onChange={e => setHeight(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
-                </div>
+
+                <button
+                  onClick={saveReading}
+                  className="w-full flex items-center justify-center gap-2 py-4 bg-gray-900 dark:bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest hover:scale-[1.02] transition-all active:scale-[0.98] shadow-xl shadow-gray-200/50 dark:shadow-none"
+                >
+                  <History className="w-5 h-5" />
+                  Save Tracking
+                </button>
               </>
             ) : (
-              <>
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Weight (lbs)</label>
-                  <input type="number" inputMode="decimal" pattern="[0-9.]*" value={lbs} onChange={e => setLbs(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Height (ft)</label>
-                    <input type="number" inputMode="numeric" pattern="[0-9]*" value={feet} onChange={e => setFeet(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Height (in)</label>
-                    <input type="number" inputMode="numeric" pattern="[0-9]*" value={inches} onChange={e => setInches(Number(e.target.value))} className="w-full border-2 border-gray-100 rounded-lg px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-blue-500 font-mono font-bold" />
-                  </div>
-                </div>
-              </>
+              <div className="p-8 bg-rose-50 dark:bg-rose-900/10 border-2 border-rose-100 dark:border-rose-900/30 rounded-[2.5rem] text-rose-600 text-center space-y-2">
+                <p className="font-black uppercase tracking-widest text-xs">Error Found</p>
+                <p className="font-bold">{result.error}</p>
+              </div>
             )}
-
-            <button onClick={() => { setWeight(70); setHeight(170); setFeet(5); setInches(7); setLbs(154); }} className="w-full py-4 mt-6 border-2 border-dashed border-gray-100 rounded-xl text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:bg-red-50 hover:border-red-100 hover:text-red-500 transition-all">Reset Entry / Backspace</button>
           </div>
+        </div>
 
-          <div className="space-y-4 lg:sticky lg:top-20">
-            <div className={`border rounded-xl p-6 text-center shadow-lg ${result.bg}`}>
-              <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">Your BMI</div>
-              <div className={`text-5xl font-bold font-mono mb-2 ${result.color}`}>{result.bmi}</div>
-              <div className={`text-lg font-bold uppercase tracking-widest ${result.color}`}>{result.category}</div>
-            </div>
-
-            <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-              <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Healthy Weight Range</div>
-              <div className="text-lg font-bold text-gray-900 font-mono">{result.minWeight} - {result.maxWeight} {result.unitLabel}</div>
+        {/* History Section */}
+        {readings.length > 0 && (
+          <div className="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] border border-gray-100 dark:border-gray-800">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                 <History className="w-6 h-6 text-gray-400" />
+                 <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Recent History</h3>
+              </div>
+              <button 
+                onClick={() => setReadings([])}
+                className="text-[10px] font-black text-rose-500 uppercase tracking-widest hover:underline"
+              >
+                Clear All
+              </button>
             </div>
             
-            {/* Visual Gauge */}
-            <div className="pt-4 pb-2">
-              <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden flex relative">
-                <div className="bg-blue-400 h-full" style={{width: '14%'}}></div> {/* < 18.5 */}
-                <div className="bg-green-400 h-full" style={{width: '25.6%'}}></div> {/* 18.5 - 24.9 */}
-                <div className="bg-yellow-400 h-full" style={{width: '20%'}}></div> {/* 25 - 29.9 */}
-                <div className="bg-red-400 h-full" style={{width: '40.4%'}}></div> {/* > 30 */}
-                
-                {/* Marker */}
-                <div className="absolute top-0 bottom-0 w-1 bg-gray-900 shadow-sm transition-all duration-300" style={{left: `${gaugePos}%`}}></div>
-              </div>
-              <div className="flex justify-between text-[9px] text-gray-400 mt-1 font-mono font-bold">
-                <span>15</span>
-                <span>18.5</span>
-                <span>25</span>
-                <span>30</span>
-                <span>40</span>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {readings.map((r, i) => (
+                <div key={i} className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 flex flex-col items-center gap-2 text-center">
+                   <span className="text-[10px] font-black text-gray-400">{r.date}</span>
+                   <span className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter">{r.bmi}</span>
+                   <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                    r.status === 'normal' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 
+                    r.status === 'underweight' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                    'bg-rose-50 text-rose-600 border-rose-100'
+                   }`}>
+                     {r.status}
+                   </div>
+                </div>
+              ))}
             </div>
-
-            <ShareResult 
-              title="BMI Result" 
-              result={`${result.bmi} (${result.category})`} 
-              calcUrl={`https://calcpro.com.np/calculator/bmi`} 
-            />
           </div>
+        )}
+
+        {/* FAQ Section */}
+        <div className="pt-8">
+           <CalcFAQ
+              faqs={[
+                {
+                  question: 'What is BMI and why does it matter?',
+                  answer: 'Body Mass Index (BMI) is a simple index of weight-for-height that is commonly used to classify underweight, overweight and obesity in adults. It matters because high BMI counts are often associated with health risks such as heart disease and type 2 diabetes.'
+                },
+                {
+                  question: 'Is BMI accurate for everyone?',
+                  answer: 'BMI is a useful population-level measure of overweight and obesity, but it has limitations. It does not distinguish between body fat and lean muscle mass. Athletes with high muscle mass may have a high BMI despite low body fat.'
+                },
+                {
+                  question: 'What are the WHO BMI categories?',
+                  answer: 'Underweight: < 18.5, Normal: 18.5–24.9, Overweight: 25–29.9, and Obese: > 30. These standards are international and applied to most adults regardless of gender.'
+                }
+              ]}
+           />
         </div>
-
-        <div className="mt-8 border border-gray-200 rounded-xl overflow-hidden">
-          <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-            <h2 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">BMI Categories (WHO)</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-100 text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                  <th className="text-left px-4 py-2">Category</th>
-                  <th className="text-right px-4 py-2">BMI Range</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="px-4 py-2.5 text-blue-600 font-bold uppercase text-xs tracking-widest">Underweight</td>
-                  <td className="px-4 py-2.5 text-right font-mono font-bold text-gray-600">&lt; 18.5</td>
-                </tr>
-                <tr className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="px-4 py-2.5 text-green-600 font-bold uppercase text-xs tracking-widest">Normal Weight</td>
-                  <td className="px-4 py-2.5 text-right font-mono font-bold text-gray-600">18.5 - 24.9</td>
-                </tr>
-                <tr className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="px-4 py-2.5 text-yellow-600 font-bold uppercase text-xs tracking-widest">Overweight</td>
-                  <td className="px-4 py-2.5 text-right font-mono font-bold text-gray-600">25 - 29.9</td>
-                </tr>
-                <tr className="hover:bg-gray-50">
-                  <td className="px-4 py-2.5 text-red-600 font-bold uppercase text-xs tracking-widest">Obese</td>
-                  <td className="px-4 py-2.5 text-right font-mono font-bold text-gray-600">&ge; 30</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <CalcFAQ faqs={[
-          {
-            question: 'What is BMI?',
-            answer: 'BMI (Body Mass Index) is a measurement of a person\'s weight with respect to their height. It is more of an indicator than a direct measurement of a person\'s total body fat.',
-          },
-          {
-            question: 'Is BMI accurate for everyone?',
-            answer: 'While BMI is a useful screening tool, it has limitations. It does not account for muscle mass, bone density, or overall body composition. Athletes or highly muscular individuals may have a high BMI but low body fat.',
-          },
-          {
-            question: 'What is a healthy BMI range?',
-            answer: 'According to the World Health Organization (WHO), a healthy BMI for adults is between 18.5 and 24.9.',
-          },
-          {
-            question: 'How can I improve my BMI?',
-            answer: 'Improving BMI usually involves a combination of a balanced diet and regular physical activity. Consult with a healthcare professional before starting any new weight loss or exercise program.',
-          },
-          {
-            question: 'What are the risks of a high BMI?',
-            answer: 'A high BMI (overweight or obese) is associated with an increased risk of several health conditions, including heart disease, type 2 diabetes, high blood pressure, and certain types of cancer.',
-          },
-        ]} />
-      </CalcWrapper>
-    </>
+      </div>
+    </CalculatorErrorBoundary>
   );
 }

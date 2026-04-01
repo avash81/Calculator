@@ -62,6 +62,9 @@ function NewSEOPageInner() {
   const [content, setContent]       = useState('');
   const [schemaType, setSchemaType] = useState('Article');
   const [ogImage, setOgImage]       = useState('');
+  const [imageTop, setImageTop]       = useState('');
+  const [imageMiddle, setImageMiddle] = useState('');
+  const [imageBottom, setImageBottom] = useState('');
   const [relatedCalcs, setRelated]  = useState<string[]>([]);
   const [saving, setSaving]         = useState(false);
   const [tab, setTab]               = useState<'write' | 'preview'>('write');
@@ -123,6 +126,9 @@ function NewSEOPageInner() {
         content,
         schemaType,
         ogImage,
+        imageTop,
+        imageMiddle,
+        imageBottom,
         relatedCalcs,
         status: publishStatus,
         wordCount,
@@ -389,7 +395,7 @@ Summary paragraph with call to action.`}
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase
                                     tracking-wider mb-1.5">
-                    OG Image URL
+                    Feature Image (OG)
                   </label>
                   <input type="url" value={ogImage}
                     onChange={e => setOgImage(e.target.value)}
@@ -398,6 +404,31 @@ Summary paragraph with call to action.`}
                                focus:outline-none focus:border-blue-500"
                     style={{ fontSize: '16px' }}
                   />
+                </div>
+              </div>
+
+              {/* Multi-Image SEO Slots */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-gray-50">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                    Top Image
+                  </label>
+                  <input type="url" value={imageTop} onChange={e => setImageTop(e.target.value)}
+                    placeholder="URL" className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                    Middle Image
+                  </label>
+                  <input type="url" value={imageMiddle} onChange={e => setImageMiddle(e.target.value)}
+                    placeholder="URL" className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                    Bottom Image
+                  </label>
+                  <input type="url" value={imageBottom} onChange={e => setImageBottom(e.target.value)}
+                    placeholder="URL" className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs focus:border-blue-500" />
                 </div>
               </div>
             </div>
