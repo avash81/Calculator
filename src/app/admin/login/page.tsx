@@ -37,7 +37,7 @@ export default function AdminLoginPage() {
       
       router.push('/admin');
     } catch (err: any) {
-      setError('Invalid email or password. Please try again.');
+      setError(err.message || 'Invalid email or password. Please try again.');
     } finally {
       setLoading(false);
     }
