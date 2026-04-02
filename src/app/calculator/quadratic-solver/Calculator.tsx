@@ -137,7 +137,7 @@ export default function QuadraticSolver() {
                    </div>
                    <div className="flex justify-between items-center text-xs">
                       <span className="font-bold text-gray-400 uppercase tracking-widest">Vertex (h, k)</span>
-                      <span className="font-black text-gray-900 dark:text-white">({(-b / (2 * a)).toFixed(2)}, {result.data.discriminant / (-4 * a).toFixed(2)})</span>
+                      <span className="font-black text-gray-900 dark:text-white">({(-b / (2 * a)).toFixed(2)}, {(result.data.discriminant / (-4 * a)).toFixed(2)})</span>
                    </div>
                 </div>
 

@@ -46,6 +46,7 @@ export default function PercentageCalculator() {
     let result = '';
     let label = 'Result';
     let raw = 0;
+    let error: string | null = null;
 
     switch (mode) {
       case 'what_is':
@@ -54,19 +55,19 @@ export default function PercentageCalculator() {
         label = `${num}% of ${den}`;
         break;
       case 'what_percent':
-        if (den === 0) return { error: 'Division by zero' };
+        if (den === 0) { error = 'Division by zero'; break; }
         raw = (num / den) * 100;
         result = `${raw.toFixed(2)}%`;
         label = `${num} is what % of ${den}`;
         break;
       case 'original':
-        if (num === 0) return { error: 'Percentage cannot be zero' };
+        if (num === 0) { error = 'Percentage cannot be zero'; break; }
         raw = den / (num / 100);
         result = raw.toLocaleString();
         label = `${den} is ${num}% of what?`;
         break;
       case 'change':
-        if (initial === 0) return { error: 'Initial value cannot be zero' };
+        if (initial === 0) { error = 'Initial value cannot be zero'; break; }
         const diff = final - initial;
         raw = (diff / initial) * 100;
         result = `${raw.toFixed(2)}%`;
@@ -76,7 +77,7 @@ export default function PercentageCalculator() {
         break;
     }
 
-    return { result, label, raw, error: null };
+    return { result, label, raw, error };
   }, [mode, num, den, initial, final]);
 
   return (
@@ -167,7 +168,7 @@ export default function PercentageCalculator() {
               )}
             </div>
 
-            {mode !== 'batch' && (
+            {mode !== 'batch' && !calculation.error && (
               <button 
                 onClick={() => saveToHistory(calculation.label, calculation.result)}
                 className="w-full py-4 bg-gray-900 dark:bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest hover:scale-[1.01] transition-all"

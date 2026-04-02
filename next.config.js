@@ -3,7 +3,6 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
-  output: 'standalone',
 
   // Skip non-critical ESLint warnings (unused imports) during production build
   eslint: {
