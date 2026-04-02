@@ -95,7 +95,7 @@ export default function DateDuration() {
                  <div className="pt-8 border-t border-white/10 space-y-3">
                     <div className="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Days Duration</div>
                     <div className="text-sm font-bold text-gray-400 leading-relaxed italic">
-                       &quot;Duration excludes the start date and includes the end date for a precise count."                     </div>
+                      &quot;Duration excludes the start date and includes the end date for a precise count.&quot;                     </div>
                  </div>
               </div>
               <ShareResult title="Date Duration" result={diff ? `${diff.days} Days` : ''} calcUrl="https://calcpro.com.np/calculator/date-duration" />

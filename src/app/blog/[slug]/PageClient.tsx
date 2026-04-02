@@ -6,15 +6,39 @@ import { InternalLinks } from '@/components/seo/InternalLinks';
 import { ShareResult } from '@/components/calculator/ShareResult';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
 
+function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function sanitizeUrlEscaped(url: string): string | null {
+  const u = url.trim().toLowerCase();
+  // Reject dangerous schemes.
+  if (u.startsWith('javascript:') || u.startsWith('data:') || u.startsWith('vbscript:')) return null;
+  // Allow http(s) and safe local targets.
+  if (u.startsWith('http://') || u.startsWith('https://') || u.startsWith('/') || u.startsWith('#')) return url;
+  return null;
+}
+
 function renderContent(content: string): string {
-  return content
+  // Escape any raw HTML from Firestore before applying markdown-like formatting.
+  const escaped = escapeHtml(content);
+  return escaped
     .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold text-gray-900 mt-8 mb-3 scroll-mt-20">$1</h2>')
     .replace(/^### (.+)$/gm, '<h3 class="text-base font-bold text-gray-800 mt-5 mb-2">$1</h3>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/`(.+?)`/g, '<code class="bg-gray-100 text-blue-700 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
     .replace(/^\d+\. (.+)$/gm, '<li class="ml-5 list-decimal mb-1">$1</li>')
     .replace(/^- (.+)$/gm, '<li class="ml-5 list-disc mb-1">$1</li>')
-    .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" class="text-blue-600 underline hover:text-blue-800">$1</a>')
+    .replace(/\[(.+?)\]\((.+?)\)/g, (_m, label, url) => {
+      const safe = sanitizeUrlEscaped(String(url));
+      if (!safe) return `<span>${label}</span>`;
+      return `<a href="${safe}" class="text-blue-600 underline hover:text-blue-800" rel="noopener noreferrer">${label}</a>`;
+    })
     .replace(/^(?!<[hlo]).+$/gm, (l) => l.trim() ? `<p class="mb-4 text-gray-700 leading-relaxed">${l}</p>` : '');
 }
 

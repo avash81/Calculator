@@ -33,8 +33,17 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // 2. Admin Router Protection
-  if (url.pathname.startsWith('/admin')) {
+  // 2. Admin Router Protection (UI + sensitive admin APIs)
+  const isAdminUi = url.pathname.startsWith('/admin');
+  const isAdminApi = url.pathname.startsWith('/api/admin');
+
+  // Public endpoints that bootstrap admin auth:
+  const isAdminApiPublic =
+    url.pathname === '/api/admin/auth' ||
+    url.pathname === '/api/admin/session' ||
+    url.pathname === '/api/admin/setup';
+
+  if (isAdminUi) {
     // Allow login and setup pages
     if (url.pathname === '/admin/login' || url.pathname === '/admin/setup') {
       return NextResponse.next();
@@ -51,11 +60,30 @@ export async function middleware(req: NextRequest) {
     try {
       const secret = new TextEncoder().encode(adminSecret);
       const { payload } = await jwtVerify(token, secret);
-      if (payload.role !== 'admin') {
+      if (payload.role !== 'admin' && payload.role !== 'editor') {
         return NextResponse.redirect(new URL('/admin/login', req.url));
       }
     } catch (error) {
       return NextResponse.redirect(new URL('/admin/login', req.url));
+    }
+  }
+
+  if (isAdminApi && !isAdminApiPublic) {
+    const token = req.cookies.get('admin_token')?.value;
+    const adminSecret = process.env.ADMIN_SECRET_TOKEN;
+
+    if (!adminSecret || !token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    try {
+      const secret = new TextEncoder().encode(adminSecret);
+      const { payload } = await jwtVerify(token, secret);
+      if (payload.role !== 'admin' && payload.role !== 'editor') {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    } catch {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
   }
   

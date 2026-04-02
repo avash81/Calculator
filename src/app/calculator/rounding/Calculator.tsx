@@ -74,7 +74,7 @@ export default function RoundingCalc() {
                  <div className="text-[10px] font-black uppercase tracking-[0.3em] mb-4 opacity-70">Main Rounding ({precision} places)</div>
                  <div className="text-7xl font-black mb-8 leading-none tracking-tighter">{res?.fixed}</div>
                  <div className="pt-8 border-t border-white/20 italic text-sm font-bold opacity-80 leading-relaxed">
-                    &quot;Precision rounding ensures accurate data representation in statistics."                  </div>
+                   &quot;Precision rounding ensures accurate data representation in statistics.&quot;                  </div>
               </div>
               <ShareResult title="Number Rounded" result={res?.fixed || ''} calcUrl="https://calcpro.com.np/calculator/rounding" />
            </div>

@@ -59,7 +59,7 @@ export default function ZScoreCalc() {
                  <div>
                     <div className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">Statistical Analysis</div>
                     <div className="text-sm font-bold text-gray-600 italic leading-relaxed">
-                       &quot;A Z-score indicates how many standard deviations an element is from the mean of the distribution."                     </div>
+                       &quot;A Z-score indicates how many standard deviations an element is from the mean of the distribution.&quot;                     </div>
                  </div>
               </div>
            </div>

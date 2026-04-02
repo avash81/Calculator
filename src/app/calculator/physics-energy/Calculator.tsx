@@ -79,7 +79,7 @@ export default function EnergyCalc() {
                  <div className="text-[10px] font-black uppercase tracking-[0.3em] mb-4 opacity-70">Energy Vector</div>
                  <div className="text-5xl font-black mb-8 leading-tight">{res.label.split('=')[1] || 'Enter 2 values'}</div>
                  <div className="pt-8 border-t border-white/20 italic text-sm font-bold opacity-80">
-                    &quot;Kinetic energy is proportional to the square of its speed."                  </div>
+                    &quot;Kinetic energy is proportional to the square of its speed.&quot;                  </div>
               </div>
               <ShareResult title="KE Result" result={res.label} calcUrl="https://calcpro.com.np/calculator/physics-energy" />
            </div>

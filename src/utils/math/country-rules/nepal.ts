@@ -25,8 +25,10 @@ export function calculateNepalIncomeTax(
   
   // SSF Deduction (Max 1/3 of income or 500,000)
   // Standard SSF is 11% from employee
-  const ssfDeduction = isSSFContributor 
-    ? (ssfAmountInput || Math.min(annualIncome / 3, 500000, annualIncome * 0.11))
+  const maxSsfDeduction = Math.min(annualIncome / 3, 500000, annualIncome * 0.11);
+  const providedSsfDeduction = ssfAmountInput ?? maxSsfDeduction;
+  const ssfDeduction = isSSFContributor
+    ? Math.max(0, Math.min(providedSsfDeduction, maxSsfDeduction))
     : 0;
   
   const taxableIncome = Math.max(0, annualIncome - ssfDeduction);

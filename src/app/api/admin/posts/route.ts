@@ -2,8 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
+import { requireAdmin } from '@/lib/auth';
 
-const BLOG_DIR = path.join(process.cwd(), 'content/blog');
+export const runtime = 'nodejs';
+
+const BLOG_DIR = path.resolve(process.cwd(), 'content/blog');
+const BLOG_DIR_PREFIX = `${BLOG_DIR}${path.sep}`;
+
+function sanitizeBlogSlug(slug: unknown): string | null {
+  if (typeof slug !== 'string') return null;
+  const s = slug.trim().toLowerCase();
+  // Keep it strict to avoid traversal and odd extensions.
+  if (!/^[a-z0-9-]{1,80}$/.test(s)) return null;
+  return s;
+}
 
 // Ensure blog directory exists
 if (!fs.existsSync(BLOG_DIR)) {
@@ -12,6 +24,11 @@ if (!fs.existsSync(BLOG_DIR)) {
 
 export async function GET() {
   try {
+    const session = await requireAdmin();
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const files = fs.readdirSync(BLOG_DIR);
     const posts = files
       .filter(f => f.endsWith('.mdx'))
@@ -32,8 +49,22 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await requireAdmin();
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const data = await req.json();
     const { slug, title, body, ...seoData } = data;
+
+    const safeSlug = sanitizeBlogSlug(slug);
+    if (!safeSlug) {
+      return NextResponse.json({ error: 'Invalid slug' }, { status: 400 });
+    }
+
+    if (typeof body !== 'string' || body.length < 1 || body.length > 200000) {
+      return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
+    }
 
     const frontmatter = {
       title,
@@ -46,11 +77,14 @@ export async function POST(req: NextRequest) {
     };
 
     const content = matter.stringify(body, frontmatter);
-    const filePath = path.join(BLOG_DIR, `${slug}.mdx`);
+    const filePath = path.resolve(BLOG_DIR, `${safeSlug}.mdx`);
+    if (!filePath.startsWith(BLOG_DIR_PREFIX)) {
+      return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
+    }
 
     fs.writeFileSync(filePath, content);
 
-    return NextResponse.json({ success: true, slug });
+    return NextResponse.json({ success: true, slug: safeSlug });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: 'Failed to save post' }, { status: 500 });

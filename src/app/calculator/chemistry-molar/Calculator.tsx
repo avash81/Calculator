@@ -87,7 +87,7 @@ export default function MolarMassCalc() {
                  <div className="text-[10px] font-black uppercase tracking-[0.3em] mb-4 opacity-70">Molar Mass (g/mol)</div>
                  <div className="text-5xl font-black mb-8 leading-tight">{res.total}</div>
                  <div className="pt-8 border-t border-white/20 italic text-sm font-bold opacity-80 leading-relaxed">
-                    &quot;Computed using IUPAC standard atomic weights."                  </div>
+                    &quot;Computed using IUPAC standard atomic weights.&quot;                  </div>
               </div>
               <ShareResult title="Molar Mass Solved" result={`${res.total} g/mol`} calcUrl="https://calcpro.com.np/calculator/chemistry-molar" />
            </div>

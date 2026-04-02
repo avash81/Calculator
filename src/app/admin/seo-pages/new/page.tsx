@@ -151,7 +151,14 @@ function NewSEOPageInner() {
   };
 
   // Markdown preview (simple)
-  const preview = content
+  const escapedContent = content
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+  const preview = escapedContent
     .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold mt-6 mb-2">$1</h2>')
     .replace(/^### (.+)$/gm, '<h3 class="text-lg font-bold mt-4 mb-1">$1</h3>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')

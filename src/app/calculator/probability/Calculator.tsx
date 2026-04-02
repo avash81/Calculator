@@ -82,7 +82,7 @@ export default function ProbabilityCalc() {
                  <div className="text-6xl font-black mb-8">{res.pct}</div>
                  <div className="pt-8 border-t border-white/20">
                     <div className="text-sm font-bold opacity-80 leading-relaxed italic">
-                       &quot;Based on classical probability rules, there is a {(+res.prob).toFixed(2)} probability of success."                     </div>
+                       &quot;Based on classical probability rules, there is a {(+res.prob).toFixed(2)} probability of success.&quot;                     </div>
                  </div>
               </div>
               <ShareResult title="Probability Calculated" result={res.pct} calcUrl="https://calcpro.com.np/calculator/probability" />

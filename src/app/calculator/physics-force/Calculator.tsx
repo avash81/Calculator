@@ -77,7 +77,7 @@ export default function ForceCalc() {
                  <div className="text-[10px] font-black uppercase tracking-[0.3em] mb-4 opacity-70">Physical Vector</div>
                  <div className="text-5xl font-black mb-8 leading-tight">{res.label.split('=')[1] || 'Enter 2 values'}</div>
                  <div className="pt-8 border-t border-white/20 italic text-sm font-bold opacity-80">
-                    &quot;Force is equal to the rate of change of momentum, assuming constant mass."                  </div>
+                    &quot;Force is equal to the rate of change of momentum, assuming constant mass.&quot;                  </div>
               </div>
               <ShareResult title="Force Result" result={res.label} calcUrl="https://calcpro.com.np/calculator/physics-force" />
            </div>

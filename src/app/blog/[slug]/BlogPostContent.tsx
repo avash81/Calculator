@@ -5,17 +5,51 @@ import { ShareResult } from '@/components/calculator/ShareResult';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
 import { Calculator, ArrowRight, BookOpen, Target } from 'lucide-react';
 
+function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function sanitizeUrlEscaped(url: string): string | null {
+  const u = url.trim().toLowerCase();
+  if (u.startsWith('javascript:') || u.startsWith('data:') || u.startsWith('vbscript:')) return null;
+  if (u.startsWith('http://') || u.startsWith('https://') || u.startsWith('/') || u.startsWith('#')) return url;
+  return null;
+}
+
+function sanitizeUrlRaw(url: unknown): string | null {
+  if (typeof url !== 'string') return null;
+  const trimmed = url.trim();
+  const u = trimmed.toLowerCase();
+  if (u.startsWith('javascript:') || u.startsWith('data:') || u.startsWith('vbscript:')) return null;
+  if (u.startsWith('http://') || u.startsWith('https://') || u.startsWith('/') || u.startsWith('#')) return trimmed;
+  return null;
+}
+
 function renderContent(content: string): string {
   if (!content) return '';
-  return content
+  const escaped = escapeHtml(content);
+  return escaped
     .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold text-gray-900 mt-8 mb-3 scroll-mt-20">$1</h2>')
     .replace(/^### (.+)$/gm, '<h3 class="text-base font-bold text-gray-800 mt-5 mb-2">$1</h3>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/`(.+?)`/g, '<code class="bg-gray-100 text-blue-700 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
     .replace(/^\d+\. (.+)$/gm, '<li class="ml-5 list-decimal mb-1">$1</li>')
     .replace(/^- (.+)$/gm, '<li class="ml-5 list-disc mb-1">$1</li>')
-    .replace(/!\[(.+?)\]\((.+?)\)/g, '<img src="$2" alt="$1" loading="lazy" class="w-full h-auto rounded-2xl border border-gray-100 shadow-sm my-8" />')
-    .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" class="text-blue-600 underline hover:text-blue-800">$1</a>')
+    .replace(/!\[(.+?)\]\((.+?)\)/g, (_m, alt, url) => {
+      const safe = sanitizeUrlEscaped(String(url));
+      if (!safe) return '';
+      return `<img src="${safe}" alt="${alt}" loading="lazy" class="w-full h-auto rounded-2xl border border-gray-100 shadow-sm my-8" />`;
+    })
+    .replace(/\[(.+?)\]\((.+?)\)/g, (_m, label, url) => {
+      const safe = sanitizeUrlEscaped(String(url));
+      if (!safe) return `<span>${label}</span>`;
+      return `<a href="${safe}" class="text-blue-600 underline hover:text-blue-800" rel="noopener noreferrer">${label}</a>`;
+    })
     .replace(/^(?!<[hlo]).+$/gm, (l) => l.trim() ? `<p class="mb-4 text-gray-700 leading-relaxed">${l}</p>` : '');
 }
 
@@ -23,14 +57,15 @@ export default function BlogPostContent({ post, related }: { post: any; related:
   let html = renderContent(post.content || '');
 
   // Dynamic Image Middle Injection (after first H2)
-  if (post.imageMiddle) {
+  const safeMiddleSrc = sanitizeUrlRaw(post.imageMiddle);
+  if (safeMiddleSrc) {
     const parts = html.split('</h2>');
     if (parts.length > 1) {
-      const middleImageHtml = `</h2><img src="${post.imageMiddle}" alt="${post.title} Details" loading="lazy" class="w-full h-auto rounded-3xl border border-gray-100 shadow-xl my-10 object-cover" />`;
+      const middleImageHtml = `</h2><img src="${escapeHtml(safeMiddleSrc)}" alt="${escapeHtml(post.title)} Details" loading="lazy" class="w-full h-auto rounded-3xl border border-gray-100 shadow-xl my-10 object-cover" />`;
       html = parts[0] + middleImageHtml + parts.slice(1).join('</h2>');
     } else {
       // Fallback if no H2 exists
-      html += `<img src="${post.imageMiddle}" alt="${post.title} Flow" loading="lazy" class="w-full h-auto rounded-3xl border border-gray-100 shadow-xl my-10 object-cover" />`;
+      html += `<img src="${escapeHtml(safeMiddleSrc)}" alt="${escapeHtml(post.title)} Flow" loading="lazy" class="w-full h-auto rounded-3xl border border-gray-100 shadow-xl my-10 object-cover" />`;
     }
   }
 
@@ -127,9 +162,9 @@ export default function BlogPostContent({ post, related }: { post: any; related:
         </div>
 
         {/* Top Image (Feature) */}
-        {post.imageTop && (
+        {sanitizeUrlRaw(post.imageTop) && (
           <div className="mb-10 w-full overflow-hidden rounded-[2rem] shadow-2xl border border-gray-100">
-             <img src={post.imageTop} alt={`${post.title} Overview`} loading="eager" className="w-full h-auto object-cover max-h-[500px]" />
+             <img src={sanitizeUrlRaw(post.imageTop)!} alt={`${post.title} Overview`} loading="eager" className="w-full h-auto object-cover max-h-[500px]" />
           </div>
         )}
 
@@ -141,9 +176,9 @@ export default function BlogPostContent({ post, related }: { post: any; related:
         />
 
         {/* Bottom Image (Visual Summary) */}
-        {post.imageBottom && (
+        {sanitizeUrlRaw(post.imageBottom) && (
           <div className="mt-12 w-full overflow-hidden rounded-[2rem] shadow-2xl border border-gray-100">
-             <img src={post.imageBottom} alt={`${post.title} Summary`} loading="lazy" className="w-full h-auto object-cover max-h-[500px]" />
+             <img src={sanitizeUrlRaw(post.imageBottom)!} alt={`${post.title} Summary`} loading="lazy" className="w-full h-auto object-cover max-h-[500px]" />
           </div>
         )}
 

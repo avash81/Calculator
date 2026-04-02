@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { getFirebaseAuth } from '@/lib/firebase';
+import { getDb, getFirebaseAuth } from '@/lib/firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function AdminSetupPage() {
   const [email, setEmail] = useState('');
@@ -19,11 +20,16 @@ export default function AdminSetupPage() {
     setSuccess('');
     setLoading(true);
 
-    // Verify secret token matches the environment variable (exposed to client for this setup)
-    if (secret !== process.env.NEXT_PUBLIC_ADMIN_SECRET_TOKEN && secret !== 'calcpro-admin-2082-nepal') {
-       setError('Invalid secret token. Access denied.');
-       setLoading(false);
-       return;
+    // Verify secret token on the server (do not expose ADMIN_SECRET_TOKEN to the client bundle).
+    const verifyRes = await fetch('/api/admin/setup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ secret }),
+    });
+    if (!verifyRes.ok) {
+      setError('Invalid secret token. Access denied.');
+      setLoading(false);
+      return;
     }
 
     const auth = getFirebaseAuth();
@@ -35,8 +41,41 @@ export default function AdminSetupPage() {
 
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      // Automatically log in the session
-      await fetch('/api/admin/session', { method: 'POST' });
+      const user = auth.currentUser;
+      if (!user) {
+        setError('Firebase session missing after setup. Please try again.');
+        setLoading(false);
+        return;
+      }
+
+      // Create/update the Firestore user profile so Firestore rules can authorize admin/editor access.
+      const db = getDb();
+      if (!db) {
+        setError('Firebase not configured for Firestore setup.');
+        setLoading(false);
+        return;
+      }
+
+      await setDoc(
+        doc(db, 'users', user.uid),
+        {
+          uid: user.uid,
+          email: user.email,
+          role: 'editor',
+          displayName: user.displayName || undefined,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        } as any,
+        { merge: true }
+      );
+
+      // Automatically mint the admin_token cookie via the session API.
+      const idToken = await user.getIdToken();
+      await fetch('/api/admin/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
       setSuccess('Admin account created successfully! Redirecting...');
       setTimeout(() => router.push('/admin'), 2000);
     } catch (err: any) {

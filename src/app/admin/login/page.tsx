@@ -33,7 +33,17 @@ export default function AdminLoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
       
       // Set secure HttpOnly JWT via the new session API route
-      await fetch('/api/admin/session', { method: 'POST' });
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) {
+        setError('Firebase session missing. Please try again.');
+        return;
+      }
+
+      await fetch('/api/admin/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
       
       router.push('/admin');
     } catch (err: any) {

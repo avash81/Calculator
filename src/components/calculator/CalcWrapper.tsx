@@ -130,7 +130,7 @@ export function CalcWrapper({
                <h3 className="text-xs font-black text-red-700 dark:text-red-400 uppercase tracking-[0.3em]">Compliance & Transparency</h3>
             </div>
             <p className="text-xs text-red-600/70 dark:text-red-400/70 leading-relaxed font-bold max-w-3xl">
-              Calculations provided are for planning and informational purposes only. We maintain strict mathematical integrity aligned with Nepal's 2082/83 regulations. 
+              Calculations provided are for planning and informational purposes only. We maintain strict mathematical integrity aligned with Nepal&apos;s 2082/83 regulations. 
               CalcPro.NP is not a substitute for certified financial or legal consultation. All compute cycles remain local to your device.
             </p>
           </div>
