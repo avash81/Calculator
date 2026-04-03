@@ -132,6 +132,14 @@ export default function QuadraticSolver() {
 
                 <div className="bg-white dark:bg-gray-900 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 space-y-5 shadow-sm">
                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-gray-400 uppercase tracking-widest">Parabola Direction</span>
+                      <span className="font-black text-gray-900 dark:text-white uppercase tracking-widest">{a > 0 ? 'Concave Upwards (∪)' : 'Concave Downwards (∩)'}</span>
+                   </div>
+                   <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-gray-400 uppercase tracking-widest">Y-Intercept</span>
+                      <span className="font-black text-gray-900 dark:text-white">(0, {c})</span>
+                   </div>
+                   <div className="flex justify-between items-center text-xs">
                       <span className="font-bold text-gray-400 uppercase tracking-widest">Symmetry Axis</span>
                       <span className="font-black text-gray-900 dark:text-white">x = {(-b / (2 * a)).toFixed(2)}</span>
                    </div>
@@ -140,6 +148,15 @@ export default function QuadraticSolver() {
                       <span className="font-black text-gray-900 dark:text-white">({(-b / (2 * a)).toFixed(2)}, {(result.data.discriminant / (-4 * a)).toFixed(2)})</span>
                    </div>
                 </div>
+
+                {result.data.discriminant >= 0 && (
+                  <div className="bg-purple-50 dark:bg-purple-900/10 p-6 rounded-[2rem] border border-purple-100 dark:border-purple-800">
+                    <div className="text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest mb-2">Factored Form</div>
+                    <div className="text-sm font-bold font-mono text-center truncate italic">
+                       f(x) = {a === 1 ? '' : a}(x {result.data.roots[0].real >= 0 ? '-' : '+'} {Math.abs(+result.data.roots[0].real.toFixed(2))})(x {result.data.roots[1]?.real >= 0 ? '-' : '+'} {Math.abs(+result.data.roots[1]?.real.toFixed(2))})
+                    </div>
+                  </div>
+                )}
 
                 <div className="bg-gray-900 text-white p-8 rounded-[2rem] space-y-4">
                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Common Presets</h4>

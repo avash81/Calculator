@@ -7,39 +7,62 @@ import { ShareResult } from '@/components/calculator/ShareResult';
 
 export default function NumberToWordsCalculator() {
   const [number, setNumber] = useState('12345');
+  const [system, setSystem] = useState<'intl' | 'lakh'>('intl');
+  const [isCurrency, setIsCurrency] = useState(false);
+  const [currency, setCurrency] = useState<'NPR' | 'USD'>('NPR');
 
   const r = useMemo(() => {
     const num = parseInt(number);
-    if (isNaN(num)) return 'Invalid Number';
-    if (num === 0) return 'Zero';
+    if (isNaN(num)) return { word: 'Invalid Number', val: number };
+    if (num === 0) return { word: 'Zero', val: 0 };
 
     const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
     const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-    const scales = ['', 'Thousand', 'Million', 'Billion', 'Trillion'];
 
     const helper = (n: number): string => {
       if (n < 20) return units[n];
       if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + units[n % 10] : '');
-      if (n < 1000) return units[Math.floor(n / 100)] + ' Hundred' + (n % 100 !== 0 ? ' ' + helper(n % 100) : '');
+      if (n < 1000) return units[Math.floor(n / 100)] + ' Hundred' + (n % 100 !== 0 ? ' and ' + helper(n % 100) : '');
       return '';
     };
 
     let result = '';
-    let temp = num;
-    let scaleIndex = 0;
-
-    while (temp > 0) {
-      const chunk = temp % 1000;
-      if (chunk !== 0) {
-        const chunkStr = helper(chunk);
-        result = chunkStr + (scales[scaleIndex] ? ' ' + scales[scaleIndex] : '') + (result ? ' ' + result : '');
+    if (system === 'intl') {
+      const scales = ['', 'Thousand', 'Million', 'Billion', 'Trillion'];
+      let temp = num;
+      let scaleIndex = 0;
+      while (temp > 0) {
+        const chunk = temp % 1000;
+        if (chunk !== 0) result = helper(chunk) + (scales[scaleIndex] ? ' ' + scales[scaleIndex] : '') + (result ? ' ' + result : '');
+        temp = Math.floor(temp / 1000);
+        scaleIndex++;
       }
-      temp = Math.floor(temp / 1000);
-      scaleIndex++;
+    } else {
+      // Lakh/Crore system
+      let temp = num;
+      if (temp >= 10000000) {
+        result += helper(Math.floor(temp / 10000000)) + ' Crore ';
+        temp %= 10000000;
+      }
+      if (temp >= 100000) {
+        result += helper(Math.floor(temp / 100000)) + ' Lakh ';
+        temp %= 100000;
+      }
+      if (temp >= 1000) {
+        result += helper(Math.floor(temp / 1000)) + ' Thousand ';
+        temp %= 1000;
+      }
+      if (temp > 0) result += helper(temp);
     }
 
-    return result.trim();
-  }, [number]);
+    let final = result.trim();
+    if (isCurrency) {
+      if (currency === 'NPR') final = `Rupees ${final} Only`;
+      else final = `${final} Dollars Only`;
+    }
+
+    return { word: final, val: num };
+  }, [number, system, isCurrency, currency]);
 
   return (
     <>
@@ -59,26 +82,70 @@ export default function NumberToWordsCalculator() {
       >
         <div className="flex flex-col lg:grid lg:grid-cols-[1fr_320px] gap-8">
           <div className="space-y-6">
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
+            <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm space-y-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                 <button onClick={()=>setSystem('intl')} className={`px-6 py-4 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest transition-all border-2 ${system === 'intl' ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-600/20' : 'bg-gray-50 text-gray-400 border-transparent hover:bg-gray-100'}`}>
+                    International (Millions)
+                 </button>
+                 <button onClick={()=>setSystem('lakh')} className={`px-6 py-4 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest transition-all border-2 ${system === 'lakh' ? 'bg-emerald-600 text-white border-emerald-600 shadow-xl shadow-emerald-600/20' : 'bg-gray-50 text-gray-400 border-transparent hover:bg-gray-100'}`}>
+                    South Asian (Lakh/Crore)
+                 </button>
+              </div>
+
               <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Enter Number</label>
-                <input type="number" inputMode="numeric" pattern="[0-9.]*" value={number} onChange={e => setNumber(e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 px-1">Enter Number</label>
+                <input type="number" value={number} onChange={e => setNumber(e.target.value)} className="w-full h-16 px-8 rounded-3xl bg-gray-50 border-2 border-transparent focus:border-blue-600 outline-none font-black text-3xl transition-all" />
+              </div>
+
+              <div className="flex items-center justify-between p-6 bg-gray-50 rounded-3xl">
+                 <div>
+                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Currency Mode</div>
+                    <div className="text-xs font-bold text-gray-600">{isCurrency ? `Writing for ${currency}` : 'Convert plain number'}</div>
+                 </div>
+                 <div className="flex gap-2">
+                    <button onClick={()=>setIsCurrency(!isCurrency)} className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${isCurrency ? 'bg-amber-100 text-amber-600 shadow-inner' : 'bg-white text-gray-300'}`}>
+                       $
+                    </button>
+                    {isCurrency && (
+                      <select value={currency} onChange={e=>setCurrency(e.target.value as any)} className="bg-white px-4 rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none border-2 border-transparent focus:border-blue-600">
+                         <option value="NPR">Rupees</option>
+                         <option value="USD">Dollars</option>
+                      </select>
+                    )}
+                 </div>
               </div>
             </div>
           </div>
 
           <div className="space-y-4">
-            <div className="bg-blue-600 rounded-2xl p-6 text-white shadow-xl shadow-blue-900/20">
-              <div className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-1">Written Representation</div>
-              <div className="text-xl font-bold font-mono mb-4 leading-relaxed">{r}</div>
-              <div className="pt-4 border-t border-white/20 text-xs opacity-80 leading-relaxed font-medium">
-                * Supports numbers up to trillions.
+            <div className="bg-gray-900 rounded-[2.5rem] p-10 text-white shadow-2xl space-y-8">
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-4">Word Result</div>
+                <div className="text-2xl font-black text-blue-400 leading-tight mb-6">{r.word}</div>
+                <div className="grid grid-cols-2 gap-4">
+                   <button 
+                    onClick={() => navigator.clipboard.writeText(r.word)}
+                    className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
+                   >
+                     Copy Words
+                   </button>
+                   <button 
+                    onClick={() => navigator.clipboard.writeText(r.val.toLocaleString(system === 'intl' ? 'en-US' : 'en-IN'))}
+                    className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
+                   >
+                     Copy Digits
+                   </button>
+                </div>
+              </div>
+              <div className="pt-8 border-t border-white/5 text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                 <div className="w-1 h-1 bg-blue-600 rounded-full" />
+                 {system === 'intl' ? 'International Standard' : 'South Asian Standard'}
               </div>
             </div>
 
             <ShareResult 
               title="Number to Words" 
-              result={r} 
+              result={r.word} 
               calcUrl={`https://calcpro.com.np/calculator/number-to-words?n=${number}`} 
             />
           </div>

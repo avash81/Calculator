@@ -132,13 +132,34 @@ export default function NepalLandCalculator() {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="p-6 bg-blue-50/50 dark:bg-blue-900/10 rounded-3xl border border-blue-100/50 dark:border-blue-800/50">
-                        <span className="text-[8px] font-black uppercase text-blue-400 tracking-widest block mb-2">Hill Mapping</span>
-                        <span className="text-xl font-black text-blue-700 dark:text-blue-300 font-mono tracking-tighter">{results.hill}</span>
+                        <span className="text-[8px] font-black uppercase text-blue-400 tracking-widest block mb-2">Hill Mapping (R-A-P-D)</span>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-2xl font-black text-blue-700 dark:text-blue-300 font-mono tracking-tighter">{results.hill.split(' ')[0]}</span>
+                          <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Units</span>
+                        </div>
                     </div>
                     <div className="p-6 bg-teal-50/50 dark:bg-teal-900/10 rounded-3xl border border-teal-100/50 dark:border-teal-800/50">
-                        <span className="text-[8px] font-black uppercase text-teal-400 tracking-widest block mb-2">Terai Mapping</span>
-                        <span className="text-xl font-black text-teal-700 dark:text-teal-300 font-mono tracking-tighter">{results.terai}</span>
+                        <span className="text-[8px] font-black uppercase text-teal-400 tracking-widest block mb-2">Terai Mapping (B-K-D)</span>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-2xl font-black text-teal-700 dark:text-teal-300 font-mono tracking-tighter">{results.terai.split(' ')[0]}</span>
+                          <span className="text-[10px] font-bold text-teal-400 uppercase tracking-widest">Units</span>
+                        </div>
                     </div>
+                </div>
+
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 pt-8 border-t border-gray-50 dark:border-gray-800">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Aana Equivalent</span>
+                    <p className="text-sm font-bold text-gray-700 dark:text-gray-300">{(totalSqft / 342.25).toFixed(2)} Aana</p>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Kattha Equivalent</span>
+                    <p className="text-sm font-bold text-gray-700 dark:text-gray-300">{(totalSqft / 3645).toFixed(2)} Kattha</p>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Dhur Equivalent</span>
+                    <p className="text-sm font-bold text-gray-700 dark:text-gray-300">{(totalSqft / 182.25).toFixed(2)} Dhur</p>
+                  </div>
                 </div>
             </div>
           </div>
@@ -179,11 +200,28 @@ export default function NepalLandCalculator() {
           </div>
         </div>
 
-        <div className="mt-16">
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-gray-900 text-white rounded-[2.5rem] p-8 sm:p-10">
+            <h3 className="text-xl font-black uppercase tracking-tight mb-6">Quick Unit Guide</h3>
+            <div className="space-y-4">
+              {[
+                { label: '1 Ropani', val: '16 Aana / 5476 sq. ft' },
+                { label: '1 Aana', val: '4 Paisa / 342.25 sq. ft' },
+                { label: '1 Bigha', val: '20 Kattha / 72900 sq. ft' },
+                { label: '1 Kattha', val: '20 Dhur / 3645 sq. ft' },
+                { label: '1 Dhur', val: '182.25 sq. ft' }
+              ].map((item, idx) => (
+                <div key={idx} className="flex justify-between items-center border-b border-white/10 pb-3 last:border-0">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{item.label}</span>
+                  <span className="text-sm font-bold">{item.val}</span>
+                </div>
+              ))}
+            </div>
+          </div>
           <CalcFAQ faqs={[
             { question: 'What is the conversion for 1 Bigha to Ropani?', answer: 'One Bigha is approximately 13.31 Ropani in the Nepali land measurement system.' },
-            { question: 'How many sq. ft. are in 1 Aana?', answer: 'One Aana is approximately 342.25 square feet.' },
-            { question: 'Which system is used in Terai?', answer: 'The Terai region mainly uses the Bigha, Kattha, and Dhur system, while the Hills use Ropani, Aana, Paisa, and Daam.' }
+            { question: 'How many sq. ft. are in 1 Aana?', answer: 'One Aana is exactly 342.25 square feet, consisting of 4 Paisa.' },
+            { question: 'Which system is used in Terai?', answer: 'The Terai region mainly uses the Bigha, Kattha, and Dhur system, while the Hills/Kathmandu use Ropani, Aana, Paisa, and Daam.' }
           ]} />
         </div>
       </CalcWrapper>

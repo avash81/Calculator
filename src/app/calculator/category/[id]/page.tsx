@@ -2,6 +2,7 @@ import { CATEGORIES } from '@/data/calculators';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { MoveLeft, ArrowRight } from 'lucide-react';
+import { PhysicalCalculatorGuide } from '@/components/education/PhysicalCalculatorGuide';
 
 export default function CategoryPage({ params }: { params: { id: string } }) {
   const category = CATEGORIES.find(c => c.id === params.id);
@@ -63,6 +64,9 @@ export default function CategoryPage({ params }: { params: { id: string } }) {
              Updates for FY 2082/83 are applied across all financial and legal tools.
            </p>
         </div>
+
+        {/* PHYSICAL CALCULATOR GUIDE (Only for Education) */}
+        {params.id === 'education' && <PhysicalCalculatorGuide />}
       </div>
     </div>
   );

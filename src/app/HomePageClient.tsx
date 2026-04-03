@@ -29,6 +29,7 @@ export default function HomePageClient() {
 
   if (!mounted) return null;
 
+
   return (
     <div className="min-h-screen bg-white font-sans selection:bg-google-blue-light selection:text-google-blue overflow-x-hidden">
       

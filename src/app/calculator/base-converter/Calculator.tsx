@@ -23,6 +23,7 @@ type BaseResult = ConversionResult | ErrorResult | null;
 
 export default function BaseConverter() {
   const [val, setVal] = useState('255');
+  const [val2, setVal2] = useState('0'); // Second operand for logic
   const [base, setBase] = useState<number>(10);
 
   const res = useMemo<BaseResult>(() => {
@@ -34,39 +35,48 @@ export default function BaseConverter() {
       const decStr = base === 16 ? `0x${cleanVal}` : base === 8 ? `0o${cleanVal}` : base === 2 ? `0b${cleanVal}` : cleanVal;
       const dec = BigInt(decStr);
       
+      const char = Number(dec) <= 126 && Number(dec) >= 32 ? String.fromCharCode(Number(dec)) : null;
+      const binStr = dec.toString(2);
+      const paddedBin = binStr.padStart(8, '0');
+      
+      // Basic bitwise with val2
+      let logic = { and: '0', or: '0', xor: '0' };
+      try {
+         const d2 = BigInt(val2);
+         logic = { 
+           and: (dec & d2).toString(10), 
+           or: (dec | d2).toString(10), 
+           xor: (dec ^ d2).toString(10) 
+         };
+      } catch { /* ignore */ }
+
       return {
         dec: dec.toString(10),
-        bin: dec.toString(2),
+        bin: paddedBin,
         hex: dec.toString(16).toUpperCase(),
-        oct: dec.toString(8)
+        oct: dec.toString(8),
+        char,
+        logic
       };
     } catch {
-      try {
-        const dec = parseInt(val, base);
-        if (isNaN(dec)) return { error: 'Invalid number for selected base' };
-        return {
-          dec: dec.toString(10),
-          bin: dec.toString(2),
-          hex: dec.toString(16).toUpperCase(),
-          oct: dec.toString(8)
-        };
-      } catch {
-        return { error: 'Invalid input' };
-      }
+      return { error: 'Invalid input' };
     }
-  }, [val, base]);
+  }, [val, val2, base]);
 
   // Guaranteed non-nullable display entries for UI components
-  const display = useMemo<ConversionResult>(() => {
+  const display = useMemo(() => {
     if (res && 'dec' in res) {
+      const r = res as any;
       return {
-        dec: (res as ConversionResult).dec,
-        bin: (res as ConversionResult).bin,
-        hex: (res as ConversionResult).hex,
-        oct: (res as ConversionResult).oct
+        dec: r.dec,
+        bin: r.bin,
+        hex: r.hex,
+        oct: r.oct,
+        char: r.char,
+        logic: r.logic
       };
     }
-    return { dec: '---', bin: '---', hex: '---', oct: '---' };
+    return { dec: '---', bin: '---', hex: '---', oct: '---', char: null, logic: { and: '0', or: '0', xor: '0' } };
   }, [res]);
 
   const applyPreset = (v: string) => {
@@ -115,35 +125,52 @@ export default function BaseConverter() {
                     )}
                  </div>
 
-                 <div className="pt-8 border-t border-gray-50 dark:border-gray-800 mt-8">
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 px-2">Common Values (Decimal)</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                       {['255', '1024', '65535', '16777215'].map(pv => (
-                         <button 
-                          key={pv} 
-                          onClick={() => applyPreset(pv)}
-                          className="py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent hover:border-blue-500 text-[10px] font-black transition-all"
-                         >
-                            {parseInt(pv).toLocaleString()}
-                         </button>
-                       ))}
-                    </div>
-                 </div>
+                  <div className="pt-8 border-t border-gray-50 dark:border-gray-800 mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                     <div>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 px-2">Common Values (Decimal)</label>
+                        <div className="grid grid-cols-2 gap-2">
+                           {['255', '1024', '65535', '16777215'].map(pv => (
+                             <button 
+                              key={pv} 
+                              onClick={() => applyPreset(pv)}
+                              className="py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent hover:border-blue-500 text-[10px] font-black transition-all"
+                             >
+                                {parseInt(pv).toLocaleString()}
+                             </button>
+                           ))}
+                        </div>
+                     </div>
+                     <div>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 px-2">Bitwise Logic (w/ Value 2)</label>
+                        <div className="flex gap-2">
+                           <input type="number" value={val2} onChange={e=>setVal2(e.target.value)} className="w-full h-11 bg-gray-50 dark:bg-gray-800 rounded-xl px-4 font-bold text-sm outline-none border-2 border-transparent focus:border-blue-500" placeholder="Val 2" />
+                        </div>
+                        <div className="mt-2 flex gap-2">
+                           <div className="flex-1 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-[8px] font-black uppercase text-center border border-gray-100 dark:border-gray-700">AND: {display.logic.and}</div>
+                           <div className="flex-1 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-[8px] font-black uppercase text-center border border-gray-100 dark:border-gray-700">XOR: {display.logic.xor}</div>
+                        </div>
+                     </div>
+                  </div>
               </div>
 
-              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[2.5rem] p-8 sm:p-10 shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {[
-                  { l: 'Binary (Base 2)', v: display.bin, c: 'text-blue-500' },
-                  { l: 'Hexadecimal (Base 16)', v: display.hex !== '---' ? `0x${display.hex}` : '---', c: 'text-indigo-500' },
-                  { l: 'Octal (Base 8)', v: display.oct, c: 'text-orange-500' },
-                  { l: 'Decimal (Base 10)', v: display.dec, c: 'text-green-500' },
-                ].map(item => (
-                  <div key={item.l} className="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-3xl group border border-transparent hover:border-blue-100 dark:hover:border-blue-900/30 transition-all">
-                      <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{item.l}</div>
-                      <div className={`text-2xl font-black truncate font-mono ${item.c}`}>{item.v}</div>
-                  </div>
-                ))}
-              </div>
+               <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[2.5rem] p-8 sm:p-10 shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-6 relative overflow-hidden">
+                 {display.char && (
+                   <div className="absolute top-1/2 right-10 -translate-y-1/2 opacity-5 pointer-events-none">
+                      <div className="text-[12rem] font-black">{display.char}</div>
+                   </div>
+                 )}
+                 {[
+                   { l: 'Binary (Base 2)', v: display.bin, c: 'text-blue-500' },
+                   { l: 'Hexadecimal (Base 16)', v: display.hex !== '---' ? `0x${display.hex}` : '---', c: 'text-indigo-500' },
+                   { l: 'Octal (Base 8)', v: display.oct, c: 'text-orange-500' },
+                   { l: 'Decimal (Base 10)', v: display.dec, c: 'text-green-500' },
+                 ].map(item => (
+                   <div key={item.l} className="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-3xl group border border-transparent hover:border-blue-100 dark:hover:border-blue-900/30 transition-all relative z-10">
+                       <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{item.l}</div>
+                       <div className={`text-2xl font-black truncate font-mono ${item.c}`}>{item.v}</div>
+                   </div>
+                 ))}
+               </div>
            </div>
 
            <div className="space-y-6 lg:sticky lg:top-10">
@@ -164,18 +191,18 @@ export default function BaseConverter() {
                 onShare={() => {}}
               />
 
-              <div className="grid grid-cols-2 gap-4">
-                 <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-6 rounded-3xl text-center group hover:bg-blue-50/50 transition-all">
-                    <Terminal className="w-5 h-5 text-gray-300 mx-auto mb-2 group-hover:text-blue-500" />
-                    <div className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Standard</div>
-                    <div className="text-[10px] font-black text-gray-900 dark:text-white uppercase">ANSI C</div>
-                 </div>
-                 <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-6 rounded-3xl text-center group hover:bg-blue-50/50 transition-all">
-                    <Smartphone className="w-5 h-5 text-gray-300 mx-auto mb-2 group-hover:text-blue-500" />
-                    <div className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Memory</div>
-                    <div className="text-[10px] font-black text-gray-900 dark:text-white uppercase">{display.hex !== '---' ? (display.hex.length / 2).toFixed(0) : '0'} Bytes</div>
-                 </div>
-              </div>
+               <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-6 rounded-3xl text-center group hover:bg-blue-50/50 transition-all">
+                     <Terminal className="w-5 h-5 text-gray-300 mx-auto mb-2 group-hover:text-blue-500" />
+                     <div className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">ASCII Preview</div>
+                     <div className="text-[10px] font-black text-gray-900 dark:text-white uppercase">{display.char || 'N/A'}</div>
+                  </div>
+                  <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-6 rounded-3xl text-center group hover:bg-blue-50/50 transition-all">
+                     <Smartphone className="w-5 h-5 text-gray-300 mx-auto mb-2 group-hover:text-blue-500" />
+                     <div className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Memory Size</div>
+                     <div className="text-[10px] font-black text-gray-900 dark:text-white uppercase">{display.hex !== '---' ? Math.ceil(display.hex.length / 2) : '0'} Bytes</div>
+                  </div>
+               </div>
               
               {display.hex !== '---' && (
                 <ShareResult title="Base Conversion Result" result={`${base === 10 ? val : display.dec} in base ${base} = ${display.hex} (Hex)`} calcUrl="https://calcpro.com.np/calculator/base-converter" />

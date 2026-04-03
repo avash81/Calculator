@@ -7,7 +7,7 @@ import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Percent, TrendingUp, Search, Layers, Zap, ArrowRightLeft, History } from 'lucide-react';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
 
-type CalcMode = 'what_is' | 'what_percent' | 'original' | 'change' | 'batch';
+type CalcMode = 'what_is' | 'what_percent' | 'original' | 'change' | 'add_sub' | 'batch';
 
 interface HistoryItem {
   calc: string;
@@ -70,8 +70,14 @@ export default function PercentageCalculator() {
         if (initial === 0) { error = 'Initial value cannot be zero'; break; }
         const diff = final - initial;
         raw = (diff / initial) * 100;
-        result = `${raw.toFixed(2)}%`;
+        result = `${raw >= 0 ? '+' : ''}${raw.toFixed(2)}%`;
         label = `${diff >= 0 ? 'Increase' : 'Decrease'} from ${initial} to ${final}`;
+        break;
+      case 'add_sub':
+        const delta = (num / 100) * den;
+        raw = den + delta; // Default to add
+        result = raw.toLocaleString();
+        label = `${den} + ${num}% = ${result}`;
         break;
       default:
         break;
@@ -104,8 +110,9 @@ export default function PercentageCalculator() {
             { id: 'what_is', label: 'What is X% of Y?', icon: Percent },
             { id: 'what_percent', label: 'X is what % of Y?', icon: Search },
             { id: 'original', label: 'X is Y% of what?', icon: Layers },
+            { id: 'add_sub', label: 'Value +/- %', icon: ArrowRightLeft },
             { id: 'change', label: '% Change', icon: TrendingUp },
-            { id: 'batch', label: 'Batch Calc', icon: Zap },
+            { id: 'batch', label: 'Batch Mode', icon: Zap },
           ].map((m) => (
             <button
               key={m.id}
@@ -143,29 +150,46 @@ export default function PercentageCalculator() {
                     required
                   />
                 </>
-              ) : mode === 'batch' ? (
-                <div className="col-span-2 text-center py-12">
-                   <Zap className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-                   <h3 className="text-xl font-black uppercase tracking-tight">Batch Mode Coming Soon</h3>
-                   <p className="text-gray-400 font-bold">Calculate multiple percentages at once in the next update.</p>
-                </div>
-              ) : (
-                <>
+               ) : mode === 'add_sub' ? (
+                 <>
+                   <ValidatedInput label="Base Value" value={den} onChange={(v) => updateState({ den: v })} required />
+                   <ValidatedInput label="Percentage (%)" value={num} onChange={(v) => updateState({ num: v })} suffix="%" required />
+                   <div className="col-span-2 grid grid-cols-2 gap-4">
+                      <div className="p-6 bg-emerald-50 dark:bg-emerald-900/10 rounded-3xl border border-emerald-100 dark:border-emerald-800 text-center">
+                         <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest block mb-1">Add (+)</span>
+                         <span className="text-2xl font-black text-emerald-700 dark:text-emerald-300">{(den * (1 + num/100)).toLocaleString()}</span>
+                      </div>
+                      <div className="p-6 bg-rose-50 dark:bg-rose-900/10 rounded-3xl border border-rose-100 dark:border-rose-800 text-center">
+                         <span className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest block mb-1">Subtract (-)</span>
+                         <span className="text-2xl font-black text-rose-700 dark:text-rose-300">{(den * (1 - num/100)).toLocaleString()}</span>
+                      </div>
+                   </div>
+                 </>
+               ) : (
+                 <>
+                    <ValidatedInput
+                     label={mode === 'original' ? 'Percentage' : 'Percentage (X)'}
+                     value={num}
+                     onChange={(v) => updateState({ num: v })}
+                     suffix={mode === 'what_percent' ? '' : '%'}
+                     required
+                   />
                    <ValidatedInput
-                    label={mode === 'original' ? 'Percentage' : 'Percentage (X)'}
-                    value={num}
-                    onChange={(v) => updateState({ num: v })}
-                    suffix={mode === 'what_percent' ? '' : '%'}
-                    required
-                  />
-                  <ValidatedInput
-                    label={mode === 'original' ? 'Value (X)' : 'Of Total (Y)'}
-                    value={den}
-                    onChange={(v) => updateState({ den: v })}
-                    required
-                  />
-                </>
-              )}
+                     label={mode === 'original' ? 'Value (X)' : 'Of Total (Y)'}
+                     value={den}
+                     onChange={(v) => updateState({ den: v })}
+                     required
+                   />
+                 </>
+               )}
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-2">
+               {[5, 10, 13, 15, 20, 25].map(v => (
+                 <button key={v} onClick={() => updateState({ num: v })} className="px-4 py-2 rounded-xl bg-gray-50 dark:bg-gray-800 text-[10px] font-black hover:bg-blue-50 dark:hover:bg-blue-900 transition-all">
+                   {v}%
+                 </button>
+               ))}
             </div>
 
             {mode !== 'batch' && !calculation.error && (

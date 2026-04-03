@@ -21,13 +21,26 @@ const UNIVERSITIES = {
     ],
   },
   ku: {
-    name: 'Kathmandu Uni',
+    name: 'Kathmandu Uni (KU)',
     grading: [
       { min: 90, gpa: 4.0, grade: 'A' },
       { min: 80, gpa: 3.3, grade: 'B+' },
       { min: 70, gpa: 2.7, grade: 'B-' },
       { min: 60, gpa: 2.0, grade: 'C' },
       { min: 50, gpa: 1.0, grade: 'D' },
+      { min: 0,  gpa: 0.0, grade: 'F' },
+    ],
+  },
+  pu: {
+    name: 'Pokhara Uni (PU)',
+    grading: [
+      { min: 90, gpa: 4.0, grade: 'A' },
+      { min: 85, gpa: 3.7, grade: 'A-' },
+      { min: 80, gpa: 3.3, grade: 'B+' },
+      { min: 75, gpa: 3.0, grade: 'B' },
+      { min: 70, gpa: 2.7, grade: 'B-' },
+      { min: 65, gpa: 2.3, grade: 'C+' },
+      { min: 60, gpa: 2.0, grade: 'C' },
       { min: 0,  gpa: 0.0, grade: 'F' },
     ],
   },
@@ -152,14 +165,31 @@ export default function EngineeringGPACalculator() {
 
             {/* Semester Tracker */}
             <div className="bg-white dark:bg-gray-900 p-8 sm:p-10 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-xl shadow-gray-200/20">
-               <div className="flex items-center justify-between mb-8">
+               <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
                   <div className="flex items-center gap-2">
                     <History className="w-5 h-5 text-blue-600" />
                     <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest">Semester History</h3>
                   </div>
-                  <button onClick={addSemester} className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-blue-100">
-                    <Plus className="w-4 h-4" /> Add Semester
-                  </button>
+                  <div className="flex gap-2">
+                    <select 
+                      onChange={(e) => {
+                        const credits = parseInt(e.target.value);
+                        if (credits) {
+                          const newId = semesters.length > 0 ? Math.max(...semesters.map(s => s.id)) + 1 : 1;
+                          updateState({ semesters: [...semesters, { id: newId, name: `Semester ${newId}`, gpa: 3.5, credits }] });
+                        }
+                      }}
+                      className="bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl px-3 text-[9px] font-black uppercase tracking-widest outline-none"
+                    >
+                      <option value="">+ Add Preset</option>
+                      <option value="18">18 Credits (Std)</option>
+                      <option value="20">20 Credits (Eng)</option>
+                      <option value="22">22 Credits (Heavy)</option>
+                    </select>
+                    <button onClick={addSemester} className="bg-blue-600 shadow-lg shadow-blue-500/20 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                      <Plus className="w-4 h-4" /> Custom
+                    </button>
+                  </div>
                </div>
 
                <div className="space-y-4">

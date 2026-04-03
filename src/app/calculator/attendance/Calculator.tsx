@@ -10,28 +10,26 @@ export default function AttendanceCalculator() {
   const [total, setTotal] = useState(50);
   const [present, setPresent] = useState(35);
   const [target, setTarget] = useState(75);
+  const [future, setFuture] = useState(10); // Remaining classes in semester
 
   const r = useMemo(() => {
     const current = total > 0 ? (present / total) * 100 : 0;
+    const finalPotential = (total + future) > 0 ? ((present + future) / (total + future)) * 100 : 0;
     
     let needed = 0;
     if (current < target) {
-      // (present + needed) / (total + needed) = target / 100
-      // 100p + 100n = target*t + target*n
-      // n(100 - target) = target*t - 100p
-      needed = Math.ceil((target * total - 100 * present) / (100 - target));
+      needed = Math.max(0, Math.ceil((target * total - 100 * present) / (100 - target)));
     }
     
     let canMiss = 0;
     if (current > target) {
-      // present / (total + miss) = target / 100
-      // 100p = target*t + target*m
-      // m = (100p - target*t) / target
-      canMiss = Math.floor((100 * present - target * total) / target);
+      canMiss = Math.max(0, Math.floor((100 * present - target * total) / target));
     }
 
-    return { current, needed, canMiss };
-  }, [total, present, target]);
+    const status = current >= target ? 'safe' : (finalPotential >= target ? 'warning' : 'danger');
+
+    return { current, needed, canMiss, finalPotential, status };
+  }, [total, present, target, future]);
 
   return (
     <>
@@ -52,22 +50,27 @@ export default function AttendanceCalculator() {
       >
         <div className="flex flex-col lg:grid lg:grid-cols-[1fr_320px] gap-8">
           <div className="space-y-6">
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Total Classes</label>
-                  <input type="number" inputMode="numeric" pattern="[0-9.]*" value={total} onChange={e => setTotal(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[2.5rem] p-8 sm:p-10 shadow-sm space-y-8">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Total Classes Held</label>
+                  <input type="number" value={total} onChange={e => setTotal(+e.target.value)} className="w-full h-14 px-6 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-600 outline-none font-black text-xl" />
                 </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Present Classes</label>
-                  <input type="number" inputMode="numeric" pattern="[0-9.]*" value={present} onChange={e => setPresent(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Classes Attended</label>
+                  <input type="number" value={present} onChange={e => setPresent(+e.target.value)} className="w-full h-14 px-6 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-600 outline-none font-black text-xl" />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Classes Remaining</label>
+                  <input type="number" value={future} onChange={e => setFuture(+e.target.value)} className="w-full h-14 px-6 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-600 outline-none font-black text-xl" />
                 </div>
               </div>
+
               <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target Attendance (%)</label>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 px-1">Target Requirement</label>
                 <div className="grid grid-cols-4 gap-2">
                   {[75, 80, 85, 90].map(t => (
-                    <button key={t} onClick={() => setTarget(t)} className={`py-2 rounded-lg text-[10px] font-bold border-2 transition-all uppercase tracking-widest ${target === t ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-100 text-gray-500 hover:border-gray-200'}`}>
+                    <button key={t} onClick={() => setTarget(t)} className={`py-3 rounded-xl text-[10px] font-black border-2 transition-all uppercase tracking-widest ${target === t ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : 'border-transparent bg-gray-50 dark:bg-gray-800 text-gray-400 hover:bg-gray-100'}`}>
                       {t}%
                     </button>
                   ))}
@@ -77,19 +80,27 @@ export default function AttendanceCalculator() {
           </div>
 
           <div className="space-y-4">
-            <div className={`rounded-2xl p-6 text-white shadow-xl ${r.current >= target ? 'bg-green-600 shadow-green-900/20' : 'bg-red-600 shadow-red-900/20'}`}>
-              <div className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-1">Current Attendance</div>
-              <div className="text-4xl font-bold font-mono mb-4">{r.current.toFixed(1)}%</div>
-              <div className="pt-4 border-t border-white/20 space-y-3">
+            <div className={`rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden group ${r.status === 'safe' ? 'bg-emerald-600 shadow-emerald-900/20' : r.status === 'warning' ? 'bg-amber-600 shadow-amber-900/20' : 'bg-rose-600 shadow-rose-900/20'}`}>
+              <div className="text-[10px] font-black uppercase tracking-[0.3em] mb-4 opacity-70">Current Status</div>
+              <div className="text-6xl font-black mb-8 leading-tight">{r.current.toFixed(1)}%</div>
+              
+              <div className="pt-8 border-t border-white/20 space-y-5">
                 {r.current < target ? (
-                  <div className="text-sm font-medium">
-                    You need to attend <span className="font-bold text-yellow-300 underline underline-offset-4">{r.needed}</span> more classes to reach {target}%.
+                  <div className="text-sm font-medium leading-relaxed">
+                    Condition: <span className="text-white font-black">{r.status === 'warning' ? 'RECOVERABLE' : 'CRITICAL'}</span><br/>
+                    Attend <span className="font-black underline scale-110 inline-block px-1 bg-white/20 rounded mx-1">{r.needed}</span> more classes to hit {target}%.
                   </div>
                 ) : (
-                  <div className="text-sm font-medium">
-                    You can afford to miss <span className="font-bold text-yellow-300 underline underline-offset-4">{r.canMiss}</span> more classes while staying above {target}%.
+                  <div className="text-sm font-medium leading-relaxed">
+                    Condition: <span className="text-white font-black italic uppercase tracking-widest">Safe Zone ✓</span><br/>
+                    You can miss <span className="font-black underline scale-110 inline-block px-1 bg-white/20 rounded mx-1">{r.canMiss}</span> more classes.
                   </div>
                 )}
+
+                <div className="p-4 bg-black/10 rounded-2xl border border-white/10">
+                   <div className="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">Max Potential</div>
+                   <div className="text-lg font-black">{r.finalPotential.toFixed(1)}% if all future attended</div>
+                </div>
               </div>
             </div>
 

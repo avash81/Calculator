@@ -67,10 +67,19 @@ export default function ScientificCalculator() {
       case 'sin': expr = `sin(${val})`; break;
       case 'cos': expr = `cos(${val})`; break;
       case 'tan': expr = `tan(${val})`; break;
+      case 'asin': expr = `asin(${val})`; break;
+      case 'acos': expr = `acos(${val})`; break;
+      case 'atan': expr = `atan(${val})`; break;
+      case 'sinh': expr = `sinh(${val})`; break;
+      case 'cosh': expr = `cosh(${val})`; break;
+      case 'tanh': expr = `tanh(${val})`; break;
       case 'sqrt': expr = `sqrt(${val})`; break;
       case 'log': expr = `log(${val})`; break;
       case 'ln': expr = `ln(${val})`; break;
       case 'pow2': expr = `(${val})^2`; break;
+      case 'abs': expr = `abs(${val})`; break;
+      case 'fact': expr = `fact(${val})`; break;
+      case 'exp': expr = `exp(${val})`; break;
       case 'pi': updateState({ display: Math.PI.toString(), lastEquation: Math.PI.toString() }); return;
       case 'e': updateState({ display: Math.E.toString(), lastEquation: Math.E.toString() }); return;
     }
@@ -138,8 +147,22 @@ export default function ScientificCalculator() {
                <div className="space-y-4">
                   {/* Fn Keys */}
                   <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                     {['sin', 'cos', 'tan', 'sqrt', 'log', 'ln', 'pow2', 'pi', 'e', '(', ')', '%'].map(f => (
-                       <button key={f} onClick={() => applyFn(f)} className={fnBtn}>{f}</button>
+                     {[
+                       'sin', 'cos', 'tan', 'asin', 'acos', 'atan',
+                       'sinh', 'cosh', 'tanh', 'log', 'ln', 'sqrt',
+                       'pow2', 'abs', 'fact', 'exp', 'pi', 'e',
+                       '(', ')', '%', 'ncr', 'npr', ','
+                     ].map(f => (
+                       <button 
+                         key={f} 
+                         onClick={() => {
+                           if (['ncr', 'npr', ','].includes(f)) handleKeyPress(f === ',' ? ',' : `${f}(`);
+                           else applyFn(f);
+                         }} 
+                         className={fnBtn}
+                       >
+                         {f}
+                       </button>
                      ))}
                   </div>
 

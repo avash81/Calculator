@@ -54,8 +54,18 @@ export default function AgeCalculator() {
     }
     const nextBdayDays = Math.ceil((nextBday.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24));
     const dayOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][d1.getDay()];
+    // Zodiac sign
+    const getZodiac = (d: number, m: number) => {
+      const days = [21, 20, 21, 21, 22, 22, 23, 24, 24, 24, 23, 22];
+      const signs = ["Capricorn", "Aquarius", "Pisces", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius"];
+      let month = m;
+      if (d < days[month]) month--;
+      if (month < 0) month = 11;
+      return signs[month];
+    };
+    const zodiac = getZodiac(d1.getDate(), d1.getMonth());
 
-    return { years, months, days, totalDays, totalWeeks, totalMonths, nextBdayDays, dayOfWeek };
+    return { years, months, days, totalDays, totalWeeks, totalMonths, nextBdayDays, dayOfWeek, zodiac };
   }, [dob, targetDate]);
 
   return (
@@ -139,24 +149,41 @@ export default function AgeCalculator() {
                    copyValue={`My exact age is ${analysis.years} years, ${analysis.months} months, and ${analysis.days} days.`}
                  />
 
-                 <div className="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 space-y-5 shadow-sm text-center">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                       <Gift className="w-5 h-5 text-rose-500" />
-                       <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Next Birthday</span>
-                    </div>
-                    <div className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter">In {analysis.nextBdayDays} Days</div>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Mark your calendar!</p>
-                 </div>
+                  <div className="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 space-y-5 shadow-sm text-center">
+                     <div className="flex items-center justify-center gap-2 mb-2">
+                        <Gift className="w-5 h-5 text-rose-500" />
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Celebration</span>
+                     </div>
+                     <div className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter">Next Birthday in {analysis.nextBdayDays} Days</div>
+                     
+                     <div className="pt-4 space-y-2">
+                        <div className="flex justify-between text-[8px] font-black uppercase text-gray-400">
+                           <span>Life Progress (Est. 80Y)</span>
+                           <span>{Math.min(100, (analysis.years / 80) * 100).toFixed(1)}%</span>
+                        </div>
+                        <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                           <div className="h-full bg-amber-500 rounded-full transition-all duration-1000" style={{ width: `${Math.min(100, (analysis.years / 80) * 100)}%` }} />
+                        </div>
+                     </div>
+                  </div>
 
-                 <div className="bg-gray-900 text-white p-8 rounded-[2.5rem] space-y-4">
-                    <div className="flex items-center gap-2">
-                       <Star className="w-4 h-4 text-amber-400" />
-                       <h3 className="text-[11px] font-black uppercase tracking-widest">Born on a {analysis.dayOfWeek}</h3>
-                    </div>
-                    <p className="text-xs font-medium leading-relaxed opacity-80">
-                       You were born during {analysis.years > 0 ? (analysis.years % 12 + ' years ago cycles') : 'this year cycle'}. Time is a precious resource!
-                    </p>
-                 </div>
+                  <div className="bg-gray-900 text-white p-8 rounded-[2.5rem] space-y-4">
+                     <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                           <Star className="w-4 h-4 text-amber-400" />
+                           <h3 className="text-[11px] font-black uppercase tracking-widest">Fun Facts</h3>
+                        </div>
+                        <span className="text-[9px] font-black bg-white/10 px-2 py-1 rounded-lg uppercase tracking-widest">{analysis.zodiac}</span>
+                     </div>
+                     <div className="space-y-3">
+                        <p className="text-xs font-medium leading-relaxed opacity-80">
+                           You were born on a <span className="text-amber-400 font-black">{analysis.dayOfWeek}</span>. Estimated total heartbeats: <span className="text-amber-400 font-black">{(analysis.totalDays * 24 * 60 * 80).toLocaleString()}</span> (at 80 bpm).
+                        </p>
+                        <p className="text-xs font-medium leading-relaxed opacity-80">
+                           Your Zodiac sign is <span className="text-amber-400 font-black">{analysis.zodiac}</span>. You&apos;ve breathed approximately <span className="text-amber-400 font-black">{(analysis.totalDays * 24 * 60 * 16).toLocaleString()}</span> times.
+                        </p>
+                     </div>
+                  </div>
                </>
              ) : (
                <div className="p-8 bg-rose-50 dark:bg-rose-900/10 border-2 border-rose-100 dark:border-rose-900/30 rounded-[2.5rem] text-rose-600 text-center space-y-2">

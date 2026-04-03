@@ -1,15 +1,5 @@
 /**
  * @fileoverview RootLayout — CalcPro.NP
- *
- * Root layout wrapping every page.
- *
- * Next.js 14 Rule: `dynamic()` with `ssr: false` is NOT allowed in
- * Server Components. This file exports `metadata` so it IS a Server
- * Component. All dynamic imports are moved to ClientShell.tsx.
- *
- * Architecture:
- *   layout.tsx (Server) → exports metadata, renders ClientShell
- *   ClientShell.tsx (Client) → dynamic imports with ssr:false
  */
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
@@ -22,7 +12,6 @@ const inter = Inter({
   variable: '--font-inter',
   display: 'swap',
 });
-
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
@@ -43,9 +32,7 @@ export const metadata: Metadata = {
   keywords: [
     'nepal calculator', 'nepal income tax 2082/83',
     'emi calculator nepal', 'nepali date converter',
-    'bmi calculator', 'free calculator nepal',
-    'ai math solver nepal', 'best calculator app nepal',
-    'finance tool nepal'
+    'bmi calculator', 'free calculator nepal'
   ].join(', '),
   openGraph: {
     siteName: 'CalcPro.NP',
@@ -63,52 +50,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Prevent dark-mode flash — must run before first paint */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('theme');document.documentElement.classList.toggle('dark',t==='dark');}catch(e){}})();`,
           }}
         />
-        {/* JSON-LD Structured Data for SEO */}
-        <script
-          type="application/ld+json"
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebApplication",
-              "name": "CalcPro.NP",
-              "url": "https://calcpro.com.np",
-              "description": "Professional-grade free calculators for Nepal including Income Tax, EMI, and AI Math Solver.",
-              "applicationCategory": "FinanceApplication, EducationalApplication",
-              "operatingSystem": "All",
-              "offers": {
-                "@type": "Offer",
-                "price": "0",
-                "priceCurrency": "NPR"
-              },
-              "potentialAction": {
-                "@type": "SearchAction",
-                "target": "https://calcpro.com.np/calculator?search={search_term_string}",
-                "query-input": "required name=search_term_string"
-              }
-            })
-          }}
-        />
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1, viewport-fit=cover"
-        />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="theme-color" content="#1B4FBD" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
-      <body
-        className={`${inter.variable} ${jetbrainsMono.variable} font-sans bg-cp-bg text-cp-text antialiased`}
-      >
+      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans bg-cp-bg text-cp-text antialiased`}>
         <GoogleAnalytics />
-        {/* ClientShell handles all dynamic imports (ssr:false) */}
         <ClientShell>
           {children}
         </ClientShell>
