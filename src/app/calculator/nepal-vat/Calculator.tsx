@@ -1,187 +1,139 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { CalcWrapper } from '@/components/calculator/CalcWrapper';
-import { JsonLd } from '@/components/seo/JsonLd';
-import { CalcFAQ } from '@/components/calculator/CalcFAQ';
-import { ShareResult } from '@/components/calculator/ShareResult';
+import { CalculatorLayout } from '@/components/layout/CalculatorLayout';
 import { ValidatedInput } from '@/components/calculator/ValidatedInput';
-import { ResultDisplay } from '@/components/calculator/ResultDisplay';
-import { CalculatorErrorBoundary } from '@/components/calculator/CalculatorErrorBoundary';
-import { Receipt, Banknote, Landmark } from 'lucide-react';
+import { CalcFAQ } from '@/components/calculator/CalcFAQ';
+import { Receipt, Landmark } from 'lucide-react';
 
-function fmt(n: number) {
-  return Math.round(n).toLocaleString('en-IN');
-}
-
+function fmt(n: number) { return Math.round(n).toLocaleString('en-IN'); }
 
 export default function NepalVATCalculator() {
   const [mode, setMode] = useState<'add' | 'remove'>('add');
   const [amount, setAmount] = useState(1000);
 
-  const result = useMemo(() => {
-    const rate = 0.13; // 13% VAT
-    let original = 0;
-    let vatAmount = 0;
-    let final = 0;
-
+  const r = useMemo(() => {
+    const rate = 0.13;
+    let original = 0, vatAmount = 0, final = 0;
     if (mode === 'add') {
-      original = amount;
-      vatAmount = original * rate;
-      final = original + vatAmount;
+      original = amount; vatAmount = original * rate; final = original + vatAmount;
     } else {
-      final = amount;
-      original = final / (1 + rate);
-      vatAmount = final - original;
+      final = amount; original = final / (1 + rate); vatAmount = final - original;
     }
-
     return { original, vatAmount, final };
   }, [mode, amount]);
 
+  const PRESETS = [1000, 5000, 10000, 50000];
+
   return (
-    <CalculatorErrorBoundary calculatorName="Nepal VAT Calculator">
-      <JsonLd type="calculator"
-        name="Nepal VAT Calculator (13%)"
-        description="Calculate 13% VAT for Nepal. Easily add or remove VAT from any amount. Updated for 2082/83 Nepal tax rules."
-        url="https://calcpro.com.np/calculator/nepal-vat" />
-
-      <CalcWrapper
-        title="Nepal VAT Calculator"
-        description="Calculate 13% Value Added Tax (VAT) for Nepal. Instantly add VAT to a price or extract it from a total amount."
-        crumbs={[{label:'nepal rules',href:'/calculator?cat=nepal'}, {label:'vat calculator'}]}
-        isNepal
-        relatedCalcs={[
-          {name:'Income Tax 2082/83',slug:'nepal-income-tax'},
-          {name:'Salary Calculator',slug:'nepal-salary'},
-          {name:'Discount Calculator',slug:'discount-calculator'},
-        ]}
-      >
-        <div className="flex flex-col-reverse lg:grid lg:grid-cols-[1fr_360px] gap-10">
-          <div className="space-y-8">
-            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[2.5rem] p-8 sm:p-12 shadow-sm transition-all overflow-hidden relative">
-              <div className="flex bg-gray-50 dark:bg-gray-800/40 p-2 rounded-[2rem] border border-gray-100 dark:border-gray-800 mb-10">
-                <button
-                  onClick={() => setMode('add')}
-                  className={`flex-1 py-4 text-[10px] font-black uppercase tracking-[0.2em] rounded-[1.5rem] transition-all min-h-[48px] ${mode === 'add' ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-sm border border-blue-50' : 'text-gray-400'}`}
-                >
-                  Add VAT (13%)
+    <CalculatorLayout
+      title="Nepal VAT Calculator (13%)"
+      description="Instantly add or remove 13% VAT from any amount. Updated for Nepal FY 2082/83 tax rules and IRD standards."
+      category={{ label: 'Nepal Tools', href: '/calculator/category/nepal' }}
+      leftPanel={
+        <div className="space-y-6">
+          {/* Mode selector */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Calculation Mode</label>
+            <div className="flex border border-[var(--border)] p-1 bg-[var(--bg-surface)]">
+              {([{ id: 'add', label: 'Add VAT (13%)' }, { id: 'remove', label: 'Remove VAT' }] as const).map(m => (
+                <button key={m.id} onClick={() => setMode(m.id)}
+                  className={`flex-1 py-3 text-xs font-bold uppercase transition-all ${mode === m.id ? 'bg-[var(--primary)] text-white' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'}`}>
+                  {m.label}
                 </button>
-                <button
-                  onClick={() => setMode('remove')}
-                  className={`flex-1 py-4 text-[10px] font-black uppercase tracking-[0.2em] rounded-[1.5rem] transition-all min-h-[48px] ${mode === 'remove' ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-sm border border-blue-50' : 'text-gray-400'}`}
-                >
-                  Remove VAT
-                </button>
-              </div>
-
-              <div className="space-y-8">
-                <ValidatedInput
-                  label={mode === 'add' ? 'Price (VAT Exclusive)' : 'Total Price (VAT Inclusive)'}
-                  value={amount}
-                  onChange={setAmount}
-                  min={0}
-                  max={100000000}
-                  prefix="Rs."
-                  formatter={(n) => fmt(n)}
-                  required
-                />
-
-                <div className="pt-8 border-t border-gray-50 dark:border-gray-800 lg:pt-10">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 px-1">Common Amounts</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {[1000, 5000, 10000, 50000].map(v => (
-                      <button 
-                        key={v} 
-                        onClick={() => setAmount(v)}
-                        className="py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent hover:border-blue-500 text-[10px] font-black transition-all"
-                      >
-                        Rs. {fmt(v)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <button 
-                onClick={() => { setAmount(1000); setMode('add'); }} 
-                className="w-full py-4 mt-10 border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-2xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:bg-red-50 dark:hover:bg-red-900/10 hover:border-red-100 hover:text-red-500 transition-all font-black"
-              >
-                Reset Calculator
-              </button>
-            </div>
-
-            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[2.5rem] overflow-hidden shadow-sm">
-                <div className="bg-gray-50 dark:bg-gray-800 px-8 py-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Pricing Breakdown</h3>
-                  <div className="text-[9px] font-black bg-blue-100 dark:bg-blue-900/40 text-blue-600 px-3 py-1 rounded-full uppercase tracking-widest">Nepal Standard</div>
-                </div>
-                <div className="p-8 space-y-4">
-                  <div className="flex justify-between items-center text-sm font-bold text-gray-500 dark:text-gray-400">
-                    <span className="uppercase tracking-widest text-[10px]">Net Amount</span>
-                    <span className="font-mono text-gray-900 dark:text-white">Rs. {fmt(result.original)}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm font-bold text-gray-500 dark:text-gray-400">
-                    <span className="uppercase tracking-widest text-[10px]">VAT (13%)</span>
-                    <span className="font-mono text-blue-600">+Rs. {fmt(result.vatAmount)}</span>
-                  </div>
-                  <div className="pt-6 border-t border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                    <span className="text-xs font-black text-gray-900 dark:text-gray-100 uppercase tracking-[0.2em]">Gross Price</span>
-                    <span className="font-mono font-black text-gray-900 dark:text-white text-3xl">Rs. {fmt(result.final)}</span>
-                  </div>
-                </div>
+              ))}
             </div>
           </div>
 
-          <div className="space-y-6 lg:sticky lg:top-10">
-            <ResultDisplay
-              title="VAT Result"
-              primaryResult={{
-                label: mode === 'add' ? 'Total with VAT' : 'Excl. VAT Amount',
-                value: `Rs. ${fmt(mode === 'add' ? result.final : result.original)}`,
-                description: mode === 'add' ? 'Gross Price' : 'Net Price',
-                bgColor: 'bg-blue-600',
-                color: 'text-white'
-              }}
-              secondaryResults={[
-                { label: 'VAT Amount', value: `Rs. ${fmt(result.vatAmount)}` },
-                { label: 'Gross Total', value: `Rs. ${fmt(result.final)}` },
-                { label: 'Excl. VAT', value: `Rs. ${fmt(result.original)}` },
-                { label: 'VAT Rate', value: '13%' },
-              ]}
-              onShare={() => {}}
-            />
+          {/* Amount Input */}
+          <ValidatedInput
+            label={mode === 'add' ? 'Price (VAT Exclusive)' : 'Total Price (VAT Inclusive)'}
+            value={amount} onChange={setAmount} min={0} prefix="Rs." required />
 
-            <div className="grid grid-cols-2 gap-4">
-               <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-8 rounded-[2.5rem] shadow-sm text-center group transition-all hover:bg-blue-50/50">
-                  <Receipt className="w-6 h-6 text-gray-300 mx-auto mb-3 group-hover:text-blue-500 transition-colors" />
-                  <div className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Tax Method</div>
-                  <div className="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-tighter">Nepal IRD</div>
-               </div>
-               <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-8 rounded-[2.5rem] shadow-sm text-center group transition-all hover:bg-blue-50/50">
-                  <Landmark className="w-6 h-6 text-gray-300 mx-auto mb-3 group-hover:text-blue-500 transition-colors" />
-                  <div className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Standard</div>
-                  <div className="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-tighter">VAT 2082/83</div>
-               </div>
+          {/* Quick Presets */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Common Amounts</label>
+            <div className="grid grid-cols-4 gap-2">
+              {PRESETS.map(v => (
+                <button key={v} onClick={() => setAmount(v)}
+                  className={`py-3 text-[11px] font-bold border transition-all ${amount === v ? 'bg-[var(--primary)] text-white border-[var(--primary)]' : 'border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--bg-subtle)]'}`}>
+                  {fmt(v)}
+                </button>
+              ))}
             </div>
+          </div>
 
-            <ShareResult 
-              title="VAT Calculation" 
-              result={`Rs. ${fmt(result.final)}`} 
-              calcUrl={`https://calcpro.com.np/calculator/nepal-vat?a=${amount}&m=${mode}`} 
-            />
+          {/* Nepal VAT info */}
+          <div className="p-5 bg-[var(--bg-subtle)] border border-[var(--border)] flex gap-3">
+            <Landmark className="w-5 h-5 text-[var(--text-muted)] shrink-0 mt-0.5" />
+            <div>
+              <div className="text-[11px] font-black uppercase text-[var(--text-main)] mb-1">Nepal IRD Standard</div>
+              <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed">
+                Nepal's standard VAT rate is <strong>13%</strong>, applied to most goods and services under the VAT Act 2052. Essential goods like fresh food are exempt.
+              </p>
+            </div>
           </div>
         </div>
+      }
+      rightPanel={
+        <div className="space-y-6">
+          {/* Primary Result */}
+          <div className="p-8 bg-white border border-[var(--border)] text-center">
+            <div className="text-xs font-bold uppercase text-[var(--text-muted)] mb-2">
+              {mode === 'add' ? 'Total (incl. VAT)' : 'Amount (excl. VAT)'}
+            </div>
+            <div className="text-6xl font-black text-[var(--primary)] tracking-tighter mb-2">
+              Rs. {fmt(mode === 'add' ? r.final : r.original)}
+            </div>
+            <div className="text-xs font-bold text-[var(--text-secondary)] uppercase">
+              {mode === 'add' ? 'Gross Price' : 'Net Price'}
+            </div>
+          </div>
 
+          {/* Breakdown */}
+          <div className="bg-white border border-[var(--border)]">
+            <div className="px-4 py-3 bg-[var(--bg-surface)] border-b border-[var(--border)] flex justify-between">
+              <h3 className="text-[11px] font-bold uppercase text-[var(--text-main)]">Pricing Breakdown</h3>
+              <span className="text-[9px] font-black bg-[var(--primary)] text-white px-2 py-1 uppercase">Nepal Standard</span>
+            </div>
+            <div className="divide-y divide-[var(--border)]">
+              <div className="px-4 py-4 flex justify-between">
+                <span className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Net Amount (excl. VAT)</span>
+                <span className="text-sm font-black text-[var(--text-main)] font-mono">Rs. {fmt(r.original)}</span>
+              </div>
+              <div className="px-4 py-4 flex justify-between">
+                <span className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">VAT Amount (13%)</span>
+                <span className="text-sm font-black text-amber-700 font-mono">+ Rs. {fmt(r.vatAmount)}</span>
+              </div>
+              <div className="px-4 py-5 flex justify-between bg-[var(--bg-subtle)]">
+                <span className="text-[11px] font-black uppercase text-[var(--text-main)]">Gross Total (incl. VAT)</span>
+                <span className="text-lg font-black text-[var(--primary)] font-mono">Rs. {fmt(r.final)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Info cards */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-5 bg-white border border-[var(--border)] text-center">
+              <Receipt className="w-5 h-5 text-[var(--text-muted)] mx-auto mb-2" />
+              <div className="text-[9px] font-black uppercase text-[var(--text-muted)] mb-1">Tax Method</div>
+              <div className="text-[11px] font-black text-[var(--text-main)]">Nepal IRD</div>
+            </div>
+            <div className="p-5 bg-white border border-[var(--border)] text-center">
+              <Landmark className="w-5 h-5 text-[var(--text-muted)] mx-auto mb-2" />
+              <div className="text-[9px] font-black uppercase text-[var(--text-muted)] mb-1">Fiscal Year</div>
+              <div className="text-[11px] font-black text-[var(--text-main)]">FY 2082/83</div>
+            </div>
+          </div>
+        </div>
+      }
+      faqSection={
         <CalcFAQ faqs={[
-          {
-            question: 'What is the current VAT rate in Nepal?',
-            answer: 'The standard Value Added Tax (VAT) rate in Nepal is 13%. It is applied to most goods and services, although some items are exempt.',
-          },
-          {
-            question: 'How do I calculate VAT in Nepal?',
-            answer: 'To add VAT, multiply amount by 1.13. To remove VAT, divide by 1.13.',
-          }
+          { question: 'What is Nepal\'s VAT rate?', answer: 'The standard VAT rate in Nepal is 13%, applied to most goods and services. Some essential items like unprocessed food and agricultural products are exempt.' },
+          { question: 'How do I add VAT?', answer: 'Multiply the VAT-exclusive price by 1.13. Example: Rs. 1,000 + 13% VAT = Rs. 1,130.' },
+          { question: 'How do I remove VAT from a total?', answer: 'Divide the VAT-inclusive amount by 1.13. Example: Rs. 1,130 ÷ 1.13 = Rs. 1,000 (net price).' },
+          { question: 'Who needs to register for VAT in Nepal?', answer: 'Businesses with annual turnover exceeding Rs. 20 Lakh are required to register for VAT with the Inland Revenue Department (IRD).' },
         ]} />
-      </CalcWrapper>
-    </CalculatorErrorBoundary>
+      }
+    />
   );
 }

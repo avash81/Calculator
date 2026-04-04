@@ -31,19 +31,13 @@ interface ClientShellProps {
 }
 
 export function ClientShell({ children }: ClientShellProps) {
-  useEffect(() => {
-    console.log('--- CALCPRO.NP V2026 HEARTBEAT ---');
-    console.log('PLATFORM: 15+ RECONSTRUCTED TOOLS');
-  }, []);
-
   return (
     <ErrorBoundary>
       <Navbar />
-      <main className="pt-[14px] md:pt-[16px]" suppressHydrationWarning>
+      <main className="pt-[44px] min-h-[calc(100vh-60px)] bg-white">
         {children}
       </main>
       <Footer />
-      <MobileNav />
     </ErrorBoundary>
   );
 }

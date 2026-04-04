@@ -1,95 +1,103 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { CalcWrapper } from '@/components/calculator/CalcWrapper';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { CalculatorLayout } from '@/components/layout/CalculatorLayout';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
-import { ShareResult } from '@/components/calculator/ShareResult';
 
 export default function LogarithmCalculator() {
-  const [base, setBase] = useState(10);
+  const [base, setBase]     = useState(10);
   const [number, setNumber] = useState(100);
 
-  const r = useMemo(() => {
-    // log_b(x) = ln(x) / ln(b)
-    const result = Math.log(number) / Math.log(base);
-    return result;
+  const results = useMemo(() => {
+    if (number <= 0 || base <= 0 || base === 1) return null;
+    const logB = Math.log(number) / Math.log(base);
+    const log10 = Math.log10(number);
+    const ln    = Math.log(number);
+    const log2  = Math.log2(number);
+    return { logB, log10, ln, log2 };
   }, [base, number]);
 
-  return (
-    <>
-      <JsonLd type="calculator"
-        name="Logarithm Calculator"
-        description="Calculate the logarithm of a number with any base. Essential for math and science students. Get results for log10, ln, and custom bases."
-        url="https://calcpro.com.np/calculator/logarithm-calculator" />
+  const QUICK_BASES = [
+    { label: 'log₁₀ (Common)', base: 10 },
+    { label: 'ln (Natural, e)', base: Math.E },
+    { label: 'log₂ (Binary)',  base: 2 },
+    { label: 'log₁₆ (Hex)',    base: 16 },
+  ];
 
-      <CalcWrapper
-        title="Logarithm Calculator"
-        description="Calculate the logarithm of a number with any base. Essential for math and science students."
-        crumbs={[{ label: 'Education', href: '/calculator?cat=education' }, { label: 'Logarithm' }]}
-        relatedCalcs={[
-          { name: 'Scientific', slug: 'scientific-calculator' },
-          { name: 'Quadratic Solver', slug: 'quadratic-solver' },
-        ]}
-      >
-        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_320px] gap-8">
-          <div className="space-y-6">
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
-              <div className="flex items-center gap-4 justify-center py-8 overflow-x-auto">
-                <span className="text-2xl font-bold text-gray-300">log</span>
-                <div className="flex flex-col items-center gap-2">
-                  <input type="number" inputMode="numeric" pattern="[0-9.]*" value={base} onChange={e => setBase(+e.target.value)} className="w-16 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">base</span>
-                </div>
-                <span className="text-2xl font-bold text-gray-300">(</span>
-                <div className="flex flex-col items-center gap-2">
-                  <input type="number" inputMode="numeric" pattern="[0-9.]*" value={number} onChange={e => setNumber(+e.target.value)} className="w-24 h-12 text-center rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">number</span>
-                </div>
-                <span className="text-2xl font-bold text-gray-300">)</span>
-              </div>
+  return (
+    <CalculatorLayout
+      title="Logarithm Calculator"
+      description="Calculate the logarithm of any number with any base. Supports log10, natural log (ln), log2, and custom bases using the change-of-base formula."
+      category={{ label: 'Math', href: '/calculator/category/math' }}
+      leftPanel={
+        <div className="space-y-6">
+          {/* Visual equation display */}
+          <div className="p-6 bg-white border border-[var(--border)] flex items-center justify-center gap-3">
+            <span className="text-2xl font-black text-[var(--text-muted)]">log</span>
+            <div className="text-center">
+              <input type="number" value={base} onChange={e => setBase(Number(e.target.value))} min={0.001} step={0.1}
+                className="w-20 h-10 text-center border-2 border-[var(--primary)] bg-blue-50 font-mono text-lg font-black focus:outline-none" />
+              <div className="text-[9px] font-bold text-[var(--text-muted)] mt-1">base</div>
             </div>
+            <span className="text-2xl font-black text-[var(--text-muted)]">(</span>
+            <div className="text-center">
+              <input type="number" value={number} onChange={e => setNumber(Number(e.target.value))} min={0.001}
+                className="w-28 h-10 text-center border-2 border-[var(--border)] bg-white font-mono text-lg font-black focus:border-[var(--primary)] focus:outline-none" />
+              <div className="text-[9px] font-bold text-[var(--text-muted)] mt-1">number</div>
+            </div>
+            <span className="text-2xl font-black text-[var(--text-muted)]">) = ?</span>
           </div>
 
-          <div className="space-y-4">
-            <div className="bg-blue-600 rounded-2xl p-6 text-white shadow-xl shadow-blue-900/20">
-              <div className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-1">Result</div>
-              <div className="text-4xl font-bold font-mono mb-2">{r.toFixed(6)}</div>
-              <div className="pt-4 border-t border-white/20 text-xs opacity-80 leading-relaxed font-medium">
-                log<sub>{base}</sub>({number}) = {r.toFixed(6)}
-              </div>
-            </div>
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Common Base Presets</label>
+            {QUICK_BASES.map(({ label, base: b }) => (
+              <button key={label} onClick={() => setBase(b)}
+                className="w-full p-4 border border-[var(--border)] bg-white hover:bg-[var(--bg-subtle)] text-left flex justify-between items-center transition-all">
+                <span className="text-[12px] font-bold text-[var(--text-main)]">{label}</span>
+                <span className="text-[11px] font-black font-mono text-[var(--primary)]">{b === Math.E ? 'e ≈ 2.718' : b}</span>
+              </button>
+            ))}
+          </div>
 
-            <ShareResult 
-              title="Logarithm Result" 
-              result={r.toFixed(6)} 
-              calcUrl={`https://calcpro.com.np/calculator/logarithm-calculator`} 
-            />
+          <div className="p-4 bg-[var(--bg-subtle)] border border-[var(--border)]">
+            <div className="text-[10px] font-black uppercase text-[var(--text-muted)] mb-1">Change of Base Formula</div>
+            <code className="text-[11px] font-mono text-[var(--primary)]">log_b(x) = ln(x) / ln(b)</code>
           </div>
         </div>
+      }
+      rightPanel={
+        <div className="space-y-4">
+          {results ? (
+            <>
+              <div className="p-8 bg-white border border-[var(--border)] text-center">
+                <div className="text-xs font-bold uppercase text-[var(--text-muted)] mb-2">log<sub>{base === Math.E ? 'e' : base}</sub>({number})</div>
+                <div className="text-6xl font-black text-[var(--primary)] tracking-tighter font-mono mb-2">{results.logB.toFixed(6)}</div>
+              </div>
 
+              {[
+                { label: 'log₁₀ (Common)', val: results.log10 },
+                { label: 'ln (Natural)',   val: results.ln    },
+                { label: 'log₂ (Binary)',  val: results.log2  },
+              ].map(({ label, val }) => (
+                <div key={label} className="p-5 bg-[var(--bg-surface)] border border-[var(--border)] flex justify-between">
+                  <span className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">{label}</span>
+                  <span className="text-sm font-black font-mono text-[var(--text-main)]">{val.toFixed(6)}</span>
+                </div>
+              ))}
+            </>
+          ) : (
+            <div className="p-5 border border-red-200 bg-red-50 text-red-700 text-sm font-bold">
+              Base must be a positive number other than 1. Number must be positive.
+            </div>
+          )}
+        </div>
+      }
+      faqSection={
         <CalcFAQ faqs={[
-          {
-            question: 'What is a logarithm?',
-            answer: 'A logarithm is the inverse operation to exponentiation. It tells you what exponent a base must be raised to in order to produce a given number.',
-          },
-          {
-            question: 'What is the common logarithm (log10)?',
-            answer: 'The common logarithm is a logarithm with base 10. It is frequently used in science and engineering.',
-          },
-          {
-            question: 'What is the natural logarithm (ln)?',
-            answer: 'The natural logarithm is a logarithm with base e (approximately 2.718). It is widely used in mathematics and physics.',
-          },
-          {
-            question: 'How do I calculate a logarithm with a custom base?',
-            answer: 'You can use the change of base formula: log_b(x) = log_k(x) / log_k(b). Our calculator handles this automatically for any base you provide.',
-          },
-          {
-            question: 'Can a logarithm have a negative base?',
-            answer: 'In standard real-number mathematics, the base of a logarithm must be a positive number other than 1.',
-          },
+          { question: 'What is a logarithm?', answer: 'A logarithm answers: "what exponent do I raise the base to, to get this number?" log₁₀(100) = 2 means 10² = 100.' },
+          { question: 'What is the natural log (ln)?', answer: 'The natural logarithm uses base e (≈2.71828). It is widely used in calculus, statistics, and natural growth models.' },
+          { question: 'What is the change of base formula?', answer: 'log_b(x) = ln(x) / ln(b). This lets you compute any logarithm using natural log or log₁₀.' },
         ]} />
-      </CalcWrapper>
-    </>
+      }
+    />
   );
 }

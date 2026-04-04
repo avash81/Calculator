@@ -1,140 +1,126 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { useDebounce } from '@/hooks/useDebounce';
-import { CalcWrapper } from '@/components/calculator/CalcWrapper';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { CalculatorLayout } from '@/components/layout/CalculatorLayout';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
-import { ShareResult } from '@/components/calculator/ShareResult';
 
 export default function AttendanceCalculator() {
-  const [total, setTotal] = useState(50);
+  const [total, setTotal]     = useState(50);
   const [present, setPresent] = useState(35);
-  const [target, setTarget] = useState(75);
-  const [future, setFuture] = useState(10); // Remaining classes in semester
+  const [target, setTarget]   = useState(75);
+  const [future, setFuture]   = useState(10);
 
   const r = useMemo(() => {
-    const current = total > 0 ? (present / total) * 100 : 0;
+    const current       = total > 0 ? (present / total) * 100 : 0;
     const finalPotential = (total + future) > 0 ? ((present + future) / (total + future)) * 100 : 0;
-    
-    let needed = 0;
-    if (current < target) {
-      needed = Math.max(0, Math.ceil((target * total - 100 * present) / (100 - target)));
-    }
-    
-    let canMiss = 0;
-    if (current > target) {
-      canMiss = Math.max(0, Math.floor((100 * present - target * total) / target));
-    }
-
-    const status = current >= target ? 'safe' : (finalPotential >= target ? 'warning' : 'danger');
-
+    const needed  = current < target ? Math.max(0, Math.ceil((target * total - 100 * present) / (100 - target))) : 0;
+    const canMiss = current > target ? Math.max(0, Math.floor((100 * present - target * total) / target)) : 0;
+    const status  = current >= target ? 'safe' : finalPotential >= target ? 'warning' : 'danger';
     return { current, needed, canMiss, finalPotential, status };
   }, [total, present, target, future]);
 
+  const STATUS_MAP = { safe: { label: 'Safe Zone ✓', color: '#006600' }, warning: { label: 'Recoverable ⚠', color: '#b45309' }, danger: { label: 'Critical ✗', color: '#dc2626' } };
+  const s = STATUS_MAP[r.status as keyof typeof STATUS_MAP];
+
+  const inputCls = "w-full h-12 px-4 border border-[var(--border)] bg-white font-bold text-xl focus:border-[var(--primary)] outline-none";
+
   return (
-    <>
-      <JsonLd type="calculator"
-        name="Attendance Calculator"
-        description="Check if you meet the minimum attendance requirement (usually 75% in Nepal). Calculate how many more classes you need to attend or can afford to miss."
-        url="https://calcpro.com.np/calculator/attendance" />
-
-      <CalcWrapper
-        title="Attendance Calculator"
-        description="Check if you meet the minimum attendance requirement (usually 75% in Nepal). Calculate how many more classes you need to attend or can afford to miss."
-        crumbs={[{ label: 'Education', href: '/calculator?cat=education' }, { label: 'Attendance' }]}
-        relatedCalcs={[
-          { name: 'GPA Calculator', slug: 'gpa' },
-          { name: 'CGPA Calculator', slug: 'cgpa' },
-          { name: 'Percentage Calculator', slug: 'percentage' },
-        ]}
-      >
-        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_320px] gap-8">
-          <div className="space-y-6">
-            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[2.5rem] p-8 sm:p-10 shadow-sm space-y-8">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Total Classes Held</label>
-                  <input type="number" value={total} onChange={e => setTotal(+e.target.value)} className="w-full h-14 px-6 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-600 outline-none font-black text-xl" />
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Classes Attended</label>
-                  <input type="number" value={present} onChange={e => setPresent(+e.target.value)} className="w-full h-14 px-6 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-600 outline-none font-black text-xl" />
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Classes Remaining</label>
-                  <input type="number" value={future} onChange={e => setFuture(+e.target.value)} className="w-full h-14 px-6 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-600 outline-none font-black text-xl" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 px-1">Target Requirement</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {[75, 80, 85, 90].map(t => (
-                    <button key={t} onClick={() => setTarget(t)} className={`py-3 rounded-xl text-[10px] font-black border-2 transition-all uppercase tracking-widest ${target === t ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : 'border-transparent bg-gray-50 dark:bg-gray-800 text-gray-400 hover:bg-gray-100'}`}>
-                      {t}%
-                    </button>
-                  ))}
-                </div>
-              </div>
+    <CalculatorLayout
+      title="Attendance Calculator"
+      description="Check if you meet Nepal's 75% attendance requirement. See how many classes you can still miss or need to attend to reach your target."
+      category={{ label: 'Education', href: '/calculator/category/education' }}
+      leftPanel={
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Total Classes Held</label>
+              <input type="number" value={total} onChange={e => setTotal(Number(e.target.value))} min={1} className={inputCls} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Classes Attended</label>
+              <input type="number" value={present} onChange={e => setPresent(Number(e.target.value))} min={0} className={inputCls} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Classes Remaining</label>
+              <input type="number" value={future} onChange={e => setFuture(Number(e.target.value))} min={0} className={inputCls} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Target %</label>
+              <input type="number" value={target} onChange={e => setTarget(Number(e.target.value))} min={0} max={100} className={inputCls} />
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className={`rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden group ${r.status === 'safe' ? 'bg-emerald-600 shadow-emerald-900/20' : r.status === 'warning' ? 'bg-amber-600 shadow-amber-900/20' : 'bg-rose-600 shadow-rose-900/20'}`}>
-              <div className="text-[10px] font-black uppercase tracking-[0.3em] mb-4 opacity-70">Current Status</div>
-              <div className="text-6xl font-black mb-8 leading-tight">{r.current.toFixed(1)}%</div>
-              
-              <div className="pt-8 border-t border-white/20 space-y-5">
-                {r.current < target ? (
-                  <div className="text-sm font-medium leading-relaxed">
-                    Condition: <span className="text-white font-black">{r.status === 'warning' ? 'RECOVERABLE' : 'CRITICAL'}</span><br/>
-                    Attend <span className="font-black underline scale-110 inline-block px-1 bg-white/20 rounded mx-1">{r.needed}</span> more classes to hit {target}%.
-                  </div>
-                ) : (
-                  <div className="text-sm font-medium leading-relaxed">
-                    Condition: <span className="text-white font-black italic uppercase tracking-widest">Safe Zone ✓</span><br/>
-                    You can miss <span className="font-black underline scale-110 inline-block px-1 bg-white/20 rounded mx-1">{r.canMiss}</span> more classes.
-                  </div>
-                )}
-
-                <div className="p-4 bg-black/10 rounded-2xl border border-white/10">
-                   <div className="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">Max Potential</div>
-                   <div className="text-lg font-black">{r.finalPotential.toFixed(1)}% if all future attended</div>
-                </div>
-              </div>
+          {/* Target Presets */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Common Targets</label>
+            <div className="grid grid-cols-4 gap-2">
+              {[75, 80, 85, 90].map(t => (
+                <button key={t} onClick={() => setTarget(t)}
+                  className={`py-3 text-xs font-black border transition-all ${target === t ? 'bg-[var(--primary)] text-white border-[var(--primary)]' : 'border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--bg-subtle)]'}`}>
+                  {t}%
+                </button>
+              ))}
             </div>
+          </div>
 
-            <ShareResult 
-              title="Attendance Status" 
-              result={`${r.current.toFixed(1)}% Attendance`} 
-              calcUrl={`https://calcpro.com.np/calculator/attendance`} 
-            />
+          {/* Progress Bar */}
+          <div className="p-5 bg-white border border-[var(--border)] space-y-2">
+            <div className="flex justify-between text-[10px] font-bold uppercase text-[var(--text-muted)]">
+              <span>Attendance Progress</span>
+              <span>{r.current.toFixed(1)}% / {target}%</span>
+            </div>
+            <div className="h-4 bg-gray-200 w-full overflow-hidden relative">
+              <div className="h-full transition-all duration-700" style={{ width: `${Math.min(r.current, 100)}%`, backgroundColor: s.color }} />
+              <div className="absolute top-0 bottom-0 w-0.5 bg-[var(--primary)]" style={{ left: `${Math.min(target, 100)}%` }} />
+            </div>
+            <div className="text-[10px] text-[var(--text-muted)]">Vertical line = target ({target}%)</div>
           </div>
         </div>
+      }
+      rightPanel={
+        <div className="space-y-6">
+          {/* Current % Hero */}
+          <div className="p-8 bg-white border border-[var(--border)] text-center">
+            <div className="text-xs font-bold uppercase text-[var(--text-muted)] mb-2">Current Attendance</div>
+            <div className="text-7xl font-black tracking-tighter mb-3" style={{ color: s.color }}>{r.current.toFixed(1)}<span className="text-3xl">%</span></div>
+            <div className="inline-block px-4 py-1 text-xs font-black uppercase tracking-widest border" style={{ color: s.color, borderColor: s.color }}>{s.label}</div>
+          </div>
 
+          {/* Key Info */}
+          <div className="space-y-3">
+            {r.status !== 'safe' && r.needed > 0 && (
+              <div className="p-5 bg-red-50 border border-red-200 flex justify-between">
+                <span className="text-[11px] font-bold uppercase text-red-700">Classes Needed</span>
+                <span className="text-sm font-black text-red-700">{r.needed} more</span>
+              </div>
+            )}
+            {r.status === 'safe' && (
+              <div className="p-5 bg-green-50 border border-green-200 flex justify-between">
+                <span className="text-[11px] font-bold uppercase text-[#006600]">Can Still Miss</span>
+                <span className="text-sm font-black text-[#006600]">{r.canMiss} classes</span>
+              </div>
+            )}
+            <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)] flex justify-between">
+              <span className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Target</span>
+              <span className="text-sm font-black text-[var(--primary)]">{target}%</span>
+            </div>
+            <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)] flex justify-between">
+              <span className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Max Potential</span>
+              <span className="text-sm font-black text-[var(--text-main)]">{r.finalPotential.toFixed(1)}%</span>
+            </div>
+            <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)] flex justify-between">
+              <span className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Present / Total</span>
+              <span className="text-sm font-black text-[var(--text-main)]">{present} / {total}</span>
+            </div>
+          </div>
+        </div>
+      }
+      faqSection={
         <CalcFAQ faqs={[
-          {
-            question: 'What is the minimum attendance requirement in Nepal?',
-            answer: 'Most educational institutions in Nepal, including schools and universities like TU, KU, and PU, typically require a minimum of 75% attendance to appear in final examinations.',
-          },
-          {
-            question: 'How to calculate attendance percentage?',
-            answer: 'To calculate your attendance percentage, divide the number of classes you attended by the total number of classes held, and then multiply by 100.',
-          },
-          {
-            question: 'How many classes can I miss to maintain 75% attendance?',
-            answer: 'If you have 100 total classes, you must attend at least 75. This means you can miss a maximum of 25 classes. Our calculator helps you find this exact number based on your current status.',
-          },
-          {
-            question: 'What happens if I have low attendance?',
-            answer: 'Low attendance (below the required threshold) may lead to being disqualified from taking final exams, losing internal marks, or having to repeat the semester or year.',
-          },
-          {
-            question: 'Can I make up for low attendance?',
-            answer: 'The best way to make up for low attendance is to attend all remaining classes. In some cases, institutions may allow extra assignments or medical certificates for genuine absences, but this depends on their specific policies.',
-          },
+          { question: 'What is the minimum attendance in Nepal?', answer: 'Most universities in Nepal (TU, KU, PU) require a minimum of 75% attendance to sit for final exams.' },
+          { question: 'How is attendance percentage calculated?', answer: 'Attendance % = (Classes Attended / Total Classes Held) × 100.' },
+          { question: 'How many classes can I miss at 75%?', answer: 'In 100 total classes, you can miss at most 25. Our calculator finds this number precisely based on your actual figures.' },
         ]} />
-      </CalcWrapper>
-    </>
+      }
+    />
   );
 }

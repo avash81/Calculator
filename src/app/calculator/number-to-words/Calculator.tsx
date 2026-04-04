@@ -1,179 +1,128 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { CalcWrapper } from '@/components/calculator/CalcWrapper';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { CalculatorLayout } from '@/components/layout/CalculatorLayout';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
-import { ShareResult } from '@/components/calculator/ShareResult';
+import { Copy, Check } from 'lucide-react';
 
-export default function NumberToWordsCalculator() {
-  const [number, setNumber] = useState('12345');
-  const [system, setSystem] = useState<'intl' | 'lakh'>('intl');
-  const [isCurrency, setIsCurrency] = useState(false);
-  const [currency, setCurrency] = useState<'NPR' | 'USD'>('NPR');
+const UNITS = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+const TENS  = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+function helper(n: number): string {
+  if (n < 20) return UNITS[n];
+  if (n < 100) return TENS[Math.floor(n/10)] + (n%10 ? ' ' + UNITS[n%10] : '');
+  return UNITS[Math.floor(n/100)] + ' Hundred' + (n%100 ? ' and ' + helper(n%100) : '');
+}
+
+function toIntl(n: number): string {
+  const scales = ['','Thousand','Million','Billion','Trillion'];
+  let r = ''; let si = 0;
+  while (n > 0) { const c = n%1000; if (c) r = helper(c) + (scales[si] ? ' '+scales[si] : '') + (r ? ' '+r : ''); n = Math.floor(n/1000); si++; }
+  return r;
+}
+
+function toLakh(n: number): string {
+  let r = '';
+  if (n >= 10000000) { r += helper(Math.floor(n/10000000)) + ' Crore '; n %= 10000000; }
+  if (n >= 100000)   { r += helper(Math.floor(n/100000)) + ' Lakh '; n %= 100000; }
+  if (n >= 1000)     { r += helper(Math.floor(n/1000)) + ' Thousand '; n %= 1000; }
+  if (n > 0) r += helper(n);
+  return r;
+}
+
+export default function NumberToWords() {
+  const [number, setNumber]   = useState('12345');
+  const [system, setSystem]   = useState<'intl'|'lakh'>('lakh');
+  const [asCurrency, setAsCurr] = useState(false);
+  const [copied, setCopied]   = useState(false);
 
   const r = useMemo(() => {
-    const num = parseInt(number);
-    if (isNaN(num)) return { word: 'Invalid Number', val: number };
-    if (num === 0) return { word: 'Zero', val: 0 };
+    const n = parseInt(number);
+    if (isNaN(n)) return 'Invalid number';
+    if (n === 0) return asCurrency ? 'Zero Rupees Only' : 'Zero';
+    const w = system === 'intl' ? toIntl(n) : toLakh(n);
+    return asCurrency ? `Rupees ${w.trim()} Only` : w.trim();
+  }, [number, system, asCurrency]);
 
-    const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-
-    const helper = (n: number): string => {
-      if (n < 20) return units[n];
-      if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + units[n % 10] : '');
-      if (n < 1000) return units[Math.floor(n / 100)] + ' Hundred' + (n % 100 !== 0 ? ' and ' + helper(n % 100) : '');
-      return '';
-    };
-
-    let result = '';
-    if (system === 'intl') {
-      const scales = ['', 'Thousand', 'Million', 'Billion', 'Trillion'];
-      let temp = num;
-      let scaleIndex = 0;
-      while (temp > 0) {
-        const chunk = temp % 1000;
-        if (chunk !== 0) result = helper(chunk) + (scales[scaleIndex] ? ' ' + scales[scaleIndex] : '') + (result ? ' ' + result : '');
-        temp = Math.floor(temp / 1000);
-        scaleIndex++;
-      }
-    } else {
-      // Lakh/Crore system
-      let temp = num;
-      if (temp >= 10000000) {
-        result += helper(Math.floor(temp / 10000000)) + ' Crore ';
-        temp %= 10000000;
-      }
-      if (temp >= 100000) {
-        result += helper(Math.floor(temp / 100000)) + ' Lakh ';
-        temp %= 100000;
-      }
-      if (temp >= 1000) {
-        result += helper(Math.floor(temp / 1000)) + ' Thousand ';
-        temp %= 1000;
-      }
-      if (temp > 0) result += helper(temp);
-    }
-
-    let final = result.trim();
-    if (isCurrency) {
-      if (currency === 'NPR') final = `Rupees ${final} Only`;
-      else final = `${final} Dollars Only`;
-    }
-
-    return { word: final, val: num };
-  }, [number, system, isCurrency, currency]);
+  const copy = () => { navigator.clipboard.writeText(r); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
   return (
-    <>
-      <JsonLd type="calculator"
-        name="Number to Words Converter"
-        description="Convert any number into its written English word representation. Useful for writing checks, legal documents, and educational purposes. Supports numbers up to trillions."
-        url="https://calcpro.com.np/calculator/number-to-words" />
+    <CalculatorLayout
+      title="Number to Words Converter"
+      description="Convert any number to written English words. Supports international (millions) and South Asian (lakh/crore) systems. Perfect for checks and legal documents."
+      category={{ label: 'Math', href: '/calculator/category/math' }}
+      leftPanel={
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Enter Number</label>
+            <input type="number" value={number} onChange={e => setNumber(e.target.value)}
+              className="w-full h-16 px-6 border-2 border-[var(--border)] bg-white font-mono text-3xl font-black focus:border-[var(--primary)] outline-none" />
+          </div>
 
-      <CalcWrapper
-        title="Number to Words Converter"
-        description="Convert any number into its written English word representation. Useful for writing checks, legal documents, and more."
-        crumbs={[{ label: 'Math', href: '/calculator?cat=math' }, { label: 'Number to Words' }]}
-        relatedCalcs={[
-          { name: 'Roman Numerals', slug: 'roman-numerals' },
-          { name: 'Scientific', slug: 'scientific-calculator' },
-        ]}
-      >
-        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_320px] gap-8">
-          <div className="space-y-6">
-            <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm space-y-10">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 <button onClick={()=>setSystem('intl')} className={`px-6 py-4 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest transition-all border-2 ${system === 'intl' ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-600/20' : 'bg-gray-50 text-gray-400 border-transparent hover:bg-gray-100'}`}>
-                    International (Millions)
-                 </button>
-                 <button onClick={()=>setSystem('lakh')} className={`px-6 py-4 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest transition-all border-2 ${system === 'lakh' ? 'bg-emerald-600 text-white border-emerald-600 shadow-xl shadow-emerald-600/20' : 'bg-gray-50 text-gray-400 border-transparent hover:bg-gray-100'}`}>
-                    South Asian (Lakh/Crore)
-                 </button>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 px-1">Enter Number</label>
-                <input type="number" value={number} onChange={e => setNumber(e.target.value)} className="w-full h-16 px-8 rounded-3xl bg-gray-50 border-2 border-transparent focus:border-blue-600 outline-none font-black text-3xl transition-all" />
-              </div>
-
-              <div className="flex items-center justify-between p-6 bg-gray-50 rounded-3xl">
-                 <div>
-                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Currency Mode</div>
-                    <div className="text-xs font-bold text-gray-600">{isCurrency ? `Writing for ${currency}` : 'Convert plain number'}</div>
-                 </div>
-                 <div className="flex gap-2">
-                    <button onClick={()=>setIsCurrency(!isCurrency)} className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${isCurrency ? 'bg-amber-100 text-amber-600 shadow-inner' : 'bg-white text-gray-300'}`}>
-                       $
-                    </button>
-                    {isCurrency && (
-                      <select value={currency} onChange={e=>setCurrency(e.target.value as any)} className="bg-white px-4 rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none border-2 border-transparent focus:border-blue-600">
-                         <option value="NPR">Rupees</option>
-                         <option value="USD">Dollars</option>
-                      </select>
-                    )}
-                 </div>
-              </div>
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Number System</label>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { val: 'intl', label: 'International (Millions)' },
+                { val: 'lakh', label: 'South Asian (Lakh/Crore)' },
+              ].map(s => (
+                <button key={s.val} onClick={() => setSystem(s.val as any)}
+                  className={`py-4 text-xs font-black border transition-all uppercase ${system === s.val ? 'bg-[var(--primary)] text-white border-[var(--primary)]' : 'border-[var(--border)] bg-white hover:bg-[var(--bg-subtle)]'}`}>
+                  {s.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="bg-gray-900 rounded-[2.5rem] p-10 text-white shadow-2xl space-y-8">
-              <div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-4">Word Result</div>
-                <div className="text-2xl font-black text-blue-400 leading-tight mb-6">{r.word}</div>
-                <div className="grid grid-cols-2 gap-4">
-                   <button 
-                    onClick={() => navigator.clipboard.writeText(r.word)}
-                    className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
-                   >
-                     Copy Words
-                   </button>
-                   <button 
-                    onClick={() => navigator.clipboard.writeText(r.val.toLocaleString(system === 'intl' ? 'en-US' : 'en-IN'))}
-                    className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
-                   >
-                     Copy Digits
-                   </button>
-                </div>
-              </div>
-              <div className="pt-8 border-t border-white/5 text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                 <div className="w-1 h-1 bg-blue-600 rounded-full" />
-                 {system === 'intl' ? 'International Standard' : 'South Asian Standard'}
-              </div>
-            </div>
+          <label className="flex items-center gap-3 cursor-pointer p-4 border border-[var(--border)] bg-white hover:bg-[var(--bg-surface)] transition-all">
+            <button onClick={() => setAsCurr(!asCurrency)}
+              className={`relative w-10 h-6 shrink-0 transition-colors ${asCurrency ? 'bg-[var(--primary)]' : 'bg-gray-300'}`}>
+              <span className={`absolute top-1 w-4 h-4 bg-white transition-all ${asCurrency ? 'left-5' : 'left-1'}`} />
+            </button>
+            <span className="text-sm font-bold text-[var(--text-main)]">Currency Mode (Rupees ... Only)</span>
+          </label>
 
-            <ShareResult 
-              title="Number to Words" 
-              result={r.word} 
-              calcUrl={`https://calcpro.com.np/calculator/number-to-words?n=${number}`} 
-            />
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Quick Examples</label>
+            {['1000', '50000', '100000', '10000000'].map(ex => (
+              <button key={ex} onClick={() => setNumber(ex)}
+                className="w-full p-3 border border-[var(--border)] bg-white hover:bg-[var(--bg-subtle)] text-left font-mono font-bold text-sm text-[var(--primary)] transition-all">
+                {parseInt(ex).toLocaleString('en-IN')}
+              </button>
+            ))}
           </div>
         </div>
+      }
+      rightPanel={
+        <div className="space-y-6">
+          <div className="p-8 bg-white border border-[var(--border)]">
+            <div className="text-xs font-bold uppercase text-[var(--text-muted)] mb-4">In Words</div>
+            <p className="text-lg font-black text-[var(--primary)] leading-relaxed">{r}</p>
+          </div>
 
+          <button onClick={copy}
+            className="w-full py-4 border border-[var(--primary)] text-[var(--primary)] font-black uppercase tracking-widest hover:bg-[var(--primary)] hover:text-white transition-all flex items-center justify-center gap-2">
+            {copied ? <><Check className="w-4 h-4" /> Copied!</> : <><Copy className="w-4 h-4" /> Copy Words</>}
+          </button>
+
+          <div className="space-y-2">
+            <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)] flex justify-between">
+              <span className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">System</span>
+              <span className="text-sm font-black text-[var(--text-main)]">{system === 'intl' ? 'International' : 'South Asian'}</span>
+            </div>
+            <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)] flex justify-between">
+              <span className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Formatted Number</span>
+              <span className="text-sm font-black font-mono text-[var(--primary)]">{parseInt(number)||0}</span>
+            </div>
+          </div>
+        </div>
+      }
+      faqSection={
         <CalcFAQ faqs={[
-          {
-            question: 'How do I convert a number to words?',
-            answer: 'Simply enter the number into the input field, and the converter will automatically display the written English representation.',
-          },
-          {
-            question: 'What is the largest number this converter can handle?',
-            answer: 'This converter supports numbers up to the trillions (999,999,999,999,999).',
-          },
-          {
-            question: 'Is this useful for writing checks?',
-            answer: 'Yes, converting numbers to words is a standard requirement for writing the amount on a check to prevent tampering.',
-          },
-          {
-            question: 'Does it support decimal numbers?',
-            answer: 'This specific version is designed for whole numbers. For currency, you would typically add "and [cents/paisa]" after the main amount.',
-          },
-          {
-            question: 'What is the difference between million and billion?',
-            answer: 'In the standard international system, a million is 1,000,000 (6 zeros) and a billion is 1,000,000,000 (9 zeros).',
-          },
+          { question: 'When is number-to-words used?', answer: 'Writing amounts on checks and legal documents to prevent tampering and ensure clarity.' },
+          { question: 'What is the difference between lakh and million?', answer: '1 lakh = 100,000. 1 million = 1,000,000. In Nepal/India, numbers use lakh/crore format.' },
+          { question: 'Can it handle crore?', answer: 'Yes, the South Asian system supports up to multiple crores. 1 crore = 10,000,000.' },
         ]} />
-      </CalcWrapper>
-    </>
+      }
+    />
   );
 }

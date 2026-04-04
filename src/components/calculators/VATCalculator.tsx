@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Input, Slider, ResultCard, Toggle } from '@/components/ui';
-import { calculateNepalVAT } from '@/utils/math/country-rules/nepal';
 import { Receipt, Percent, Coins, ShoppingBag } from 'lucide-react';
-import { NepalFlag } from '@/components/ui/NepalFlag';
-import CalculatorLayout from '@/components/layout/CalculatorLayout';
+import { CalculatorLayout } from '@/components/layout/CalculatorLayout';
+import { calculateNepalVAT } from '@/utils/math/country-rules/nepal';
+import { ValidatedInput } from '@/components/calculator/ValidatedInput';
+import { CalcFAQ } from '@/components/calculator/CalcFAQ';
 
 export default function VATCalculator() {
   const [amount, setAmount] = useState(1000);
@@ -28,96 +28,70 @@ export default function VATCalculator() {
     {
       question: "What is the difference between VAT inclusive and exclusive?",
       answer: "VAT inclusive means the price already includes the 13% tax. VAT exclusive means the tax will be added on top of the base price."
-    },
-    {
-      question: "Are any items exempt from VAT in Nepal?",
-      answer: "Yes, certain essential goods and services like basic agricultural products, health services, and educational services are exempt from VAT in Nepal."
     }
-  ];
-
-  const relatedCalcs = [
-    { label: "Income Tax Calculator", href: "/calculators/nepal/nepal-income-tax", icon: <NepalFlag />, desc: "Calculate your annual income tax." },
-    { label: "Salary Calculator", href: "/calculators/nepal/nepal-salary", icon: "💸", desc: "Calculate your monthly net salary." },
-    { label: "EMI Calculator", href: "/calculators/finance/loan-emi", icon: "🏦", desc: "Calculate monthly EMI for any loan." }
   ];
 
   return (
     <CalculatorLayout
       title="Nepal VAT Calculator"
-      description="Quickly calculate Value Added Tax (VAT) for goods and services in Nepal. Supports both VAT inclusive and exclusive calculations at the standard 13% rate."
-      category="Nepal Tools"
-      categoryHref="/calculators/nepal"
-      focusKeyword="VAT Calculator Nepal"
-      faqs={faqs}
-      relatedCalcs={relatedCalcs}
-      isNepal={true}
-    >
-      {/* Inputs */}
-      <div className="space-y-8">
-        <div className="space-y-4">
-          <Input
-            label="Amount"
-            type="number"
-            value={amount}
-            onChange={(v) => setAmount(Number(v))}
-            unit="NPR"
-            placeholder="1,000"
-          />
-          <Slider
-            value={amount}
-            min={10}
-            max={1000000}
-            step={10}
-            onChange={setAmount}
-            label="Adjust Amount"
-          />
-        </div>
+      description="Quickly calculate Value Added Tax (VAT) for goods and services in Nepal at the standard 13% rate."
+      category={{ label: "Nepal Tools", href: "/calculator/category/nepal" }}
+      leftPanel={
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <ValidatedInput 
+              label="Amount (NPR)" 
+              value={amount} 
+              onChange={(v) => setAmount(Number(v))} 
+              min={1} max={10000000} step={1} required 
+            />
+            
+            <div className="flex items-center justify-between p-4 bg-[var(--bg-surface)] border border-[var(--border)]">
+              <div className="space-y-0.5">
+                <div className="text-[13px] font-bold text-[var(--text-main)]">VAT Inclusive?</div>
+                <div className="text-[11px] text-[var(--text-muted)] leading-tight">Switch on if amount already includes 13% tax.</div>
+              </div>
+              <button 
+                onClick={() => setIsInclusive(!isInclusive)}
+                className={`w-12 h-6 rounded-full transition-colors relative ${isInclusive ? 'bg-[var(--primary)]' : 'bg-gray-300'}`}
+              >
+                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${isInclusive ? 'left-7' : 'left-1'}`} />
+              </button>
+            </div>
+          </div>
 
-        <Toggle
-          label="VAT Inclusive Price?"
-          description="Switch on if the amount already includes the 13% VAT."
-          checked={isInclusive}
-          onChange={setIsInclusive}
-        />
-
-        <div className="p-4 bg-cp-blue-light rounded-xl border border-cp-blue/10 flex gap-3 items-start">
-          <Percent className="w-5 h-5 text-cp-blue flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-cp-text-muted leading-relaxed">
-            The standard VAT rate of <strong>13%</strong> is automatically applied as per Nepal&apos;s tax regulations.
-          </p>
+          <div className="p-5 bg-[var(--primary-light)] border border-[var(--primary)]/10 flex gap-3">
+            <Percent className="w-5 h-5 text-[var(--primary)] flex-shrink-0 mt-0.5" />
+            <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed">
+              The standard VAT rate of <span className="font-bold">13%</span> is automatically applied per Nepal regulations.
+            </p>
+          </div>
         </div>
-      </div>
+      }
+      rightPanel={
+        <div className="space-y-6">
+           <div className="p-6 bg-white border border-[var(--border)] text-center">
+              <div className="text-xs font-bold uppercase tracking-tight text-[var(--text-muted)] mb-2">Total Amount (Final)</div>
+              <div className="text-5xl font-black text-[var(--primary)] tracking-tighter mb-2">Rs. {results.total.toLocaleString()}</div>
+              <div className="text-xs font-bold text-[var(--success)] uppercase tracking-tight">Net Amount: Rs. {results.net.toLocaleString()}</div>
+           </div>
 
-      {/* Results */}
-      <div className="space-y-6">
-        <ResultCard
-          label="Total Amount (Final)"
-          value={`Rs. ${results.total.toLocaleString()}`}
-          variant="primary"
-          icon={<ShoppingBag className="w-5 h-5" />}
-        />
-        
-        <div className="grid grid-cols-2 gap-4">
-          <ResultCard
-            label="Net Amount"
-            value={`Rs. ${results.net.toLocaleString()}`}
-            variant="secondary"
-            icon={<Coins className="w-4 h-4" />}
-          />
-          <ResultCard
-            label="VAT (13%)"
-            value={`Rs. ${results.vat.toLocaleString()}`}
-            variant="success"
-            icon={<Receipt className="w-4 h-4" />}
-          />
-        </div>
+           <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)] flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <Receipt className="w-4 h-4 text-[var(--text-muted)]" />
+                <span className="text-xs font-bold text-[var(--text-secondary)] uppercase">VAT Amount (13%)</span>
+              </div>
+              <span className="text-xl font-black text-[var(--text-main)]">Rs. {results.vat.toLocaleString()}</span>
+           </div>
 
-        <div className="mt-8 p-6 bg-cp-bg rounded-2xl border border-cp-border border-dashed text-center">
-          <p className="text-xs font-bold text-cp-text-muted uppercase tracking-widest">
-            {isInclusive ? 'Amount includes 13% VAT' : '13% VAT added to base amount'}
-          </p>
+           <div className="mt-8 p-4 border border-[var(--border)] border-dashed text-center">
+             <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+               {isInclusive ? 'Amount includes 13% VAT' : '13% VAT added to base amount'}
+             </p>
+           </div>
         </div>
-      </div>
-    </CalculatorLayout>
+      }
+      faqSection={<CalcFAQ faqs={faqs} />}
+    />
   );
 }

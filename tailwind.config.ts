@@ -8,11 +8,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'google-blue': '#1A73E8',
-        'google-blue-dark': '#1557B0',
-        'google-blue-light': '#E8F0FE',
-        'google-gray': '#F8F9FA',
-        'google-border': '#E8EAED',
+        brand: {
+          primary:      'var(--primary)',
+          dark:         'var(--primary-dark)',
+          light:        'var(--primary-light)',
+          accent:       'var(--accent)',
+          'accent-dark':'var(--accent-dark)',
+        },
         'nepal-red': '#DC143C',
       },
       gridTemplateColumns: {

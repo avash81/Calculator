@@ -1,98 +1,101 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { CalcWrapper } from '@/components/calculator/CalcWrapper';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { CalculatorLayout } from '@/components/layout/CalculatorLayout';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
-import { ShareResult } from '@/components/calculator/ShareResult';
-import { Scale, MoveRight, HelpCircle } from 'lucide-react';
 
 export default function RatioProportion() {
   const [a, setA] = useState('1');
   const [b, setB] = useState('2');
   const [c, setC] = useState('10');
-  const [d, setD] = useState(''); // Target unknown
+  const [d, setD] = useState('');
 
-  // Logic to solve for X (whichever is empty)
   const result = useMemo(() => {
-    const na = parseFloat(a); const nb = parseFloat(b);
-    const nc = parseFloat(c); const nd = parseFloat(d);
-
-    let resVal: number | null = null;
-    let label = '';
-
-    if (isNaN(na)) { resVal = (nb * nc) / nd; label = 'A = ' + resVal.toFixed(2); }
-    else if (isNaN(nb)) { resVal = (na * nd) / nc; label = 'B = ' + resVal.toFixed(2); }
-    else if (isNaN(nc)) { resVal = (na * nd) / nb; label = 'C = ' + resVal.toFixed(2); }
-    else if (isNaN(nd)) { resVal = (nb * nc) / na; label = 'D = ' + resVal.toFixed(2); }
-
-    return { val: resVal, label };
+    const na = parseFloat(a), nb = parseFloat(b), nc = parseFloat(c), nd = parseFloat(d);
+    if (isNaN(na)) return { label: 'A', val: !isNaN(nb*nc/nd) ? ((nb*nc)/nd).toFixed(4) : '?' };
+    if (isNaN(nb)) return { label: 'B', val: !isNaN(na*nd/nc) ? ((na*nd)/nc).toFixed(4) : '?' };
+    if (isNaN(nc)) return { label: 'C', val: !isNaN(na*nd/nb) ? ((na*nd)/nb).toFixed(4) : '?' };
+    if (isNaN(nd)) return { label: 'D', val: !isNaN(nb*nc/na) ? ((nb*nc)/na).toFixed(4) : '?' };
+    return { label: '?', val: 'No unknown' };
   }, [a, b, c, d]);
 
+  const boxCls = (v: string) => `h-16 w-full text-center text-3xl font-black font-mono border-2 bg-white focus:border-[var(--primary)] outline-none transition-all ${v === '' ? 'border-dashed border-[var(--primary)] bg-blue-50 text-[var(--primary)] placeholder-blue-300' : 'border-[var(--border)]'}`;
+
   return (
-    <>
-      <JsonLd type="calculator" name="Ratio & Proportion Calculator" description="Solve for unknown values in any ratio or proportion. Solves A:B = C:D equations." url="https://calcpro.com.np/calculator/ratio-proportion" />
-      
-      <CalcWrapper
-        title="Ratio & Proportion"
-        description="Easily solve equation proportions (cross-multiplication) for map scaling, cooking recipes, or math homework."
-        crumbs={[{label:'education',href:'/calculator/category/education'},{label:'ratio proportion'}]}
-      >
-        <div className="flex flex-col lg:grid lg:grid-cols-1 gap-12 max-w-2xl mx-auto">
-           <div className="bg-white border-2 border-gray-100 rounded-[3rem] p-12 text-center shadow-2xl shadow-blue-500/5">
-              <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-12">Solve: A : B = C : D</div>
-              
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12">
-                 <div className="flex items-center gap-4">
-                    <input type="number" value={a} onChange={e=>setA(e.target.value)} placeholder="A" className="w-24 h-24 bg-gray-50 border-4 border-transparent focus:border-google-blue rounded-3xl text-3xl font-black text-center text-gray-900 outline-none transition-all placeholder:text-gray-200" />
-                    <span className="text-4xl font-black text-gray-200">:</span>
-                    <input type="number" value={b} onChange={e=>setB(e.target.value)} placeholder="B" className="w-24 h-24 bg-gray-50 border-4 border-transparent focus:border-google-blue rounded-3xl text-3xl font-black text-center text-gray-900 outline-none transition-all placeholder:text-gray-200" />
-                 </div>
-
-                 <div className="text-6xl font-black text-google-blue h-24 flex items-center">=</div>
-
-                 <div className="flex items-center gap-4">
-                    <input type="number" value={c} onChange={e=>setC(e.target.value)} placeholder="C" className="w-24 h-24 bg-gray-50 border-4 border-transparent focus:border-google-blue rounded-3xl text-3xl font-black text-center text-gray-900 outline-none transition-all placeholder:text-gray-200" />
-                    <span className="text-4xl font-black text-gray-200">:</span>
-                    <input type="number" value={d} onChange={e=>setD(e.target.value)} placeholder="D" className="w-24 h-24 bg-gray-50 border-4 border-transparent focus:border-google-blue rounded-3xl text-3xl font-black text-center text-gray-900 outline-none transition-all placeholder:text-gray-200" />
-                 </div>
+    <CalculatorLayout
+      title="Ratio & Proportion Calculator"
+      description="Solve A:B = C:D for any unknown value by leaving that field empty. Useful for scale models, recipe scaling, and map proportions."
+      category={{ label: 'Math', href: '/calculator/category/math' }}
+      leftPanel={
+        <div className="space-y-6">
+          <div className="p-5 bg-white border border-[var(--border)]">
+            <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)] mb-4 text-center">Leave one field blank to solve for it</div>
+            <div className="flex items-center gap-3 justify-center">
+              <div className="space-y-1 flex-1">
+                <label className="text-[10px] font-black uppercase text-[var(--text-muted)] text-center block">A</label>
+                <input type="number" value={a} onChange={e => setA(e.target.value)} placeholder="?" className={boxCls(a)} />
               </div>
-
-              <div className="mt-16 pt-12 border-t border-gray-50">
-                 {result.val !== null ? (
-                   <div className="space-y-4">
-                      <div className="text-[10px] font-black text-google-blue uppercase tracking-[0.3em]">Calculated Unknown</div>
-                      <div className="text-6xl font-black text-gray-900 tracking-tighter">{result.label.split('=')[1]}</div>
-                      <div className="text-xs font-bold text-gray-400">Step: ( {b} × {c} ) / {a}</div>
-                   </div>
-                 ) : (
-                   <div className="text-sm font-bold text-gray-400 italic flex items-center justify-center gap-2">
-                      <HelpCircle className="w-4 h-4" /> Leave one box empty to solve for it
-                   </div>
-                 )}
+              <span className="text-3xl font-black text-[var(--text-muted)] pb-4">:</span>
+              <div className="space-y-1 flex-1">
+                <label className="text-[10px] font-black uppercase text-[var(--text-muted)] text-center block">B</label>
+                <input type="number" value={b} onChange={e => setB(e.target.value)} placeholder="?" className={boxCls(b)} />
               </div>
-           </div>
-
-           <div className="bg-google-gray rounded-[2.5rem] p-10 flex items-center justify-between">
-              <div className="flex items-center gap-6">
-                 <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg text-google-blue">
-                    <Scale className="w-8 h-8" />
-                 </div>
-                 <div>
-                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Scale Calculation</div>
-                    <div className="text-lg font-black text-gray-900">Map & Model Scaling</div>
-                 </div>
+              <span className="text-3xl font-black text-[var(--primary)] pb-4">=</span>
+              <div className="space-y-1 flex-1">
+                <label className="text-[10px] font-black uppercase text-[var(--text-muted)] text-center block">C</label>
+                <input type="number" value={c} onChange={e => setC(e.target.value)} placeholder="?" className={boxCls(c)} />
               </div>
-              <ShareResult title="Proportion Solve Result" result={result.label} calcUrl="https://calcpro.com.np/calculator/ratio-proportion" />
-           </div>
+              <span className="text-3xl font-black text-[var(--text-muted)] pb-4">:</span>
+              <div className="space-y-1 flex-1">
+                <label className="text-[10px] font-black uppercase text-[var(--text-muted)] text-center block">D</label>
+                <input type="number" value={d} onChange={e => setD(e.target.value)} placeholder="?" className={boxCls(d)} />
+              </div>
+            </div>
+          </div>
+
+          {/* Use case examples */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Apply to a Use Case</label>
+            {[
+              { label: 'Recipe scaling',  a:'2', b:'4', c:'6', d:'' },
+              { label: 'Map scaling',     a:'1', b:'50000', c:'5', d:'' },
+              { label: 'Grade scaling',   a:'75', b:'100', c:'', d:'60' },
+            ].map(ex => (
+              <button key={ex.label} onClick={() => { setA(ex.a); setB(ex.b); setC(ex.c); setD(ex.d); }}
+                className="w-full p-4 border border-[var(--border)] bg-white hover:bg-[var(--bg-subtle)] text-left flex justify-between items-center transition-all">
+                <span className="text-[12px] font-bold text-[var(--text-main)]">{ex.label}</span>
+                <span className="text-[10px] text-[var(--text-muted)]">{ex.a}:{ex.b} = {ex.c||'?'}:{ex.d||'?'}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="p-4 bg-[var(--bg-subtle)] border border-[var(--border)]">
+            <div className="text-[10px] font-black uppercase text-[var(--text-muted)] mb-1">Formula</div>
+            <code className="text-[11px] font-mono text-[var(--primary)]">Cross multiply: A × D = B × C</code>
+          </div>
         </div>
+      }
+      rightPanel={
+        <div className="space-y-6">
+          <div className="p-8 bg-white border border-[var(--border)] text-center">
+            <div className="text-xs font-bold uppercase text-[var(--text-muted)] mb-2">Solved Value of {result.label}</div>
+            <div className="text-7xl font-black text-[var(--primary)] tracking-tighter font-mono mb-3">{result.val}</div>
+            <div className="text-xs font-bold text-[var(--text-secondary)] uppercase">Leave exactly one field blank</div>
+          </div>
 
-        <div className="mt-16">
-          <CalcFAQ faqs={[
-            { question: 'What is a proportion?', answer: 'A proportion is an equation that says two ratios are equal (e.g., 1:2 = 10:20).' },
-            { question: 'How is it solved?', answer: 'Using cross-multiplication: A × D = B × C. To find D, we calculate (B × C) / A.' }
-          ]} />
+          <div className="space-y-2 p-5 bg-[var(--bg-surface)] border border-[var(--border)]">
+            <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed">
+              <strong>How to use:</strong> Fill in three of the four values (A, B, C, D). Leave exactly one blank — the calculator will solve for it using cross-multiplication.
+            </p>
+          </div>
         </div>
-      </CalcWrapper>
-    </>
+      }
+      faqSection={
+        <CalcFAQ faqs={[
+          { question: 'What is a proportion?', answer: 'An equation that says two ratios are equal: A:B = C:D (or A/B = C/D).' },
+          { question: 'How is cross-multiplication used?', answer: 'A × D = B × C. To find D: D = (B × C) / A.' },
+          { question: 'What is a ratio?', answer: 'A ratio compares two quantities: A:B means for every A units of one, there are B units of another.' },
+        ]} />
+      }
+    />
   );
 }

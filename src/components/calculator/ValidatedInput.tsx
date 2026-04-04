@@ -78,17 +78,17 @@ export function ValidatedInput({
   };
 
   return (
-    <div className="space-y-2 group">
+    <div className="space-y-1 group">
       {variant !== 'minimal' && (
         <div className="flex justify-between items-baseline px-1">
           <label 
             htmlFor={inputId}
-            className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest"
+            className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-tight"
           >
-            {label} {required && <span className="text-red-500" aria-hidden="true">*</span>}
+            {label} {required && <span className="text-red-600" aria-hidden="true">*</span>}
           </label>
           {hint && (
-            <span id={hintId} className="text-[10px] font-bold text-gray-400">
+            <span id={hintId} className="text-xs font-medium text-[var(--text-muted)]">
               {hint}
             </span>
           )}
@@ -97,7 +97,7 @@ export function ValidatedInput({
 
       <div className="relative">
         {prefix && (
-          <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 font-black text-sm pointer-events-none">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] font-bold text-sm pointer-events-none">
             {prefix}
           </span>
         )}
@@ -116,18 +116,18 @@ export function ValidatedInput({
           aria-required={required}
           aria-invalid={hasError}
           aria-describedby={`${hint ? hintId : ''} ${hasError ? errorId : ''}`.trim() || undefined}
-          className={`w-full ${variant === 'minimal' ? 'h-12' : 'h-14'} ${prefix ? 'pl-14' : 'pl-5'} ${suffix ? 'pr-14' : 'pr-5'} 
-                       py-3 rounded-2xl font-black ${variant === 'minimal' ? 'text-sm' : 'text-lg'}
-                       border-2 transition-all outline-none
-                       bg-white dark:bg-gray-950
+          className={`w-full ${variant === 'minimal' ? 'h-10' : 'h-11'} ${prefix ? 'pl-10' : 'pl-3'} ${suffix ? 'pr-10' : 'pr-3'} 
+                       py-2 rounded-sm font-bold ${variant === 'minimal' ? 'text-sm' : 'text-[15px]'}
+                       border transition-all outline-none
+                       bg-white text-[var(--text-main)]
                        ${hasError
-                         ? 'border-red-500 bg-red-50/30 dark:bg-red-900/10'
-                         : 'border-gray-100 dark:border-gray-800 focus:border-blue-500 dark:focus:border-blue-600 shadow-sm'
+                         ? 'border-red-600 bg-red-50'
+                         : 'border-[var(--border)] focus:border-[var(--primary)] focus:bg-[var(--primary-light)]'
                        }`}
         />
 
         {suffix && (
-          <span className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 font-black text-xs pointer-events-none">
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] font-bold text-xs pointer-events-none">
             {suffix}
           </span>
         )}
@@ -135,17 +135,17 @@ export function ValidatedInput({
 
       {/* Real-time Validation Feedback */}
       {hasError && (
-        <div id={errorId} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-tighter text-red-600 px-1 animate-in fade-in slide-in-from-top-1">
-          <AlertCircle className="w-3 h-3" />
-          <span>{error || `Must be between ${min.toLocaleString()} and ${max.toLocaleString()}`}</span>
+        <div id={errorId} className="flex items-center gap-2 text-[11px] font-bold uppercase text-red-600 px-1">
+          <AlertCircle className="w-3.5 h-3.5" />
+          <span>{error || `Required: ${min.toLocaleString()} to ${max.toLocaleString()}`}</span>
         </div>
       )}
 
       {/* Value Formatter Hub */}
       {formatter && isValid && (
-        <div className="flex justify-between items-center px-1 animate-in fade-in">
-          <span className="text-[9px] font-black uppercase text-gray-300 tracking-widest">Formatted Value</span>
-          <span className="text-xs font-black text-blue-600 dark:text-blue-400">
+        <div className="flex justify-between items-center px-1">
+          <span className="text-[11px] font-bold uppercase text-[var(--text-muted)]">Live Format</span>
+          <span className="text-sm font-bold text-[var(--primary)]">
             {displayValue}
           </span>
         </div>

@@ -1,96 +1,106 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, Search, Globe, ChevronRight, ArrowLeft } from 'lucide-react';
-
-const CATEGORIES = {
-  'Nepal Specialized': [
-    {n:'Income Tax 2082/83',s:'nepal-income-tax'},
-    {n:'Salary Calculator',s:'nepal-salary'},
-    {n:'Date Converter',s:'nepali-date'},
-    {n:'VAT Calculator',s:'nepal-vat'},
-    {n:'Home Loan EMI',s:'nepal-home-loan'},
-  ],
-  'Standard Suite': [
-    {n:'EMI Calculator',s:'loan-emi'},
-    {n:'BMI Calculator',s:'bmi'},
-    {n:'GPA Calculator',s:'gpa'},
-    {n:'Scientific Matrix',s:'scientific-calculator'},
-    {n:'SIP Matrix',s:'sip-calculator'},
-  ]
-};
+import { usePathname } from 'next/navigation';
+import { Menu, X, Search, Sun, Moon, ChevronRight } from 'lucide-react';
+import { Logo } from '@/components/ui/Logo';
+import { SearchModal } from './SearchModal';
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isDark, setIsDark] = useState(false);
   const path = usePathname();
-  const router = useRouter();
-  const [q, setQ] = useState('');
 
-  const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && q.trim()) {
-      setIsMenuOpen(false);
-      router.push('/search?q=' + encodeURIComponent(q.trim()));
-    }
-  };
-
+  // Dark Mode Toggle
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const theme = localStorage.getItem('theme');
+    const dark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    setIsDark(dark);
+    document.documentElement.classList.toggle('dark', dark);
   }, []);
 
-  useEffect(() => { setIsMenuOpen(false); }, [path]);
+  const toggleDark = () => {
+    const next = !isDark;
+    setIsDark(next);
+    localStorage.setItem('theme', next ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', next);
+  };
+
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
+
+  useEffect(() => setIsMenuOpen(false), [path]);
+
+  const navLinks = [
+    { name: 'Directory', href: '/calculator' },
+    { name: 'Financial', href: '/calculator/category/finance' },
+    { name: 'Health', href: '/calculator/category/health' },
+    { name: 'Blog', href: '/blog' },
+  ];
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm h-14' : 'bg-white h-16'}`}>
-        <div className="max-w-7xl mx-auto px-4 lg:px-6 h-full flex items-center justify-between gap-6">
+      <nav className="fixed top-0 left-0 right-0 h-11 bg-[var(--primary)] text-white z-[200] select-none shadow-sm">
+        <div className="hp-container h-full flex items-center justify-between">
           
-          <div className="flex items-center gap-4 lg:gap-8 shrink-0">
-             <Link href="/" className="flex items-center gap-1 group">
-               <span className="text-[#202124] font-black text-xl tracking-tighter">CalcPro</span>
-               <span className="text-[#1A73E8] font-black text-xl tracking-tighter">.NP</span>
-             </Link>
-
-             {/* Hidden on small screens, shows next to logo on desktop */}
-             <div className="hidden lg:flex items-center gap-6">
-                <Link href="/calculator" className="text-sm font-semibold text-[#5F6368] hover:text-[#1A73E8] transition-colors">Tools</Link>
-                <Link href="/blog" className="text-sm font-semibold text-[#5F6368] hover:text-[#1A73E8] transition-colors">Blog</Link>
-                <Link href="/about" className="text-sm font-semibold text-[#5F6368] hover:text-[#1A73E8] transition-colors">About</Link>
-             </div>
-          </div>
-
-          {/* Desktop Central Search (Google Style) */}
-          <div className="hidden md:flex flex-1 max-w-xl relative group">
-             <div className={`w-full flex items-center bg-[#F1F3F4] rounded-xl px-4 py-2 gap-3 transition-all duration-300 border ${isSearchFocused ? 'bg-white border-[#1A73E8] shadow-md ring-4 ring-blue-50' : 'border-transparent hover:bg-[#E8EAED]'}`}>
-                <Search 
-                  className={`w-4 h-4 cursor-pointer transition-colors ${isSearchFocused ? 'text-[#1A73E8]' : 'text-[#5F6368]'}`}
-                  onClick={() => q.trim() && router.push('/search?q=' + encodeURIComponent(q.trim()))}
-                />
-                <input 
-                  type="text" 
-                  value={q}
-                  onChange={e => setQ(e.target.value)}
-                  onKeyDown={handleKey}
-                  onFocus={() => setIsSearchFocused(true)}
-                  onBlur={() => setIsSearchFocused(false)}
-                  placeholder="Search 60+ calculators..." 
-                  className="bg-transparent border-none outline-none text-sm text-[#202124] w-full font-medium placeholder:text-[#5F6368]"
-                />
-             </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link href="/calculator/nepal-income-tax" className="hidden sm:flex items-center gap-2 bg-[#1A73E8] hover:bg-[#1557B0] text-white text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-full transition-all shadow-lg shadow-blue-500/10">
-              <Globe className="w-3.5 h-3.5" /> Nepal Tools
+          {/* Left: Logo + Desktop Links */}
+          <div className="flex items-center gap-6">
+            <Link href="/" className="hover:opacity-80 transition-opacity">
+               <span className="text-lg font-black tracking-tight">Calcly</span>
             </Link>
             
-            <button 
+            <div className="hidden md:flex items-center gap-1 h-11">
+              {navLinks.map((link) => {
+                const active = path === link.href || (link.href !== '/' && path.startsWith(link.href));
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`px-3 h-11 flex items-center text-[12px] font-bold transition-all relative ${
+                      active ? 'text-white bg-white/10' : 'text-blue-100/80 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right: Actions */}
+          <div className="flex items-center gap-3">
+            {/* Simple Search Trigger */}
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="flex items-center gap-2 px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/10 transition-all group"
+            >
+              <Search className="w-3.5 h-3.5 text-white/70 group-hover:text-white" />
+              <span className="hidden sm:inline text-[11px] font-bold text-white/70 group-hover:text-white">Search tools...</span>
+            </button>
+
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleDark}
+              className="p-1.5 hover:bg-white/10 rounded transition-colors text-white/70 hover:text-white"
+              title="Toggle Theme"
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
+            {/* Mobile Menu */}
+            <button
               onClick={() => setIsMenuOpen(true)}
-              className="lg:hidden p-2.5 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
+              className="md:hidden p-1.5 hover:bg-white/10 rounded text-white"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -98,64 +108,49 @@ export function Navbar() {
         </div>
       </nav>
 
-      {/* Modern Drawer Overlay */}
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+
+      {/* Mobile Drawer Overlay */}
       {isMenuOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] animate-in fade-in duration-300" onClick={() => setIsMenuOpen(false)} />
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[300] animate-in fade-in duration-200" onClick={() => setIsMenuOpen(false)} />
       )}
 
-      {/* Slide-out Explorer - IMAGE 11 MATCH */}
-      <aside className={`fixed inset-0 bg-white z-[201] transform transition-transform duration-300 ease-in-out ${isMenuOpen ? 'translate-y-0' : 'translate-y-full lg:translate-y-0 lg:translate-x-full'}`}>
-        <div className="h-full flex flex-col">
-          {/* Header in Drawer */}
-          <div className="p-4 flex items-center justify-between border-b border-google-border">
-            <div className="flex items-center gap-1">
-              <span className="text-google-dark font-black text-xl tracking-tighter">CalcPro</span>
-              <span className="text-google-blue font-black text-xl tracking-tighter">.NP</span>
-            </div>
-            <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400">
-               <X className="w-6 h-6" />
+      {/* Mobile Drawer */}
+      <aside className={`fixed top-0 right-0 bottom-0 w-[280px] bg-[var(--bg-surface)] z-[301] shadow-2xl transform transition-transform duration-300 ease-out ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="flex flex-col h-full uppercase tracking-widest font-black text-[10px]">
+          <div className="p-4 flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg-page)]">
+            <Logo size="sm" />
+            <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-[var(--bg-subtle)] rounded-lg text-[var(--text-muted)]">
+              <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="p-4 flex-1 overflow-y-auto">
-            {/* Drawer Search */}
-            <div className="relative mb-8">
-              <Search 
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 cursor-pointer" 
-                onClick={() => q.trim() && router.push('/search?q=' + encodeURIComponent(q.trim()))}
-              />
-              <input 
-                type="text" 
-                value={q}
-                onChange={e => setQ(e.target.value)}
-                onKeyDown={handleKey}
-                placeholder="Search calculators..." 
-                className="w-full bg-gray-100 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-medium focus:ring-2 focus:ring-google-blue outline-none"
-              />
-            </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            {[
+              { name: 'Directory', href: '/calculator', icon: '📁' },
+              { name: 'Financial', href: '/calculator/category/finance', icon: '💰' },
+              { name: 'Health', href: '/calculator/category/health', icon: '❤️' },
+              { name: 'Math', href: '/calculator/category/math', icon: '📐' },
+              { name: 'Nepal 🇳🇵', href: '/calculator/category/nepal', icon: '🚩' },
+              { name: 'Blog', href: '/blog', icon: '📖' },
+              { name: 'About', href: '/about', icon: 'ℹ️' },
+            ].map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-[var(--primary-light)] text-[var(--text-secondary)] hover:text-[var(--primary)] transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-lg opacity-80 group-hover:opacity-100">{link.icon}</span>
+                  <span>{link.name}</span>
+                </div>
+                <ChevronRight className="w-4 h-4 opacity-50" />
+              </Link>
+            ))}
+          </div>
 
-            {/* Drawer Categories - Image 11 List */}
-            <div className="space-y-6 px-2">
-               {[
-                 { n: 'All Tools', i: '🗂️', p: '/calculator' },
-                 { n: 'Nepal Calculators', i: '🇳🇵', p: '/calculator/category/nepal' },
-                 { n: 'Finance', i: '💰', p: '/calculator/category/finance' },
-                 { n: 'Blog', i: '📖', p: '/blog' },
-                 { n: 'About', i: 'ℹ️', p: '/about' }
-               ].map(cat => (
-                 <Link 
-                   key={cat.n} 
-                   href={cat.p}
-                   className="flex items-center gap-4 group"
-                   onClick={() => setIsMenuOpen(false)}
-                 >
-                   <span className="text-xl">{cat.i}</span>
-                   <span className="text-lg font-bold text-gray-700 group-hover:text-google-blue transition-colors">
-                     {cat.n}
-                   </span>
-                 </Link>
-               ))}
-            </div>
+          <div className="p-6 border-t border-[var(--border)] text-center text-[var(--text-muted)] bg-[var(--bg-page)]">
+            © 2026 Calcly — Built for Precision
           </div>
         </div>
       </aside>

@@ -1,146 +1,143 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { useDebounce } from '@/hooks/useDebounce';
-import { CalcWrapper } from '@/components/calculator/CalcWrapper';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { CalculatorLayout } from '@/components/layout/CalculatorLayout';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
-import { ShareResult } from '@/components/calculator/ShareResult';
+
+type Gender = 'male' | 'female';
+
+const CATEGORIES = {
+  male:   [{ max: 6,  label: 'Essential Fat', color: 'text-blue-600' }, { max: 14, label: 'Athletes', color: 'text-[#006600]' }, { max: 18, label: 'Fitness', color: 'text-[#006600]' }, { max: 25, label: 'Average', color: 'text-amber-600' }, { max: Infinity, label: 'Obese', color: 'text-red-600' }],
+  female: [{ max: 14, label: 'Essential Fat', color: 'text-blue-600' }, { max: 21, label: 'Athletes', color: 'text-[#006600]' }, { max: 25, label: 'Fitness', color: 'text-[#006600]' }, { max: 32, label: 'Average', color: 'text-amber-600' }, { max: Infinity, label: 'Obese', color: 'text-red-600' }],
+};
 
 export default function BodyFatCalculator() {
-  const [gender, setGender] = useState<'male' | 'female'>('male');
+  const [gender, setGender] = useState<Gender>('male');
   const [height, setHeight] = useState(175);
   const [neck, setNeck] = useState(38);
   const [waist, setWaist] = useState(85);
   const [hip, setHip] = useState(90);
 
-  const r = useMemo(() => {
-    let bf = 0;
+  const bf = useMemo(() => {
+    let val: number;
     if (gender === 'male') {
-      // Navy formula for men: 495 / (1.0324 - 0.19077 * log10(waist - neck) + 0.15456 * log10(height)) - 450
-      bf = 495 / (1.0324 - 0.19077 * Math.log10(waist - neck) + 0.15456 * Math.log10(height)) - 450;
+      val = 495 / (1.0324 - 0.19077 * Math.log10(waist - neck) + 0.15456 * Math.log10(height)) - 450;
     } else {
-      // Navy formula for women: 495 / (1.29579 - 0.35004 * log10(waist + hip - neck) + 0.221 * log10(height)) - 450
-      bf = 495 / (1.29579 - 0.35004 * Math.log10(waist + hip - neck) + 0.221 * Math.log10(height)) - 450;
+      val = 495 / (1.29579 - 0.35004 * Math.log10(waist + hip - neck) + 0.221 * Math.log10(height)) - 450;
     }
-    return Math.max(0, Math.min(100, bf));
+    return Math.max(0, Math.min(100, val));
   }, [gender, height, neck, waist, hip]);
 
-  const category = useMemo(() => {
-    if (gender === 'male') {
-      if (r < 6) return 'Essential Fat';
-      if (r < 14) return 'Athletes';
-      if (r < 18) return 'Fitness';
-      if (r < 25) return 'Average';
-      return 'Obese';
-    } else {
-      if (r < 14) return 'Essential Fat';
-      if (r < 21) return 'Athletes';
-      if (r < 25) return 'Fitness';
-      if (r < 32) return 'Average';
-      return 'Obese';
-    }
-  }, [r, gender]);
+  const { label: catLabel, color: catColor } = CATEGORIES[gender].find(c => bf < c.max)!;
+
+  const RANGES = gender === 'male'
+    ? [['Essential', '2–5%'], ['Athletes', '6–13%'], ['Fitness', '14–17%'], ['Average', '18–24%'], ['Obese', '25%+']]
+    : [['Essential', '10–13%'], ['Athletes', '14–20%'], ['Fitness', '21–24%'], ['Average', '25–31%'], ['Obese', '32%+']];
 
   return (
-    <>
-      <JsonLd type="calculator"
-        name="Body Fat Percentage Calculator"
-        description="Estimate your body fat percentage using the U.S. Navy Method. Requires simple measurements of your neck, waist, and height for an accurate estimation."
-        url="https://calcpro.com.np/calculator/body-fat" />
-
-      <CalcWrapper
-        title="Body Fat Percentage Calculator"
-        description="Estimate your body fat percentage using the U.S. Navy Method. Requires simple measurements of your neck, waist, and height."
-        crumbs={[{ label: 'Health', href: '/calculator?cat=health' }, { label: 'Body Fat' }]}
-        relatedCalcs={[
-          { name: 'BMI Calculator', slug: 'bmi' },
-          { name: 'BMR Calculator', slug: 'bmr' },
-          { name: 'Ideal Weight', slug: 'ideal-weight' },
-        ]}
-      >
-        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_320px] gap-8">
-          <div className="space-y-6">
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Gender</label>
-                <div className="flex gap-2">
-                  {['male', 'female'].map(g => (
-                    <button key={g} onClick={() => setGender(g as any)} className={`flex-1 py-3 rounded-xl text-[10px] font-bold border-2 transition-all capitalize uppercase tracking-widest ${gender === g ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-100 text-gray-500 hover:border-gray-200'}`}>
-                      {g}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Height (cm)</label>
-                  <input type="number" inputMode="numeric" pattern="[0-9.]*" value={height} onChange={e => setHeight(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Neck (cm)</label>
-                  <input type="number" inputMode="numeric" pattern="[0-9.]*" value={neck} onChange={e => setNeck(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Waist (cm)</label>
-                  <input type="number" inputMode="numeric" pattern="[0-9.]*" value={waist} onChange={e => setWaist(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
-                </div>
-                {gender === 'female' && (
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Hip (cm)</label>
-                    <input type="number" inputMode="numeric" pattern="[0-9.]*" value={hip} onChange={e => setHip(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
-                  </div>
-                )}
-              </div>
+    <CalculatorLayout
+      title="Body Fat Calculator"
+      description="Estimate your body fat percentage using the U.S. Navy circumference method. Enter neck, waist, and height for accurate results."
+      category={{ label: 'Health', href: '/calculator/category/health' }}
+      leftPanel={
+        <div className="space-y-6">
+          {/* Gender Toggle */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Gender</label>
+            <div className="flex border border-[var(--border)] p-1 bg-[var(--bg-surface)]">
+              {(['male', 'female'] as Gender[]).map(g => (
+                <button key={g} onClick={() => setGender(g)}
+                  className={`flex-1 py-2 text-xs font-bold uppercase transition-all ${gender === g ? 'bg-[var(--primary)] text-white' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'}`}>
+                  {g}
+                </button>
+              ))}
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="bg-blue-600 rounded-2xl p-6 text-white shadow-xl shadow-blue-900/20">
-              <div className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-1">Body Fat Percentage</div>
-              <div className="text-4xl font-bold font-mono mb-2">{r.toFixed(1)}%</div>
-              <div className="inline-flex px-3 py-1 rounded-full bg-white/20 text-[10px] font-bold uppercase tracking-widest mb-4">
-                {category}
+          {/* Measurements */}
+          <div className="grid grid-cols-2 gap-4 p-5 bg-white border border-[var(--border)]">
+            {[
+              { label: 'Height (cm)', value: height, setter: setHeight },
+              { label: 'Neck Circ. (cm)', value: neck, setter: setNeck },
+              { label: 'Waist Circ. (cm)', value: waist, setter: setWaist },
+              ...(gender === 'female' ? [{ label: 'Hip Circ. (cm)', value: hip, setter: setHip }] : []),
+            ].map(({ label, value, setter }) => (
+              <div key={label} className="space-y-1">
+                <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">{label}</label>
+                <input type="number" value={value} onChange={e => setter(Number(e.target.value))}
+                  className="w-full h-11 px-3 border border-[var(--border)] bg-white font-bold text-sm focus:border-[var(--primary)] outline-none" />
               </div>
-              <div className="pt-4 border-t border-white/20 text-xs opacity-80 leading-relaxed font-medium">
-                Based on the U.S. Navy circumference method. This is an estimate and may vary by individual.
-              </div>
-            </div>
+            ))}
+          </div>
 
-            <ShareResult 
-              title="Body Fat Result" 
-              result={`${r.toFixed(1)}% (${category})`} 
-              calcUrl={`https://calcpro.com.np/calculator/body-fat`} 
-            />
+          {/* Reference Ranges */}
+          <div className="bg-white border border-[var(--border)]">
+            <div className="px-4 py-3 bg-[var(--bg-surface)] border-b border-[var(--border)]">
+              <h3 className="text-[11px] font-bold uppercase text-[var(--text-main)]">Reference Ranges ({gender})</h3>
+            </div>
+            <div className="divide-y divide-[var(--border)]">
+              {RANGES.map(([label, range]) => (
+                <div key={label} className="px-4 py-2 flex justify-between">
+                  <span className="text-[11px] font-bold text-[var(--text-secondary)] uppercase">{label}</span>
+                  <span className="text-[11px] font-black text-[var(--primary)]">{range}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="p-4 bg-[var(--bg-subtle)] border border-[var(--border)]">
+            <div className="text-[10px] font-black uppercase text-[var(--text-muted)] mb-1">Formula (Navy Method)</div>
+            <code className="text-[11px] font-mono text-[var(--primary)]">
+              {gender === 'male' ? '495 / (1.0324 − 0.19077×log(W−N) + 0.15456×log(H)) − 450' : '495 / (1.29579 − 0.35004×log(W+Hip−N) + 0.221×log(H)) − 450'}
+            </code>
           </div>
         </div>
+      }
+      rightPanel={
+        <div className="space-y-6">
+          {/* Body Fat Result */}
+          <div className="p-8 bg-white border border-[var(--border)] text-center">
+            <div className="text-xs font-bold uppercase text-[var(--text-muted)] mb-2">Body Fat Percentage</div>
+            <div className={`text-7xl font-black tracking-tighter mb-3 ${catColor}`}>{bf.toFixed(1)}<span className="text-3xl">%</span></div>
+            <div className={`inline-block px-4 py-1 text-xs font-black uppercase tracking-widest border ${catColor} border-current`}>
+              {catLabel}
+            </div>
+          </div>
 
+          {/* Gauge Bar */}
+          <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)] space-y-3">
+            <div className="text-[10px] font-bold uppercase text-[var(--text-muted)]">Scale (0–40%)</div>
+            <div className="h-4 w-full bg-gray-200 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-300 via-green-400 via-yellow-300 to-red-500 opacity-80" />
+              <div className="absolute top-0 bottom-0 w-1.5 bg-[var(--primary)]"
+                style={{ left: `${Math.min((bf / 40) * 100, 100)}%` }} />
+            </div>
+            <div className="flex justify-between text-[9px] font-bold text-[var(--text-muted)] uppercase">
+              <span>0%</span><span>10%</span><span>20%</span><span>30%</span><span>40%</span>
+            </div>
+          </div>
+
+          {/* Measurements Summary */}
+          <div className="space-y-2">
+            {[['Height', `${height} cm`], ['Neck', `${neck} cm`], ['Waist', `${waist} cm`], ...(gender === 'female' ? [['Hip', `${hip} cm`]] : [])].map(([l, v]) => (
+              <div key={l} className="p-4 bg-[var(--bg-surface)] border border-[var(--border)] flex justify-between">
+                <span className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">{l}</span>
+                <span className="text-sm font-black text-[var(--text-main)]">{v}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="p-4 bg-[var(--bg-subtle)] border border-[var(--border)]">
+            <p className="text-[11px] text-[var(--text-secondary)] italic">U.S. Navy circumference method. This is an estimate — DEXA scan provides clinical-grade accuracy.</p>
+          </div>
+        </div>
+      }
+      faqSection={
         <CalcFAQ faqs={[
-          {
-            question: 'How accurate is the U.S. Navy body fat method?',
-            answer: 'The U.S. Navy method is a widely used and relatively accurate way to estimate body fat percentage using body circumferences. While it may not be as precise as a DEXA scan, it is a reliable tool for tracking progress over time.',
-          },
-          {
-            question: 'What is a healthy body fat percentage?',
-            answer: 'Healthy body fat ranges vary by age and gender. Generally, for men, 10-20% is considered healthy, while for women, 18-28% is often cited as a healthy range.',
-          },
-          {
-            question: 'Why do women need more body fat than men?',
-            answer: 'Women naturally require more body fat for reproductive and hormonal health. Essential fat for women is around 10-13%, whereas for men it is about 2-5%.',
-          },
-          {
-            question: 'Can I use this calculator if I have a lot of muscle?',
-            answer: 'The Navy method can sometimes overestimate body fat in individuals with high muscle mass, as it primarily relies on circumferences. However, it is still a useful tool for most people.',
-          },
-          {
-            question: 'How often should I measure my body fat?',
-            answer: 'Measuring once every 4-8 weeks is usually sufficient to track meaningful changes in body composition. Consistency in measurement technique and time of day is key.',
-          },
+          { question: 'How accurate is the Navy method?', answer: 'The Navy circumference method is a reliable estimate for most people using body measurements. It may slightly overestimate in highly muscular individuals.' },
+          { question: 'What is a healthy body fat percentage?', answer: 'For men, 10–20% is healthy; for women, 18–28% is typically healthy. Athletes usually have lower ranges.' },
+          { question: 'Why measure waist, not belly?', answer: 'The waist measurement for this formula is taken at the narrowest point — the navel level for men, and the narrowest part for women.' },
         ]} />
-      </CalcWrapper>
-    </>
+      }
+    />
   );
 }

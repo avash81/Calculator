@@ -1,92 +1,88 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { CalcWrapper } from '@/components/calculator/CalcWrapper';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { CalculatorLayout } from '@/components/layout/CalculatorLayout';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
-import { ShareResult } from '@/components/calculator/ShareResult';
-import { Ruler, Scissors, Percent, Info } from 'lucide-react';
 
 export default function RoundingCalc() {
-  const [val, setVal] = useState('123.4567');
+  const [val, setVal]           = useState('123.4567');
   const [precision, setPrecision] = useState(2);
 
   const res = useMemo(() => {
     const n = parseFloat(val);
     if (isNaN(n)) return null;
-    return {
-      whole: Math.round(n),
-      floor: Math.floor(n),
-      ceil: Math.ceil(n),
-      fixed: n.toFixed(precision),
-      sig: n.toPrecision(precision)
-    };
+    return { whole: Math.round(n), floor: Math.floor(n), ceil: Math.ceil(n), fixed: n.toFixed(precision), sig: n.toPrecision(Math.max(1, precision)) };
   }, [val, precision]);
 
   return (
-    <>
-      <JsonLd type="calculator" name="Rounding Calculator" description="Free online calculator to round numbers to the nearest tenth, hundredth, or any decimal place." url="https://calcpro.com.np/calculator/rounding" />
-      
-      <CalcWrapper
-        title="Rounding Calc"
-        description="Round numbers with precision: Standard rounding, floor, ceiling, and significant figures."
-        crumbs={[{label:'education',href:'/calculator/category/education'},{label:'rounding'}]}
-      >
-        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_360px] gap-8">
-           <div className="space-y-6">
-              <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm relative overflow-hidden">
-                 <div className="absolute top-0 right-0 p-8 opacity-5">
-                    <Scissors className="w-40 h-40" />
-                 </div>
-                 
-                 <div className="space-y-10 relative z-10">
-                    <div>
-                       <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Input Number</label>
-                       <input type="number" value={val} onChange={e=>setVal(e.target.value)} className="w-full h-14 bg-gray-50 border-2 border-transparent focus:border-google-blue rounded-2xl px-6 font-black text-2xl outline-none" />
-                    </div>
+    <CalculatorLayout
+      title="Rounding Calculator"
+      description="Round any number to the nearest whole, floor, ceiling, decimal places, or significant figures instantly."
+      category={{ label: 'Math', href: '/calculator/category/math' }}
+      leftPanel={
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Input Number</label>
+            <input type="number" value={val} onChange={e => setVal(e.target.value)}
+              className="w-full h-14 px-4 border-2 border-[var(--border)] bg-white font-mono text-2xl font-black focus:border-[var(--primary)] outline-none" />
+          </div>
 
-                    <div>
-                       <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Precision / Places</label>
-                       <div className="flex items-center gap-6">
-                          <input type="range" min="0" max="10" value={precision} onChange={e=>setPrecision(+e.target.value)} className="flex-1 accent-google-blue" />
-                          <span className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center font-black text-gray-600">{precision}</span>
-                       </div>
-                    </div>
-                 </div>
-              </div>
+          <div className="space-y-3">
+            <div className="flex justify-between">
+              <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Decimal Places / Precision</label>
+              <span className="text-[11px] font-black text-[var(--primary)]">{precision}</span>
+            </div>
+            <input type="range" min={0} max={10} value={precision} onChange={e => setPrecision(Number(e.target.value))} className="w-full accent-[#083366]" />
+            <div className="grid grid-cols-6 gap-1">
+              {[0,1,2,3,4,5].map(v => (
+                <button key={v} onClick={() => setPrecision(v)}
+                  className={`py-2 text-[10px] font-black border transition-all ${precision === v ? 'bg-[var(--primary)] text-white border-[var(--primary)]' : 'border-[var(--border)] bg-white hover:bg-[var(--bg-subtle)]'}`}>
+                  {v}
+                </button>
+              ))}
+            </div>
+          </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                 {[
-                   {l:'Nearest Whole', v: res?.whole},
-                   {l:'Floor (Down)', v: res?.floor},
-                   {l:'Ceiling (Up)', v: res?.ceil},
-                   {l:'Significant Fig', v: res?.sig},
-                 ].map(item => (
-                   <div key={item.l} className="bg-white border border-gray-100 p-8 rounded-[2rem] shadow-sm">
-                      <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{item.l}</div>
-                      <div className="text-3xl font-black text-gray-900">{item.v}</div>
-                   </div>
-                 ))}
-              </div>
-           </div>
-
-           <div className="space-y-6">
-              <div className="bg-blue-600 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden group">
-                 <div className="text-[10px] font-black uppercase tracking-[0.3em] mb-4 opacity-70">Main Rounding ({precision} places)</div>
-                 <div className="text-7xl font-black mb-8 leading-none tracking-tighter">{res?.fixed}</div>
-                 <div className="pt-8 border-t border-white/20 italic text-sm font-bold opacity-80 leading-relaxed">
-                   &quot;Precision rounding ensures accurate data representation in statistics.&quot;                  </div>
-              </div>
-              <ShareResult title="Number Rounded" result={res?.fixed || ''} calcUrl="https://calcpro.com.np/calculator/rounding" />
-           </div>
+          {/* Quick example inputs */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Try an Example</label>
+            {['3.14159', '2.71828', '1.41421', '99.9999'].map(ex => (
+              <button key={ex} onClick={() => setVal(ex)}
+                className="w-full p-3 border border-[var(--border)] bg-white hover:bg-[var(--bg-subtle)] text-left font-mono font-bold text-sm text-[var(--text-main)] transition-all">
+                {ex}
+              </button>
+            ))}
+          </div>
         </div>
-
-        <div className="mt-16">
-          <CalcFAQ faqs={[
-            { question: "Round up or down?", answer: "By default, 0.5 and higher rounds up to the next number." },
-            { question: "What are significant figures?", answer: "Significant figures are the digits in a number that carry importance contributing to its measurement resolution." }
-          ]} />
+      }
+      rightPanel={
+        <div className="space-y-4">
+          {res ? (
+            <>
+              {[
+                { method: 'Standard Round',     result: String(res.whole) },
+                { method: 'Floor (round down)', result: String(res.floor) },
+                { method: 'Ceiling (round up)', result: String(res.ceil)  },
+                { method: `Fixed (${precision} decimals)`, result: res.fixed },
+                { method: `Significant Figures (${precision})`, result: res.sig },
+              ].map(({ method, result }) => (
+                <div key={method} className="p-5 bg-white border border-[var(--border)]">
+                  <div className="text-[10px] font-bold uppercase text-[var(--text-muted)] mb-1">{method}</div>
+                  <div className="text-2xl font-black text-[var(--primary)] font-mono">{result}</div>
+                </div>
+              ))}
+            </>
+          ) : (
+            <div className="p-5 border border-red-200 text-red-600 text-sm">Enter a valid number.</div>
+          )}
         </div>
-      </CalcWrapper>
-    </>
+      }
+      faqSection={
+        <CalcFAQ faqs={[
+          { question: 'What is the difference between floor and ceiling?', answer: 'Floor always rounds down to the nearest integer; ceiling always rounds up. Example: floor(2.7)=2, ceiling(2.1)=3.' },
+          { question: 'What is standard rounding?', answer: 'Standard (half-up) rounding: if decimal is ≥0.5, round up; otherwise round down. Example: 2.5→3, 2.4→2.' },
+          { question: 'What are significant figures?', answer: 'Significant figures represent the precision of a number. 3.14159 to 3 sig figs = 3.14.' },
+        ]} />
+      }
+    />
   );
 }

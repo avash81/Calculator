@@ -1,10 +1,9 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { useDebounce } from '@/hooks/useDebounce';
-import { CalcWrapper } from '@/components/calculator/CalcWrapper';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { CalculatorLayout } from '@/components/layout/CalculatorLayout';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
-import { ShareResult } from '@/components/calculator/ShareResult';
+
+function fmt(n: number) { return 'NPR ' + Math.round(n).toLocaleString('en-IN'); }
 
 export default function SimpleInterestCalculator() {
   const [principal, setPrincipal] = useState(100000);
@@ -12,100 +11,127 @@ export default function SimpleInterestCalculator() {
   const [time, setTime] = useState(1);
 
   const r = useMemo(() => {
-    // SI = (P * T * R) / 100
     const interest = (principal * time * rate) / 100;
     const total = principal + interest;
     return { interest, total };
   }, [principal, time, rate]);
 
-  const fmt = (n: number) => 'NPR ' + Math.round(n).toLocaleString('en-IN');
+  const pctGrowth = ((r.interest / principal) * 100).toFixed(1);
+
+  const PRESETS = [
+    { label: '1 Year', time: 1 }, { label: '2 Years', time: 2 },
+    { label: '5 Years', time: 5 }, { label: '10 Years', time: 10 },
+  ];
 
   return (
-    <>
-      <JsonLd type="calculator"
-        name="Simple Interest Calculator"
-        description="Calculate simple interest and total amount based on principal, rate, and time. Perfect for basic loans, savings, and educational purposes."
-        url="https://calcpro.com.np/calculator/simple-interest" />
-
-      <CalcWrapper
-        title="Simple Interest Calculator"
-        description="Calculate simple interest and total amount based on principal, rate, and time. Perfect for basic loans and savings."
-        crumbs={[{ label: 'Finance', href: '/calculator?cat=finance' }, { label: 'Simple Interest' }]}
-        relatedCalcs={[
-          { name: 'Compound Interest', slug: 'compound-interest' },
-          { name: 'Fixed Deposit', slug: 'fd-calculator' },
-        ]}
-      >
-        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_320px] gap-8">
-          <div className="space-y-6">
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Principal Amount</label>
-                <div className="relative">
-                  <input type="number" inputMode="numeric" pattern="[0-9.]*" value={principal} onChange={e => setPrincipal(+e.target.value)} className="w-full h-12 pl-4 pr-12 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">NPR</span>
-                </div>
+    <CalculatorLayout
+      title="Simple Interest Calculator"
+      description="Calculate simple interest (SI = P × R × T / 100) and total payable amount for loans and savings in Nepal."
+      category={{ label: 'Finance', href: '/calculator/category/finance' }}
+      leftPanel={
+        <div className="space-y-6">
+          {/* Inputs */}
+          <div className="space-y-4 p-6 bg-white border border-[var(--border)]">
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Principal Amount</label>
+              <div className="flex">
+                <span className="h-11 px-3 bg-[var(--bg-surface)] border border-r-0 border-[var(--border)] text-[11px] font-bold text-[var(--text-muted)] flex items-center">NPR</span>
+                <input type="number" value={principal} onChange={e => setPrincipal(Number(e.target.value))}
+                  className="flex-1 h-11 px-3 border border-[var(--border)] bg-white font-bold text-sm focus:border-[var(--primary)] outline-none" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Interest Rate (%)</label>
-                  <input type="number" inputMode="numeric" pattern="[0-9.]*" step="0.1" value={rate} onChange={e => setRate(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Time (Years)</label>
-                  <input type="number" inputMode="numeric" pattern="[0-9.]*" step="0.1" value={time} onChange={e => setTime(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
-                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Rate (%/yr)</label>
+                <input type="number" value={rate} step={0.1} onChange={e => setRate(Number(e.target.value))}
+                  className="w-full h-11 px-3 border border-[var(--border)] bg-white font-bold text-sm focus:border-[var(--primary)] outline-none" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Time (Years)</label>
+                <input type="number" value={time} step={0.5} onChange={e => setTime(Number(e.target.value))}
+                  className="w-full h-11 px-3 border border-[var(--border)] bg-white font-bold text-sm focus:border-[var(--primary)] outline-none" />
               </div>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="bg-blue-600 rounded-2xl p-6 text-white shadow-xl shadow-blue-900/20">
-              <div className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-1">Total Amount</div>
-              <div className="text-3xl font-bold font-mono mb-4">{fmt(r.total)}</div>
-              <div className="pt-4 border-t border-white/20 space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="opacity-80 font-medium">Principal</span>
-                  <span className="font-mono font-bold">{fmt(principal)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="opacity-80 font-medium">Simple Interest</span>
-                  <span className="font-mono font-bold text-green-300">+{fmt(r.interest)}</span>
-                </div>
-              </div>
+          {/* Time Presets */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Quick Time Periods</label>
+            <div className="grid grid-cols-4 gap-2">
+              {PRESETS.map(p => (
+                <button key={p.label} onClick={() => setTime(p.time)}
+                  className={`py-3 text-[11px] font-bold border transition-all ${time === p.time ? 'bg-[var(--primary)] text-white border-[var(--primary)]' : 'border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--bg-subtle)]'}`}>
+                  {p.label}
+                </button>
+              ))}
             </div>
+          </div>
 
-            <ShareResult 
-              title="Simple Interest Calculation" 
-              result={fmt(r.total)} 
-              calcUrl={`https://calcpro.com.np/calculator/simple-interest`} 
-            />
+          {/* Interest Rate Presets */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Common Nepal Bank Rates</label>
+            <div className="grid grid-cols-4 gap-2">
+              {[7, 8, 10, 12].map(r => (
+                <button key={r} onClick={() => setRate(r)}
+                  className={`py-3 text-[11px] font-bold border transition-all ${rate === r ? 'bg-[var(--primary)] text-white border-[var(--primary)]' : 'border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--bg-subtle)]'}`}>
+                  {r}%
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Formula */}
+          <div className="p-4 bg-[var(--bg-subtle)] border border-[var(--border)]">
+            <div className="text-[10px] font-black uppercase text-[var(--text-muted)] mb-1">Formula</div>
+            <code className="text-[12px] font-mono text-[var(--primary)]">SI = (P × R × T) / 100</code>
+            <div className="text-[10px] text-[var(--text-muted)] mt-1">
+              = ({principal.toLocaleString()} × {rate} × {time}) / 100
+            </div>
           </div>
         </div>
+      }
+      rightPanel={
+        <div className="space-y-6">
+          {/* Total Amount Hero */}
+          <div className="p-8 bg-white border border-[var(--border)] text-center">
+            <div className="text-xs font-bold uppercase text-[var(--text-muted)] mb-2">Total Amount</div>
+            <div className="text-5xl font-black text-[#006600] tracking-tighter mb-2">{fmt(r.total)}</div>
+            <div className="text-xs font-bold text-[var(--text-secondary)] uppercase">Grows {pctGrowth}% over {time} yr{time !== 1 ? 's' : ''}</div>
+          </div>
 
+          {/* Breakdown */}
+          <div className="space-y-3">
+            <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)] flex justify-between">
+              <span className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Principal</span>
+              <span className="text-sm font-black text-[var(--text-main)]">{fmt(principal)}</span>
+            </div>
+            <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)] flex justify-between">
+              <span className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Simple Interest</span>
+              <span className="text-sm font-black text-[#006600]">+ {fmt(r.interest)}</span>
+            </div>
+            <div className="p-5 bg-[var(--primary)] text-white flex justify-between">
+              <span className="text-[11px] font-bold uppercase">Total Payable</span>
+              <span className="text-sm font-black">{fmt(r.total)}</span>
+            </div>
+          </div>
+
+          {/* Comparison note */}
+          <div className="p-5 bg-[var(--bg-subtle)] border border-[var(--border)]">
+            <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed italic">
+              * Simple interest does NOT compound — interest is always calculated on the original principal only.
+            </p>
+          </div>
+        </div>
+      }
+      faqSection={
         <CalcFAQ faqs={[
-          {
-            question: 'What is Simple Interest?',
-            answer: 'Simple interest is a quick and easy method of calculating the interest charge on a loan. Simple interest is determined by multiplying the daily interest rate by the principal by the number of days that elapse between payments.',
-          },
-          {
-            question: 'What is the formula for simple interest?',
-            answer: 'The formula for simple interest is: I = P * R * T, where I is the interest, P is the principal amount, R is the annual interest rate (as a decimal), and T is the time in years.',
-          },
-          {
-            question: 'How does simple interest differ from compound interest?',
-            answer: 'Simple interest is calculated only on the principal amount of a loan. Compound interest is calculated on the principal amount and also on the accumulated interest of previous periods.',
-          },
-          {
-            question: 'When is simple interest used?',
-            answer: 'Simple interest is commonly used for short-term loans, automobile loans, and some personal loans. It is also used in many educational contexts to teach the basics of finance.',
-          },
-          {
-            question: 'Can I use this for monthly time periods?',
-            answer: 'Yes, but you must convert the time to years. For example, if the time is 6 months, enter 0.5 years in the calculator.',
-          },
+          { question: 'What is Simple Interest?', answer: 'SI is calculated only on the principal: I = P × R × T / 100. Unlike compound interest, accumulated interest is never added back to the principal.' },
+          { question: 'How is it different from compound interest?', answer: 'In simple interest, each year\'s interest is the same fixed amount. In compound interest, each year\'s interest is added to the growing principal.' },
+          { question: 'Can I use months instead of years?', answer: 'Yes — enter 0.5 for 6 months, 0.25 for 3 months. Convert months to years by dividing by 12.' },
+          { question: 'Where is simple interest used in Nepal?', answer: 'Short-term personal loans, some cooperative society loans, and educational purpose calculations commonly use simple interest in Nepal.' },
         ]} />
-      </CalcWrapper>
-    </>
+      }
+    />
   );
 }

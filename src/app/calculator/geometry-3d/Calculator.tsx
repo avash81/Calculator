@@ -1,178 +1,113 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { CalcWrapper } from '@/components/calculator/CalcWrapper';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { CalculatorLayout } from '@/components/layout/CalculatorLayout';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
-import { ShareResult } from '@/components/calculator/ShareResult';
 import { CubeIcon, SphereIcon, ConeIcon, CylinderIcon, PyramidIcon } from '@/components/ui/GeometryIcons';
 
-type Shape = 'sphere' | 'cube' | 'cylinder' | 'cone' | 'pyramid' | 'capsule' | 'torus';
+type Shape = 'sphere'|'cube'|'cylinder'|'cone'|'pyramid'|'capsule'|'torus';
+
+const SHAPES: { id: Shape; label: string; icon: React.ReactNode }[] = [
+  { id:'sphere',   label:'Sphere',    icon:<SphereIcon /> },
+  { id:'cube',     label:'Box/Cube',  icon:<CubeIcon /> },
+  { id:'cylinder', label:'Cylinder',  icon:<CylinderIcon /> },
+  { id:'cone',     label:'Cone',      icon:<ConeIcon /> },
+  { id:'pyramid',  label:'Pyramid',   icon:<PyramidIcon /> },
+  { id:'capsule',  label:'Capsule',   icon:<CylinderIcon /> },
+  { id:'torus',    label:'Torus',     icon:<SphereIcon /> },
+];
 
 export default function Geometry3D() {
   const [shape, setShape] = useState<Shape>('sphere');
-  const [r, setR] = useState(5);
-  const [rMinor, setRMinor] = useState(2); // for Torus
-  const [h, setH] = useState(10);
-  const [l, setL] = useState(10);
-  const [w, setW] = useState(10);
+  const [r, setR]           = useState(5);
+  const [rMinor, setRMinor] = useState(2);
+  const [h, setH]           = useState(10);
+  const [l, setL]           = useState(10);
+  const [w, setW]           = useState(10);
 
   const res = useMemo(() => {
-    let vol = 0; let sa = 0; let formulaV = ''; let formulaS = '';
     const PI = Math.PI;
-
+    let vol = 0, sa = 0, fV = '', fS = '';
     switch (shape) {
-      case 'sphere':
-        vol = (4/3) * PI * Math.pow(r, 3);
-        sa = 4 * PI * Math.pow(r, 2);
-        formulaV = 'V = 4/3πr³';
-        formulaS = 'SA = 4πr²';
-        break;
-      case 'cube':
-        vol = l * w * h;
-        sa = 2 * (l*w + w*h + h*l);
-        formulaV = 'V = lwb';
-        formulaS = 'SA = 2(lw+lh+wh)';
-        break;
-      case 'cylinder':
-        vol = PI * Math.pow(r, 2) * h;
-        sa = 2 * PI * r * (r + h);
-        formulaV = 'V = πr²h';
-        formulaS = 'SA = 2πrh + 2πr²';
-        break;
-      case 'cone':
-        vol = (1/3) * PI * Math.pow(r, 2) * h;
-        const s = Math.sqrt(Math.pow(r, 2) + Math.pow(h, 2));
-        sa = PI * r * (r + s);
-        formulaV = 'V = 1/3πr²h';
-        formulaS = 'SA = πrl + πr²';
-        break;
-      case 'pyramid':
-        vol = (l * w * h) / 3;
-        const sl = Math.sqrt(Math.pow(w/2, 2) + Math.pow(h, 2));
-        const sw = Math.sqrt(Math.pow(l/2, 2) + Math.pow(h, 2));
-        sa = l*w + l*sl + w*sw;
-        formulaV = 'V = (lwh)/3';
-        formulaS = 'SA = B + 1/2Pl';
-        break;
-      case 'capsule':
-        vol = PI * r**2 * ((4/3)*r + h);
-        sa = 2*PI*r*(2*r + h);
-        formulaV = 'V = πr²(4/3r + h)';
-        formulaS = 'SA = 2πr(2r + h)';
-        break;
-      case 'torus':
-        vol = (PI * rMinor**2) * (2 * PI * r);
-        sa = (2 * PI * r) * (2 * PI * rMinor);
-        formulaV = 'V = (πr²) (2πR)';
-        formulaS = 'SA = (2πR) (2πr)';
-        break;
+      case 'sphere':   vol=(4/3)*PI*r**3; sa=4*PI*r**2; fV='V = 4/3πr³'; fS='SA = 4πr²'; break;
+      case 'cube':     vol=l*w*h; sa=2*(l*w+w*h+h*l); fV='V = l×w×h'; fS='SA = 2(lw+lh+wh)'; break;
+      case 'cylinder': vol=PI*r**2*h; sa=2*PI*r*(r+h); fV='V = πr²h'; fS='SA = 2πr(r+h)'; break;
+      case 'cone':     { const s=Math.sqrt(r**2+h**2); vol=(1/3)*PI*r**2*h; sa=PI*r*(r+s); fV='V = ⅓πr²h'; fS='SA = πr(r+l)'; break; }
+      case 'pyramid':  { const sl=Math.sqrt((w/2)**2+h**2), sw=Math.sqrt((l/2)**2+h**2); vol=l*w*h/3; sa=l*w+l*sl+w*sw; fV='V = (lwh)/3'; fS='SA = B + ½Pl'; break; }
+      case 'capsule':  vol=PI*r**2*((4/3)*r+h); sa=2*PI*r*(2*r+h); fV='V = πr²(4r/3+h)'; fS='SA = 2πr(2r+h)'; break;
+      case 'torus':    vol=PI*rMinor**2*(2*PI*r); sa=(2*PI*r)*(2*PI*rMinor); fV='V = (πr²)(2πR)'; fS='SA = (2πR)(2πr)'; break;
     }
-    return { vol: vol.toFixed(2), sa: sa.toFixed(2), formulaV, formulaS };
+    return { vol: vol.toFixed(4), sa: sa.toFixed(4), fV, fS };
   }, [shape, r, rMinor, h, l, w]);
 
+  const showR   = ['sphere','cylinder','cone','capsule','torus'].includes(shape);
+  const showH   = shape !== 'sphere' && shape !== 'torus';
+  const showLW  = shape === 'cube' || shape === 'pyramid';
+  const showRm  = shape === 'torus';
+  const inputC  = "w-full h-11 px-3 border border-[var(--border)] bg-white font-mono font-bold text-sm focus:border-[var(--primary)] outline-none";
+
   return (
-    <>
-      <JsonLd type="calculator" name="Volume & Surface Area Calculator" description="Calculate the volume and surface area of 3D shapes like Sphere, Cube, Cone, and Cylinder." url="https://calcpro.com.np/calculator/geometry-3d" />
-      
-      <CalcWrapper
-        title="3D Geometry (Volume)"
-        description="Solve for volume and surface area of standard geometric 3D shapes accurately."
-        crumbs={[{label:'education',href:'/calculator/category/education'},{label:'geometry 3d'}]}
-      >
-        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_360px] gap-8">
-           <div className="space-y-6">
-              <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
-                  <div className="grid grid-cols-4 sm:grid-cols-7 gap-3 mb-10 overflow-x-auto no-scrollbar">
-                     {[
-                       {id:'sphere', icon: <SphereIcon />, l:'Sphere'},
-                       {id:'cube', icon: <CubeIcon />, l:'Rect/Cube'},
-                       {id:'cylinder', icon: <CylinderIcon />, l:'Cylinder'},
-                       {id:'cone', icon: <ConeIcon />, l:'Cone'},
-                       {id:'pyramid', icon: <PyramidIcon />, l:'Pyramid'},
-                       {id:'capsule', icon: <CylinderIcon />, l:'Capsule'},
-                       {id:'torus', icon: <SphereIcon />, l:'Torus'},
-                     ].map(s => (
-                       <button key={s.id} onClick={()=>setShape(s.id as Shape)} className={`flex flex-col items-center gap-3 p-4 rounded-3xl transition-all border-2 min-w-[80px] ${shape === s.id ? 'bg-blue-50 border-blue-600 shadow-sm' : 'border-transparent hover:bg-gray-50 text-gray-400'}`}>
-                          <span className={`w-8 h-8 ${shape === s.id ? 'text-blue-600' : 'text-gray-300'}`}>{s.icon}</span>
-                          <span className="text-[8px] font-black uppercase tracking-widest leading-none text-center">{s.l}</span>
-                       </button>
-                     ))}
-                  </div>
+    <CalculatorLayout
+      title="3D Geometry Calculator"
+      description="Calculate volume and surface area of 3D shapes: sphere, cube, cylinder, cone, pyramid, capsule, and torus."
+      category={{ label: 'Math', href: '/calculator/category/math' }}
+      leftPanel={
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Shape</label>
+            <div className="grid grid-cols-4 gap-2">
+              {SHAPES.map(s => (
+                <button key={s.id} onClick={() => setShape(s.id)}
+                  className={`py-3 flex flex-col items-center gap-1 border text-center transition-all ${shape===s.id ? 'bg-[var(--primary)] text-white border-[var(--primary)]' : 'border-[var(--border)] bg-white hover:bg-[var(--bg-subtle)]'}`}>
+                  <span className={`w-5 h-5 ${shape===s.id ? 'text-white' : 'text-[var(--text-muted)]'}`}>{s.icon}</span>
+                  <span className="text-[9px] font-black uppercase">{s.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                     {(shape === 'sphere' || shape === 'cylinder' || shape === 'cone' || shape === 'capsule' || shape === 'torus') && (
-                       <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">{shape === 'torus' ? 'Major Radius (R)' : 'Radius (r)'}</label>
-                          <input type="number" value={r} onChange={e=>setR(+e.target.value)} className="w-full h-12 px-5 bg-gray-50 dark:bg-gray-800 rounded-2xl font-bold focus:border-blue-600 outline-none border-2 border-transparent transition-all" />
-                       </div>
-                    )}
-                    {shape === 'torus' && (
-                       <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Minor Radius (r)</label>
-                          <input type="number" value={rMinor} onChange={e=>setRMinor(+e.target.value)} className="w-full h-12 px-5 bg-gray-50 dark:bg-gray-800 rounded-2xl font-bold focus:border-blue-600 outline-none border-2 border-transparent transition-all" />
-                       </div>
-                    )}
-                    {(shape !== 'sphere' && shape !== 'torus') && (
-                      <div>
-                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Height (h)</label>
-                         <input type="number" value={h} onChange={e=>setH(+e.target.value)} className="w-full h-12 px-5 bg-gray-50 dark:bg-gray-800 rounded-2xl font-bold focus:border-blue-600 outline-none border-2 border-transparent transition-all" />
-                      </div>
-                    )}
-                    {(shape === 'cube' || shape === 'pyramid') && (
-                      <>
-                        <div>
-                           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Length (l)</label>
-                           <input type="number" value={l} onChange={e=>setL(+e.target.value)} className="w-full h-12 px-5 bg-gray-50 dark:bg-gray-800 rounded-2xl font-bold focus:border-blue-600 outline-none border-2 border-transparent transition-all" />
-                        </div>
-                        <div>
-                           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Width (w)</label>
-                           <input type="number" value={w} onChange={e=>setW(+e.target.value)} className="w-full h-12 px-5 bg-gray-50 dark:bg-gray-800 rounded-2xl font-bold focus:border-blue-600 outline-none border-2 border-transparent transition-all" />
-                        </div>
-                      </>
-                    )}
-                 </div>
+          <div className="grid grid-cols-2 gap-4">
+            {showR  && <div className="space-y-1"><label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">{shape==='torus'?'Major Radius (R)':'Radius (r)'}</label><input type="number" value={r} onChange={e=>setR(Number(e.target.value))} className={inputC} /></div>}
+            {showRm && <div className="space-y-1"><label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Minor Radius (r)</label><input type="number" value={rMinor} onChange={e=>setRMinor(Number(e.target.value))} className={inputC} /></div>}
+            {showH  && <div className="space-y-1"><label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Height (h)</label><input type="number" value={h} onChange={e=>setH(Number(e.target.value))} className={inputC} /></div>}
+            {showLW && <>
+              <div className="space-y-1"><label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Length (l)</label><input type="number" value={l} onChange={e=>setL(Number(e.target.value))} className={inputC} /></div>
+              <div className="space-y-1"><label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Width (w)</label><input type="number" value={w} onChange={e=>setW(Number(e.target.value))} className={inputC} /></div>
+            </>}
+          </div>
 
-                 <div className="mt-8 pt-8 border-t border-gray-50 dark:border-gray-800">
-                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Geometric Summary</div>
-                    <div className="grid grid-cols-2 gap-4">
-                       <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
-                          <span className="text-[8px] font-black uppercase text-blue-600 mb-1 block">Volume Formula</span>
-                          <span className="text-xs font-bold font-mono">{res.formulaV}</span>
-                       </div>
-                       <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
-                          <span className="text-[8px] font-black uppercase text-emerald-600 mb-1 block">Surface Area Formula</span>
-                          <span className="text-xs font-bold font-mono">{res.formulaS}</span>
-                       </div>
-                    </div>
-                 </div>
-              </div>
-           </div>
-
-           <div className="space-y-6">
-              <div className="bg-google-blue rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
-                 <div className="text-[10px] font-black opacity-60 uppercase tracking-[0.2em] mb-8">3D Metrics</div>
-                 <div className="space-y-8">
-                    <div>
-                       <div className="text-xs font-bold opacity-50 mb-1">Volume (V)</div>
-                       <div className="text-5xl font-black">{res.vol}</div>
-                    </div>
-                    <div>
-                       <div className="text-xs font-bold opacity-50 mb-1">Surface Area (SA)</div>
-                       <div className="text-5xl font-black">{res.sa}</div>
-                    </div>
-                 </div>
-              </div>
-              <ShareResult title={`Solved ${shape} Geometry`} result={`V: ${res.vol}`} calcUrl="https://calcpro.com.np/calculator/geometry-3d" />
-           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-4 bg-white border border-[var(--border)]">
+              <div className="text-[9px] font-black uppercase text-[var(--primary)] mb-1">Volume Formula</div>
+              <code className="text-[11px] font-mono font-bold text-[var(--text-main)]">{res.fV}</code>
+            </div>
+            <div className="p-4 bg-white border border-[var(--border)]">
+              <div className="text-[9px] font-black uppercase text-[#006600] mb-1">Surface Area Formula</div>
+              <code className="text-[11px] font-mono font-bold text-[var(--text-main)]">{res.fS}</code>
+            </div>
+          </div>
         </div>
-
-        <div className="mt-16">
-          <CalcFAQ faqs={[
-            { question: 'What is Volume?', answer: 'The total amount of 3rd spaces an object occupies, measured in cubic units.' },
-            { question: 'Sphere Volume Formula?', answer: 'V = (4/3) × π × r³' }
-          ]} />
+      }
+      rightPanel={
+        <div className="space-y-6">
+          <div className="p-8 bg-white border border-[var(--border)] text-center">
+            <div className="text-xs font-bold uppercase text-[var(--text-muted)] mb-2">Volume</div>
+            <div className="text-5xl font-black text-[var(--primary)] tracking-tighter font-mono mb-1">{res.vol}</div>
+            <div className="text-xs font-bold text-[var(--text-muted)]">cubic units</div>
+          </div>
+          <div className="p-8 bg-white border border-[var(--border)] text-center">
+            <div className="text-xs font-bold uppercase text-[var(--text-muted)] mb-2">Surface Area</div>
+            <div className="text-5xl font-black text-[#006600] tracking-tighter font-mono mb-1">{res.sa}</div>
+            <div className="text-xs font-bold text-[var(--text-muted)]">square units</div>
+          </div>
         </div>
-      </CalcWrapper>
-    </>
+      }
+      faqSection={
+        <CalcFAQ faqs={[
+          { question: 'What is the volume of a sphere?', answer: 'V = (4/3)πr³. For r=5 → V ≈ 523.6 cubic units.' },
+          { question: 'What is surface area?', answer: 'The total area of all outer faces of a 3D shape. Measured in square units.' },
+          { question: 'What is the difference between volume and capacity?', answer: 'Volume is the 3D space a shape occupies; capacity is how much liquid it can hold. They are numerically equal for containers.' },
+        ]} />
+      }
+    />
   );
 }

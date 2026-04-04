@@ -1,101 +1,109 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { CalcWrapper } from '@/components/calculator/CalcWrapper';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { CalculatorLayout } from '@/components/layout/CalculatorLayout';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
-import { ShareResult } from '@/components/calculator/ShareResult';
-import { Dices, PieChart, Percent, Activity } from 'lucide-react';
+import { Dices } from 'lucide-react';
+
+const SCENARIOS = [
+  { label: 'Dice roll (6)',  f: 1, t: 6 },
+  { label: 'Coin flip',     f: 1, t: 2 },
+  { label: 'Draw one ace',  f: 4, t: 52 },
+  { label: 'Lottery (1/45)',f: 1, t: 45 },
+];
 
 export default function ProbabilityCalc() {
   const [favorable, setFavorable] = useState(1);
-  const [total, setTotal] = useState(6);
+  const [total, setTotal]         = useState(6);
 
   const res = useMemo(() => {
-    if (total <= 0) return { prob: 0, pct: '0%', odds: '0:0' };
-    const p = favorable / total;
-    return {
-      prob: p.toFixed(4),
-      pct: (p * 100).toFixed(2) + '%',
-      odds: favorable + ' : ' + (total - favorable)
-    };
+    if (total <= 0) return { prob: 0, pct: '—', odds: '—', complement: '—' };
+    const p = Math.min(favorable / total, 1);
+    return { prob: p.toFixed(4), pct: (p * 100).toFixed(2) + '%', odds: `${favorable}:${total - favorable}`, complement: ((1-p)*100).toFixed(2) + '%' };
   }, [favorable, total]);
 
+  const inputCls = "w-full h-12 px-4 border border-[var(--border)] bg-white font-bold text-xl focus:border-[var(--primary)] outline-none";
+
   return (
-    <>
-      <JsonLd type="calculator" name="Probability Calculator" description="Free online probability calculator to find the likelihood and odds of favorable outcomes occurring." url="https://calcpro.com.np/calculator/probability" />
-      
-      <CalcWrapper
-        title="Probability Calc"
-        description="Calculate the statistical probability of events occurring based on favorable outcomes and total sample space."
-        crumbs={[{label:'education',href:'/calculator/category/education'},{label:'probability'}]}
-      >
-        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_360px] gap-8">
-           <div className="space-y-6">
-              <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm relative overflow-hidden">
-                 <div className="absolute top-0 right-0 p-8 opacity-5">
-                    <Dices className="w-40 h-40" />
-                 </div>
-                 
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                    <div className="space-y-4">
-                       <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Favorable Outcomes</label>
-                       <div className="relative">
-                          <Activity className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-google-blue" />
-                          <input type="number" value={favorable} onChange={e=>setFavorable(+e.target.value)} className="w-full h-14 pl-12 pr-4 bg-gray-50 rounded-2xl font-black text-xl border-2 border-transparent focus:border-google-blue outline-none transition-all" />
-                       </div>
-                       <p className="text-[10px] text-gray-400 font-bold uppercase italic">&quot;The events you want to happen&quot;</p>
-                    </div>
+    <CalculatorLayout
+      title="Probability Calculator"
+      description="Calculate the probability of any event. Enter favorable outcomes and total sample space to get probability as a percentage, decimal, and odds."
+      category={{ label: 'Math', href: '/calculator/category/math' }}
+      leftPanel={
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Favorable Outcomes</label>
+              <input type="number" value={favorable} onChange={e => setFavorable(Number(e.target.value))} min={0} className={inputCls} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Total Sample Space</label>
+              <input type="number" value={total} onChange={e => setTotal(Number(e.target.value))} min={1} className={inputCls} />
+            </div>
+          </div>
 
-                    <div className="space-y-4">
-                       <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Sample Space</label>
-                       <div className="relative">
-                          <PieChart className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                          <input type="number" value={total} onChange={e=>setTotal(+e.target.value)} className="w-full h-14 pl-12 pr-4 bg-gray-50 rounded-2xl font-black text-xl border-2 border-transparent focus:border-google-blue outline-none transition-all" />
-                       </div>
-                       <p className="text-[10px] text-gray-400 font-bold uppercase italic">&quot;Total number of possible outcomes&quot;</p>
-                    </div>
-                 </div>
-              </div>
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Common Scenarios</label>
+            {SCENARIOS.map(s => (
+              <button key={s.label} onClick={() => { setFavorable(s.f); setTotal(s.t); }}
+                className="w-full p-4 border border-[var(--border)] bg-white hover:bg-[var(--bg-subtle)] text-left flex justify-between items-center transition-all">
+                <span className="text-[12px] font-bold text-[var(--text-main)]">{s.label}</span>
+                <span className="text-[11px] font-black text-[var(--primary)]">{s.f}/{s.t}</span>
+              </button>
+            ))}
+          </div>
 
-              <div className="bg-google-gray rounded-[2.5rem] p-10 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
-                 <div className="space-y-1">
-                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Percentage</div>
-                    <div className="text-3xl font-black text-gray-900">{res.pct}</div>
-                 </div>
-                 <div className="space-y-1">
-                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Decimal (0-1)</div>
-                    <div className="text-3xl font-black text-google-blue">{res.prob}</div>
-                 </div>
-                 <div className="space-y-1">
-                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Odds (Fav:Unfav)</div>
-                    <div className="text-3xl font-black text-orange-500">{res.odds}</div>
-                 </div>
-              </div>
-           </div>
-
-           <div className="space-y-6">
-              <div className="bg-indigo-600 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden group">
-                 <div className="absolute top-0 right-0 p-6 opacity-30">
-                    <Percent className="w-20 h-20 group-hover:scale-110 transition-transform" />
-                 </div>
-                 <div className="text-[10px] font-black uppercase tracking-[0.3em] mb-4 opacity-70">Likelihood Result</div>
-                 <div className="text-6xl font-black mb-8">{res.pct}</div>
-                 <div className="pt-8 border-t border-white/20">
-                    <div className="text-sm font-bold opacity-80 leading-relaxed italic">
-                       &quot;Based on classical probability rules, there is a {(+res.prob).toFixed(2)} probability of success.&quot;                     </div>
-                 </div>
-              </div>
-              <ShareResult title="Probability Calculated" result={res.pct} calcUrl="https://calcpro.com.np/calculator/probability" />
-           </div>
+          <div className="p-4 bg-[var(--bg-subtle)] border border-[var(--border)]">
+            <div className="text-[10px] font-black uppercase text-[var(--text-muted)] mb-1">Formula</div>
+            <code className="text-[11px] font-mono text-[var(--primary)]">P(A) = Favorable Outcomes / Total Sample Space</code>
+          </div>
         </div>
+      }
+      rightPanel={
+        <div className="space-y-6">
+          <div className="p-8 bg-white border border-[var(--border)] text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Dices className="w-5 h-5 text-[var(--text-muted)]" />
+              <div className="text-xs font-bold uppercase text-[var(--text-muted)]">Probability</div>
+            </div>
+            <div className="text-7xl font-black text-[var(--primary)] tracking-tighter mb-2">{res.pct}</div>
+            <div className="text-xs font-bold text-[var(--text-secondary)] uppercase">chance of success</div>
+          </div>
 
-        <div className="mt-16">
-          <CalcFAQ faqs={[
-            { question: 'Basic Probability Formula?', answer: 'P(A) = Favorable Outcomes / Total Outcomes.' },
-            { question: 'What is sample space?', answer: 'The set of all possible outcomes of an experiment (e.g., for a die it is 1, 2, 3, 4, 5, 6).' }
-          ]} />
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: 'Decimal',    val: res.prob },
+              { label: 'Odds',       val: res.odds },
+              { label: 'Complement', val: res.complement },
+            ].map(({ label, val }) => (
+              <div key={label} className="p-4 bg-[var(--bg-surface)] border border-[var(--border)] text-center">
+                <div className="text-[9px] font-black uppercase text-[var(--text-muted)] mb-1">{label}</div>
+                <div className="text-lg font-black text-[var(--primary)]">{val}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)] space-y-2">
+            <div className="flex justify-between text-[10px] font-bold uppercase text-[var(--text-muted)]">
+              <span>Favorable</span><span>Unfavorable</span>
+            </div>
+            <div className="h-4 flex overflow-hidden w-full">
+              <div className="bg-[var(--primary)] transition-all duration-700" style={{ width: res.pct }} />
+              <div className="bg-red-300 flex-1" />
+            </div>
+            <div className="flex justify-between text-[10px]">
+              <span className="font-black text-[var(--primary)]">{res.pct}</span>
+              <span className="font-black text-red-600">{res.complement}</span>
+            </div>
+          </div>
         </div>
-      </CalcWrapper>
-    </>
+      }
+      faqSection={
+        <CalcFAQ faqs={[
+          { question: 'What is the basic probability formula?', answer: 'P(A) = Favorable Outcomes / Total Outcomes. Always a value between 0 and 1 (or 0%–100%).' },
+          { question: 'What is the sample space?', answer: 'The set of all possible outcomes (e.g., {1,2,3,4,5,6} for a six-sided die).' },
+          { question: 'What is complement probability?', answer: 'P(not A) = 1 − P(A). If the chance of success is 30%, the complement (failure) is 70%.' },
+        ]} />
+      }
+    />
   );
 }

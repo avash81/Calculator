@@ -19,31 +19,30 @@ interface JsonLdProps {
 }
 
 export function JsonLd({ type, name, description, url, faqs, category = 'UtilitiesApplication' }: JsonLdProps) {
-  const base = 'https://calcpro.com.np';
+  const base = 'https://calcly.com';
+  const siteName = 'Calcly';
 
   const schemas: Record<string, object> = {
     organization: {
       '@context': 'https://schema.org',
       '@type': 'Organization',
-      name: 'CalcPro.NP',
+      name: siteName,
       url: base,
       logo: `${base}/logo.png`,
       sameAs: [
-        'https://facebook.com/calcpro.np',
-        'https://twitter.com/calcpro_np',
-        'https://linkedin.com/company/calcpro-np'
+        'https://facebook.com/calcly',
+        'https://twitter.com/calcly',
+        'https://linkedin.com/company/calcly'
       ],
       contactPoint: {
         '@type': 'ContactPoint',
         contactType: 'customer support',
-        email: 'support@calcpro.com.np'
+        email: 'support@calcly.com'
       }
     },
     website: {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
-      name: 'CalcPro.NP',
-      url: base,
       description: 'Free online professional calculators for Nepal — income tax 2082/83, EMI, BMI, Nepali date and 80+ tools',
       potentialAction: {
         '@type': 'SearchAction',

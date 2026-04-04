@@ -1,5 +1,5 @@
 /**
- * @fileoverview RootLayout — CalcPro.NP
+ * @fileoverview RootLayout — Calcly Precision Suite
  */
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
@@ -13,30 +13,21 @@ const inter = Inter({
   display: 'swap',
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-jetbrains-mono',
-  display: 'swap',
-});
-
 export const metadata: Metadata = {
-  metadataBase: new URL('https://calcpro.com.np'),
+  metadataBase: new URL('https://calcly.com'),
   title: {
-    default: 'CalcPro.NP — Best Free Nepal Calculator Suite & AI Math Solver',
-    template: '%s | CalcPro.NP',
+    default: 'Calcly — Precision Online Calculators',
+    template: '%s | Calcly',
   },
   description:
-    "The fastest professional-grade free calculators for Nepal. " +
-    "Income tax 2082/83, EMI, BMI, & AI-powered step-by-step Math Solver. " +
-    "80+ tools built for Nepal. No ads, no login required.",
+    "Calcly provides professional-grade, high-precision free online calculators for finance, math, health, and science. Zero ads, zero signup, built for speed.",
   keywords: [
-    'nepal calculator', 'nepal income tax 2082/83',
-    'emi calculator nepal', 'nepali date converter',
-    'bmi calculator', 'free calculator nepal'
+    'online calculator', 'precision calculator', 'free calculators',
+    'finance calculator', 'math solver', 'health calculator', 'calcly'
   ].join(', '),
   openGraph: {
-    siteName: 'CalcPro.NP',
-    locale: 'en_NP',
+    siteName: 'Calcly',
+    locale: 'en_US',
     type: 'website',
   },
   robots: { index: true, follow: true },
@@ -48,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} font-sans`}>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -56,9 +47,9 @@ export default function RootLayout({
           }}
         />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <meta name="theme-color" content="#1B4FBD" />
+        <meta name="theme-color" content="#083366" />
       </head>
-      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans bg-cp-bg text-cp-text antialiased`}>
+      <body className="bg-[var(--bg-page)] text-[var(--text-secondary)] antialiased font-sans">
         <GoogleAnalytics />
         <ClientShell>
           {children}

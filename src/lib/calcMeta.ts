@@ -1,17 +1,22 @@
 import { Metadata } from 'next';
 
+export const SITE_CONFIG = {
+  name: 'Calcly',
+  domain: 'calcly.com',
+  baseUrl: 'https://calcly.com',
+  twitter: '@calcly',
+};
+
 export function calcMeta({ title, description, slug, keywords }: { title: string; description: string; slug: string; keywords: string[] }): Metadata {
-  const ogImage = `https://calcpro.com.np/api/og?title=${encodeURIComponent(title)}`;
+  const ogImage = `https://calcly.com/api/og?title=${encodeURIComponent(title)}`;
   
   return {
     title,
     description,
     keywords,
     openGraph: {
-      title,
-      description,
-      url: `https://calcpro.com.np/calculator/${slug}`,
-      siteName: 'CalcPro.NP',
+      url: `${SITE_CONFIG.baseUrl}/calculator/${slug}`,
+      siteName: SITE_CONFIG.name,
       type: 'website',
       images: [
         {
@@ -29,7 +34,7 @@ export function calcMeta({ title, description, slug, keywords }: { title: string
       images: [ogImage],
     },
     alternates: {
-      canonical: `https://calcpro.com.np/calculator/${slug}`,
+      canonical: `${SITE_CONFIG.baseUrl}/calculator/${slug}`,
     },
   };
 }

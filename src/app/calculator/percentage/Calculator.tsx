@@ -1,292 +1,150 @@
 'use client';
 import { useState, useMemo } from 'react';
+import { CalculatorLayout } from '@/components/layout/CalculatorLayout';
 import { ValidatedInput } from '@/components/calculator/ValidatedInput';
-import { ResultCard } from '@/components/calculator/ResultCard';
-import { CalculatorErrorBoundary } from '@/components/calculator/CalculatorErrorBoundary';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { Percent, TrendingUp, Search, Layers, Zap, ArrowRightLeft, History } from 'lucide-react';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { Percent, TrendingUp, Search, Layers, ArrowRightLeft } from 'lucide-react';
 
-type CalcMode = 'what_is' | 'what_percent' | 'original' | 'change' | 'add_sub' | 'batch';
+type CalcMode = 'what_is' | 'what_percent' | 'original' | 'change' | 'add_sub';
+const DEFAULT_STATE = { mode: 'what_is' as CalcMode, num: 20, den: 500, initial: 100, final: 120 };
 
-interface HistoryItem {
-  calc: string;
-  result: string;
-  time: string;
-}
-
-const DEFAULT_STATE = {
-  mode: 'what_is' as CalcMode,
-  num: 20,
-  den: 500,
-  initial: 100,
-  final: 120,
-};
+const MODES = [
+  { id: 'what_is', label: 'X% of Y', icon: Percent },
+  { id: 'what_percent', label: 'X is ?% of Y', icon: Search },
+  { id: 'original', label: 'X is Y% of ?', icon: Layers },
+  { id: 'add_sub', label: 'Value ± %', icon: ArrowRightLeft },
+  { id: 'change', label: '% Change', icon: TrendingUp },
+] as const;
 
 export default function PercentageCalculator() {
   const [state, setState] = useLocalStorage('calcpro_percentage_v2', DEFAULT_STATE);
-  const [history, setHistory] = useLocalStorage<HistoryItem[]>('calcpro_percentage_history', []);
-  
   const { mode, num, den, initial, final } = state;
+  const updateState = (u: Partial<typeof DEFAULT_STATE>) => setState({ ...state, ...u });
 
-  const updateState = (updates: Partial<typeof DEFAULT_STATE>) => {
-    setState({ ...state, ...updates });
-  };
-
-  const saveToHistory = (calc: string, result: string) => {
-    const newItem = {
-      calc,
-      result,
-      time: new Date().toLocaleTimeString('en-NP'),
-    };
-    setHistory([newItem, ...history].slice(0, 10));
-  };
-
-  const calculation = useMemo(() => {
-    let result = '';
-    let label = 'Result';
-    let raw = 0;
-    let error: string | null = null;
-
+  const calc = useMemo(() => {
+    let result = '', label = '', raw = 0, error: string | null = null;
     switch (mode) {
-      case 'what_is':
-        raw = (num / 100) * den;
-        result = raw.toLocaleString();
-        label = `${num}% of ${den}`;
-        break;
-      case 'what_percent':
-        if (den === 0) { error = 'Division by zero'; break; }
-        raw = (num / den) * 100;
-        result = `${raw.toFixed(2)}%`;
-        label = `${num} is what % of ${den}`;
-        break;
-      case 'original':
-        if (num === 0) { error = 'Percentage cannot be zero'; break; }
-        raw = den / (num / 100);
-        result = raw.toLocaleString();
-        label = `${den} is ${num}% of what?`;
-        break;
-      case 'change':
-        if (initial === 0) { error = 'Initial value cannot be zero'; break; }
-        const diff = final - initial;
-        raw = (diff / initial) * 100;
-        result = `${raw >= 0 ? '+' : ''}${raw.toFixed(2)}%`;
-        label = `${diff >= 0 ? 'Increase' : 'Decrease'} from ${initial} to ${final}`;
-        break;
-      case 'add_sub':
-        const delta = (num / 100) * den;
-        raw = den + delta; // Default to add
-        result = raw.toLocaleString();
-        label = `${den} + ${num}% = ${result}`;
-        break;
-      default:
-        break;
+      case 'what_is':   raw = (num / 100) * den; result = raw.toLocaleString(); label = `${num}% of ${den}`; break;
+      case 'what_percent': if (!den) { error = 'Division by zero'; break; } raw = (num / den) * 100; result = `${raw.toFixed(2)}%`; label = `${num} is ${raw.toFixed(2)}% of ${den}`; break;
+      case 'original':  if (!num) { error = 'Percentage cannot be zero'; break; } raw = den / (num / 100); result = raw.toLocaleString(); label = `${den} is ${num}% of ${raw.toFixed(2)}`; break;
+      case 'change':    if (!initial) { error = 'Initial cannot be zero'; break; } raw = ((final - initial) / initial) * 100; result = `${raw >= 0 ? '+' : ''}${raw.toFixed(2)}%`; label = `${raw >= 0 ? 'Increase' : 'Decrease'} from ${initial} → ${final}`; break;
+      case 'add_sub':   raw = den + (num / 100) * den; result = raw.toLocaleString(); label = `${den} + ${num}% = ${result}`; break;
     }
-
     return { result, label, raw, error };
   }, [mode, num, den, initial, final]);
 
+  const isChange = mode === 'change', isAddSub = mode === 'add_sub';
+
   return (
-    <CalculatorErrorBoundary calculatorName="Percentage Calculator">
-      <div className="max-w-6xl mx-auto space-y-8">
-        
-        {/* Header */}
-        <div className="text-center space-y-4 py-8">
-          <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-blue-100 mb-2">
-             <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
-             Education Suite
-          </div>
-          <h1 className="text-4xl sm:text-6xl font-black text-gray-900 dark:text-white tracking-tight">
-            Percentage <span className="text-blue-600">Calculator</span>
-          </h1>
-          <p className="max-w-2xl mx-auto text-lg text-gray-500 dark:text-gray-400 font-medium">
-             Solve complex percentage problems instantly—from simple discounts to growth rate tracking and target projections.
-          </p>
-        </div>
-
-        {/* Mode Selector */}
-        <div className="flex gap-2 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-[2rem] border border-gray-100 dark:border-gray-800 overflow-x-auto no-scrollbar">
-          {[
-            { id: 'what_is', label: 'What is X% of Y?', icon: Percent },
-            { id: 'what_percent', label: 'X is what % of Y?', icon: Search },
-            { id: 'original', label: 'X is Y% of what?', icon: Layers },
-            { id: 'add_sub', label: 'Value +/- %', icon: ArrowRightLeft },
-            { id: 'change', label: '% Change', icon: TrendingUp },
-            { id: 'batch', label: 'Batch Mode', icon: Zap },
-          ].map((m) => (
-            <button
-              key={m.id}
-              onClick={() => updateState({ mode: m.id as CalcMode })}
-              className={`flex-1 min-w-[140px] py-4 rounded-[1.25rem] flex flex-col items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
-                mode === m.id
-                  ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm border border-gray-100 dark:border-gray-600'
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
-            >
-              <m.icon className="w-5 h-5" />
-              {m.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          <div className="lg:col-span-2 space-y-8 bg-white dark:bg-gray-900 p-8 sm:p-10 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-xl shadow-gray-200/20 dark:shadow-none">
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {mode === 'change' ? (
-                <>
-                  <ValidatedInput
-                    label="Initial Value"
-                    value={initial}
-                    onChange={(v) => updateState({ initial: v })}
-                    required
-                  />
-                  <ValidatedInput
-                    label="Final Value"
-                    value={final}
-                    onChange={(v) => updateState({ final: v })}
-                    required
-                  />
-                </>
-               ) : mode === 'add_sub' ? (
-                 <>
-                   <ValidatedInput label="Base Value" value={den} onChange={(v) => updateState({ den: v })} required />
-                   <ValidatedInput label="Percentage (%)" value={num} onChange={(v) => updateState({ num: v })} suffix="%" required />
-                   <div className="col-span-2 grid grid-cols-2 gap-4">
-                      <div className="p-6 bg-emerald-50 dark:bg-emerald-900/10 rounded-3xl border border-emerald-100 dark:border-emerald-800 text-center">
-                         <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest block mb-1">Add (+)</span>
-                         <span className="text-2xl font-black text-emerald-700 dark:text-emerald-300">{(den * (1 + num/100)).toLocaleString()}</span>
-                      </div>
-                      <div className="p-6 bg-rose-50 dark:bg-rose-900/10 rounded-3xl border border-rose-100 dark:border-rose-800 text-center">
-                         <span className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest block mb-1">Subtract (-)</span>
-                         <span className="text-2xl font-black text-rose-700 dark:text-rose-300">{(den * (1 - num/100)).toLocaleString()}</span>
-                      </div>
-                   </div>
-                 </>
-               ) : (
-                 <>
-                    <ValidatedInput
-                     label={mode === 'original' ? 'Percentage' : 'Percentage (X)'}
-                     value={num}
-                     onChange={(v) => updateState({ num: v })}
-                     suffix={mode === 'what_percent' ? '' : '%'}
-                     required
-                   />
-                   <ValidatedInput
-                     label={mode === 'original' ? 'Value (X)' : 'Of Total (Y)'}
-                     value={den}
-                     onChange={(v) => updateState({ den: v })}
-                     required
-                   />
-                 </>
-               )}
+    <CalculatorLayout
+      title="Percentage Calculator"
+      description="Solve any percentage problem instantly — discounts, growth rates, original values, and more."
+      category={{ label: 'Math', href: '/calculator/category/math' }}
+      leftPanel={
+        <div className="space-y-6">
+          {/* Mode Selector */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Calculation Mode</label>
+            <div className="space-y-1">
+              {MODES.map(m => (
+                <button key={m.id} onClick={() => updateState({ mode: m.id as CalcMode })}
+                  className={`w-full p-4 border text-left flex items-center gap-3 transition-all ${mode === m.id ? 'bg-[var(--primary)] text-white border-[var(--primary)]' : 'bg-white border-[var(--border)] text-[var(--text-main)] hover:bg-[var(--bg-subtle)]'}`}>
+                  <m.icon className="w-4 h-4 shrink-0" />
+                  <span className="text-[12px] font-bold uppercase tracking-tight">{m.label}</span>
+                </button>
+              ))}
             </div>
-
-            <div className="flex flex-wrap gap-2 pt-2">
-               {[5, 10, 13, 15, 20, 25].map(v => (
-                 <button key={v} onClick={() => updateState({ num: v })} className="px-4 py-2 rounded-xl bg-gray-50 dark:bg-gray-800 text-[10px] font-black hover:bg-blue-50 dark:hover:bg-blue-900 transition-all">
-                   {v}%
-                 </button>
-               ))}
-            </div>
-
-            {mode !== 'batch' && !calculation.error && (
-              <button 
-                onClick={() => saveToHistory(calculation.label, calculation.result)}
-                className="w-full py-4 bg-gray-900 dark:bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest hover:scale-[1.01] transition-all"
-              >
-                Log Calculation
-              </button>
-            )}
           </div>
 
-          {/* Results Side */}
-          <div className="space-y-6 lg:sticky lg:top-8 h-fit">
-            {calculation.error ? (
-               <div className="p-8 bg-rose-50 dark:bg-rose-900/10 border-2 border-rose-100 dark:border-rose-900/30 rounded-[2.5rem] text-rose-600 text-center space-y-2">
-                  <p className="font-black uppercase tracking-widest text-xs">Error Found</p>
-                  <p className="font-bold">{calculation.error}</p>
-                </div>
-            ) : mode !== 'batch' && (
+          {/* Inputs by Mode */}
+          <div className="space-y-4 p-5 bg-white border border-[var(--border)]">
+            {isChange ? (
               <>
-                <ResultCard
-                  label="Calculated Result"
-                  value={calculation.result}
-                  unit={mode === 'change' || mode === 'what_percent' ? '' : ''}
-                  color={mode === 'change' ? (calculation.raw >= 0 ? 'green' : 'red') : 'blue'}
-                  title="Percentage"
-                  copyValue={calculation.result}
-                />
-
-                <div className="bg-white dark:bg-gray-900 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 space-y-4">
-                   <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Visual Scale</div>
-                   <div className="h-4 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full transition-all duration-1000 ${mode === 'change' ? (calculation.raw >= 0 ? 'bg-emerald-500' : 'bg-rose-500') : 'bg-blue-600'}`}
-                        style={{ width: `${Math.min(Math.abs(calculation.raw), 100)}%` }}
-                      />
-                   </div>
-                   <p className="text-[10px] text-gray-400 font-bold leading-relaxed">
-                      {calculation.label}
-                   </p>
-                </div>
+                <ValidatedInput label="Initial Value" value={initial} onChange={v => updateState({ initial: v })} required />
+                <ValidatedInput label="Final Value" value={final} onChange={v => updateState({ final: v })} required />
+              </>
+            ) : isAddSub ? (
+              <>
+                <ValidatedInput label="Base Value" value={den} onChange={v => updateState({ den: v })} required />
+                <ValidatedInput label="Percentage (%)" value={num} onChange={v => updateState({ num: v })} suffix="%" required />
+              </>
+            ) : (
+              <>
+                <ValidatedInput label={mode === 'original' ? 'Percentage (%)' : 'Value X'} value={num} onChange={v => updateState({ num: v })} suffix={mode === 'what_percent' ? '' : '%'} required />
+                <ValidatedInput label={mode === 'original' ? 'Result Value' : 'Total Y'} value={den} onChange={v => updateState({ den: v })} required />
               </>
             )}
           </div>
-        </div>
 
-        {/* History Section */}
-        {history.length > 0 && (
-          <div className="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] border border-gray-100 dark:border-gray-800">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                 <History className="w-6 h-6 text-gray-400" />
-                 <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight text-center">Calculation Log</h3>
-              </div>
-              <button 
-                onClick={() => setHistory([])}
-                className="text-[10px] font-black text-rose-500 uppercase tracking-widest hover:underline"
-              >
-                Clear History
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               {history.map((h, i) => (
-                 <div key={i} className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 flex justify-between items-center group">
-                    <div className="flex flex-col gap-1">
-                       <span className="text-[9px] font-black text-gray-400 uppercase">{h.time}</span>
-                       <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{h.calc}</span>
-                    </div>
-                    <span className="text-xl font-black text-blue-600 tracking-tighter">{h.result}</span>
-                 </div>
-               ))}
+          {/* Quick % Presets */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Quick Percentages</label>
+            <div className="grid grid-cols-6 gap-2">
+              {[5, 10, 13, 15, 20, 25].map(v => (
+                <button key={v} onClick={() => updateState({ num: v })}
+                  className="py-2 text-[11px] font-bold border border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] transition-all">
+                  {v}%
+                </button>
+              ))}
             </div>
           </div>
-        )}
-
-        {/* FAQ Section */}
-        <div className="pt-8">
-           <CalcFAQ
-              faqs={[
-                {
-                  question: 'How do I find the original amount if I only have the percentage?',
-                  answer: 'Use the "X is Y% of What?" mode. Enter the current value as X and the percentage as Y. The calculator will divide X by (Y/100) to find the original 100% total.'
-                },
-                {
-                  question: 'What is percentage change?',
-                  answer: 'Percentage change measures the relative difference between an initial value and a final value. If the final is higher, it is an increase; if lower, a decrease.'
-                },
-                {
-                  question: 'Are results rounded?',
-                  answer: 'Most results are shown with 2 decimal precision for readability, though the underlying engine maintains high floating-point accuracy for all math steps.'
-                }
-              ]}
-           />
         </div>
-      </div>
-    </CalculatorErrorBoundary>
+      }
+      rightPanel={
+        <div className="space-y-6">
+          {calc.error ? (
+            <div className="p-6 bg-red-50 border border-red-300 text-red-700">
+              <p className="text-xs font-black uppercase">Error</p>
+              <p className="text-sm font-bold mt-1">{calc.error}</p>
+            </div>
+          ) : (
+            <>
+              {isAddSub ? (
+                <div className="space-y-4">
+                  <div className="p-8 bg-white border border-[var(--border)] text-center">
+                    <div className="text-xs font-bold uppercase text-[var(--text-muted)] mb-2">Add (+{num}%)</div>
+                    <div className="text-5xl font-black text-[#006600] tracking-tighter">{(den * (1 + num / 100)).toLocaleString()}</div>
+                  </div>
+                  <div className="p-8 bg-white border border-[var(--border)] text-center">
+                    <div className="text-xs font-bold uppercase text-[var(--text-muted)] mb-2">Subtract (-{num}%)</div>
+                    <div className="text-5xl font-black text-red-600 tracking-tighter">{(den * (1 - num / 100)).toLocaleString()}</div>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-8 bg-white border border-[var(--border)] text-center">
+                  <div className="text-xs font-bold uppercase text-[var(--text-muted)] mb-2">Result</div>
+                  <div className={`text-6xl font-black tracking-tighter mb-2 ${isChange && calc.raw >= 0 ? 'text-[#006600]' : isChange ? 'text-red-600' : 'text-[var(--primary)]'}`}>
+                    {calc.result}
+                  </div>
+                  <div className="text-xs font-medium text-[var(--text-secondary)] mt-2">{calc.label}</div>
+                </div>
+              )}
+
+              {/* Bar Graph */}
+              {!isAddSub && (
+                <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)]">
+                  <div className="text-[10px] font-bold uppercase text-[var(--text-muted)] mb-3">Visual Scale (0–100%)</div>
+                  <div className="h-3 w-full bg-gray-200 relative overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-700 ${isChange && calc.raw < 0 ? 'bg-red-500' : 'bg-[var(--primary)]'}`}
+                      style={{ width: `${Math.min(Math.abs(calc.raw), 100)}%` }}
+                    />
+                  </div>
+                  <div className="text-[10px] text-[var(--text-muted)] mt-2 font-medium">{calc.label}</div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      }
+      faqSection={
+        <CalcFAQ faqs={[
+          { question: 'How do I find the original amount?', answer: 'Use "X is Y% of ?" mode — enter the known result as X and the percentage as Y. The calculator divides X ÷ (Y/100).' },
+          { question: 'What is percentage change?', answer: 'It measures the relative difference between initial and final values: ((Final − Initial) / Initial) × 100.' },
+          { question: 'Are results rounded?', answer: 'Results show 2 decimal places for readability. The engine maintains full floating-point accuracy internally.' },
+        ]} />
+      }
+    />
   );
 }

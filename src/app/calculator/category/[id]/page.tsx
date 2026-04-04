@@ -32,24 +32,22 @@ export default function CategoryPage({ params }: { params: { id: string } }) {
           <div className="h-1 w-20 bg-google-blue rounded-full" />
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {category.calculators.map((calc) => (
             <Link 
               key={calc.id} 
               href={`/calculator/${calc.slug}`}
-              className="group bg-white border border-gray-100 hover:border-google-blue p-8 rounded-[2.5rem] transition-all hover:shadow-xl hover:shadow-blue-500/5 relative overflow-hidden"
+              className="group bg-white border border-[#E5E5E5] hover:border-[#0000CC] p-4 flex items-start gap-3 transition-colors shrink-0"
             >
-              <div className="flex items-start justify-between mb-4">
-                <span className="text-3xl">{calc.icon}</span>
-                {calc.isHot && (
-                  <span className="text-[10px] font-black bg-orange-500 text-white px-2 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-orange-500/20">Hot</span>
-                )}
-              </div>
-              <h3 className="text-lg font-black text-gray-900 mb-2 group-hover:text-google-blue transition-colors">{calc.name}</h3>
-              <p className="text-sm text-gray-500 font-medium leading-relaxed mb-6">{calc.description}</p>
-              
-              <div className="flex items-center gap-2 text-[10px] font-black text-google-blue uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all">
-                Open Tool <ArrowRight className="w-3 h-3" />
+              <div className="text-2xl mt-1 opacity-70 group-hover:opacity-100 transition-opacity">{calc.icon}</div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-[14px] font-bold text-[#0000CC] group-hover:underline truncate">{calc.name}</h3>
+                  {calc.isHot && (
+                    <span className="text-[9px] font-black bg-[var(--accent)] text-white px-1 py-0.5 rounded-sm uppercase tracking-tighter shrink-0">Hot</span>
+                  )}
+                </div>
+                <p className="text-[12px] text-[#666666] leading-tight line-clamp-2">{calc.description}</p>
               </div>
             </Link>
           ))}

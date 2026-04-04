@@ -3,20 +3,59 @@
 @tailwind utilities;
 
 :root {
-  --nav-height: 4rem;
-  --google-blue: #1A73E8;
-  --google-blue-dark: #1557B0;
-  --google-blue-light: #E8F0FE;
-  --google-gray: #F8F9FA;
-  --google-border: #E8EAED;
+  /* Brand Classic - Reclone Palette */
+  --primary:        #083366;   /* Deep Navy */
+  --primary-light:  #E8F0F8;
+  --accent:         #336699;   /* Steel Blue */
+  --success:        #006600;   /* Forest Green Heading */
+  --error:          #CC0000;
+
+  /* Neutral Scale - Classic Utility */
+  --bg-page:        #FFFFFF;
+  --bg-surface:     #F8F8F8;
+  --bg-subtle:      #EEEEEE;
+  --border:         #CCCCCC;
+
+  /* Text - High Contrast Utility */
+  --text-main:      #000000; 
+  --text-secondary: #333333; 
+  --text-muted:     #666666;
+  
+  /* Link Classic */
+  --link-blue:      #0000CC;
 }
 
-body {
-  background-color: #ffffff;
-  color: #202124;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-family: var(--font-inter), 'Inter', ui-sans-serif, system-ui, sans-serif;
+.dark {
+  --primary:        #6366F1;
+  --primary-dark:   #4F46E5;
+  --primary-light:  #1E1B4B;
+  --accent:         #FBBF24;
+  --text-main:      #F9FAFB;
+  --text-secondary: #D1D5DB;
+  --text-muted:     #9CA3AF;
+  --bg-page:        #0F172A;
+  --bg-surface:     #1E293B;
+  --bg-subtle:      #1E293B;
+  --border:         #334155;
+  --border-strong:  #475569;
+}
+
+@layer base {
+  body {
+    @apply bg-[var(--bg-page)] text-[var(--text-secondary)] font-sans antialiased text-[14px];
+    font-family: var(--font-inter), 'Inter', ui-sans-serif, system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  /* Standard 1000px Centered Container (calculator.net style) */
+  .hp-container {
+    @apply max-w-[1000px] mx-auto px-4 w-full;
+  }
+  
+  .utility-link {
+    @apply text-[var(--link-blue)] font-bold hover:underline;
+  }
 }
 
 /* Custom Hide Scrollbar */

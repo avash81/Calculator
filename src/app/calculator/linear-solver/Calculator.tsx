@@ -1,157 +1,139 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { CalcWrapper } from '@/components/calculator/CalcWrapper';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { CalculatorLayout } from '@/components/layout/CalculatorLayout';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
-import { ShareResult } from '@/components/calculator/ShareResult';
-import { Sparkles, X, ChevronRight } from 'lucide-react';
 
 export default function LinearSolver() {
-  const [mode, setMode] = useState<'2var' | '3var'>('2var');
-  
-  // 2 Variables (ax + by = c, dx + ey = f)
-  const [a1, setA1] = useState(1); const [b1, setB1] = useState(1); const [c1, setC1] = useState(5);
-  const [a2, setA2] = useState(1); const [b2, setB2] = useState(-1); const [c2, setC2] = useState(1);
-
-  // 3 Variables
-  const [eq1, setEq1] = useState({ a: 1, b: 1, c: 1, d: 6 });
-  const [eq2, setEq2] = useState({ a: 0, b: 2, c: 5, d: -4 });
-  const [eq3, setEq3] = useState({ a: 2, b: 5, c: -1, d: 27 });
+  const [mode, setMode] = useState<'2var'|'3var'>('2var');
+  const [a1, setA1] = useState(1);  const [b1, setB1] = useState(1);  const [c1, setC1] = useState(5);
+  const [a2, setA2] = useState(1);  const [b2, setB2] = useState(-1); const [c2, setC2] = useState(1);
+  const [eq1, setEq1] = useState({ a:1, b:1, c:1, d:6 });
+  const [eq2, setEq2] = useState({ a:0, b:2, c:5, d:-4 });
+  const [eq3, setEq3] = useState({ a:2, b:5, c:-1, d:27 });
 
   const result = useMemo(() => {
     if (mode === '2var') {
-      const det = a1 * b2 - a2 * b1;
-      if (det === 0) return { type: 'error', msg: 'Infinite solutions or No solution (Parallel Lines)' };
-      const x = (c1 * b2 - c2 * b1) / det;
-      const y = (a1 * c2 - a2 * c1) / det;
-      return { type: 'success', x, y };
-    } else {
-      // Cramer's Rule for 3x3
-      const { a:a1, b:b1, c:c1, d:d1 } = eq1;
-      const { a:a2, b:b2, c:c2, d:d2 } = eq2;
-      const { a:a3, b:b3, c:c3, d:d3 } = eq3;
-
-      const det = a1*(b2*c3 - b3*c2) - b1*(a2*c3 - a3*c2) + c1*(a2*b3 - a3*b2);
-      if (det === 0) return { type: 'error', msg: 'Determinant is 0. Singular System.' };
-
-      const dx = d1*(b2*c3 - b3*c2) - b1*(d2*c3 - d3*c2) + c1*(d2*b3 - d3*b2);
-      const dy = a1*(d2*c3 - d3*c2) - d1*(a2*c3 - a3*c2) + c1*(a2*d3 - a3*d2);
-      const dz = a1*(b2*d3 - b3*d2) - b1*(a2*d3 - a3*d2) + d1*(a2*b3 - a3*b2);
-
-      return { type: 'success', x: dx/det, y: dy/det, z: dz/det };
+      const det = a1*b2 - a2*b1;
+      if (det === 0) return { ok: false, msg: 'No unique solution (parallel or same lines).' };
+      return { ok:true, x: (c1*b2-c2*b1)/det, y: (a1*c2-a2*c1)/det };
     }
-  }, [mode, a1, b1, c1, a2, b2, c2, eq1, eq2, eq3]);
+    const { a:A1, b:B1, c:C1, d:D1 } = eq1;
+    const { a:A2, b:B2, c:C2, d:D2 } = eq2;
+    const { a:A3, b:B3, c:C3, d:D3 } = eq3;
+    const det = A1*(B2*C3-B3*C2) - B1*(A2*C3-A3*C2) + C1*(A2*B3-A3*B2);
+    if (det === 0) return { ok:false, msg: 'Singular system — no unique solution.' };
+    return {
+      ok:true,
+      x: (D1*(B2*C3-B3*C2) - B1*(D2*C3-D3*C2) + C1*(D2*B3-D3*B2)) / det,
+      y: (A1*(D2*C3-D3*C2) - D1*(A2*C3-A3*C2) + C1*(A2*D3-A3*D2)) / det,
+      z: (A1*(B2*D3-B3*D2) - B1*(A2*D3-A3*D2) + D1*(A2*B3-A3*B2)) / det,
+    };
+  }, [mode, a1,b1,c1,a2,b2,c2,eq1,eq2,eq3]);
+
+  const inputCls = "w-full h-11 px-3 border border-[var(--border)] bg-white font-mono font-bold text-sm focus:border-[var(--primary)] outline-none text-center";
 
   return (
-    <>
-      <JsonLd type="calculator" name="Linear Equation Solver" description="Solve systems of linear equations with 2 or 3 variables instantly using Cramer's rule." url="https://calcpro.com.np/calculator/linear-solver" />
-      
-      <CalcWrapper
-        title="Linear Equation Solver"
-        description="Solve systems of linear equations (Simultaneous Equations) with 2 or 3 variables using precise algebraic methods."
-        crumbs={[{label:'education',href:'/calculator/category/education'},{label:'linear solver'}]}
-        formula={mode === '2var' ? "Cramer's Rule: x = Δx/Δ, y = Δy/Δ" : "3x3 Cramer's Rule with Determinants"}
-      >
-        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_380px] gap-8">
-          <div className="space-y-6">
-            <div className="bg-white border border-gray-100 rounded-[2rem] p-8 shadow-sm">
-              <div className="flex bg-google-gray p-1.5 rounded-2xl mb-8">
-                <button onClick={() => setMode('2var')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${mode === '2var' ? 'bg-white shadow-sm text-google-blue' : 'text-gray-400'}`}>2 Variables (x, y)</button>
-                <button onClick={() => setMode('3var')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${mode === '3var' ? 'bg-white shadow-sm text-google-blue' : 'text-gray-400'}`}>3 Variables (x, y, z)</button>
+    <CalculatorLayout
+      title="Linear Equation Solver"
+      description="Solve systems of 2 or 3 simultaneous linear equations using Cramer's Rule. Instantly find x, y, and z values."
+      category={{ label: 'Math', href: '/calculator/category/math' }}
+      leftPanel={
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { k:'2var', l:'2 Variables (x, y)' },
+              { k:'3var', l:'3 Variables (x, y, z)' },
+            ].map(m => (
+              <button key={m.k} onClick={() => setMode(m.k as any)}
+                className={`py-3 text-xs font-black border transition-all uppercase ${mode===m.k ? 'bg-[var(--primary)] text-white border-[var(--primary)]' : 'border-[var(--border)] bg-white hover:bg-[var(--bg-subtle)]'}`}>
+                {m.l}
+              </button>
+            ))}
+          </div>
+
+          {mode === '2var' ? (
+            <div className="space-y-4">
+              {[
+                { label:'Equation 1',  cols:['a','x +','b','y =','c'], vals:[a1,b1,c1], setters:[setA1,setB1,setC1] },
+                { label:'Equation 2',  cols:['a','x +','b','y =','c'], vals:[a2,b2,c2], setters:[setA2,setB2,setC2] },
+              ].map(({ label, vals, setters }) => (
+                <div key={label} className="p-4 bg-white border border-[var(--border)]">
+                  <div className="text-[10px] font-black uppercase text-[var(--text-secondary)] mb-3">{label}: ax + by = c</div>
+                  <div className="flex items-center gap-2">
+                    <input type="number" value={vals[0]} onChange={e => setters[0](Number(e.target.value))} className={inputCls} />
+                    <span className="text-sm font-bold text-[var(--text-muted)]">x +</span>
+                    <input type="number" value={vals[1]} onChange={e => setters[1](Number(e.target.value))} className={inputCls} />
+                    <span className="text-sm font-bold text-[var(--text-muted)]">y =</span>
+                    <input type="number" value={vals[2]} onChange={e => setters[2](Number(e.target.value))} className={inputCls} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {[
+                { label:'Eq 1', eq:eq1, set:setEq1 },
+                { label:'Eq 2', eq:eq2, set:setEq2 },
+                { label:'Eq 3', eq:eq3, set:setEq3 },
+              ].map(({ label, eq, set }) => (
+                <div key={label} className="p-4 bg-white border border-[var(--border)]">
+                  <div className="text-[10px] font-black uppercase text-[var(--text-secondary)] mb-2">{label}: ax + by + cz = d</div>
+                  <div className="flex items-center gap-2">
+                    <input type="number" value={eq.a} onChange={e => set({...eq,a:Number(e.target.value)})} className={inputCls} />
+                    <span className="text-xs text-[var(--text-muted)]">x</span>
+                    <input type="number" value={eq.b} onChange={e => set({...eq,b:Number(e.target.value)})} className={inputCls} />
+                    <span className="text-xs text-[var(--text-muted)]">y</span>
+                    <input type="number" value={eq.c} onChange={e => set({...eq,c:Number(e.target.value)})} className={inputCls} />
+                    <span className="text-xs text-[var(--text-muted)]">z =</span>
+                    <input type="number" value={eq.d} onChange={e => set({...eq,d:Number(e.target.value)})} className={inputCls} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="p-4 bg-[var(--bg-subtle)] border border-[var(--border)]">
+            <div className="text-[10px] font-black uppercase text-[var(--text-muted)] mb-1">Method</div>
+            <code className="text-[11px] font-mono text-[var(--primary)]">Cramer's Rule: x = Δx/Δ, y = Δy/Δ</code>
+          </div>
+        </div>
+      }
+      rightPanel={
+        <div className="space-y-6">
+          {result.ok ? (
+            <>
+              <div className="p-8 bg-white border border-[var(--border)] text-center">
+                <div className="text-xs font-bold uppercase text-[var(--text-muted)] mb-4">Solution Vector</div>
+                <div className="space-y-3">
+                  {[
+                    { label:'x', val: (result as any).x, color:'text-[var(--primary)]' },
+                    { label:'y', val: (result as any).y, color:'text-[#006600]' },
+                    ...(mode==='3var' ? [{ label:'z', val:(result as any).z, color:'text-amber-700' }] : []),
+                  ].map(({ label, val, color }) => (
+                    <div key={label} className="flex items-center justify-between border-b border-[var(--border)] pb-3 last:border-0 last:pb-0">
+                      <span className="text-sm font-black uppercase text-[var(--text-secondary)]">{label} =</span>
+                      <span className={`text-3xl font-black font-mono ${color}`}>{(val as number).toFixed(4)}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {mode === '2var' ? (
-                <div className="space-y-8">
-                   <div className="space-y-4">
-                      <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Equation 1: ax + by = c</div>
-                      <div className="flex items-center gap-3">
-                         <input type="number" value={a1} onChange={e=>setA1(+e.target.value)} className="w-full h-12 bg-gray-50 rounded-xl px-4 font-bold border-2 border-transparent focus:border-google-blue outline-none" />
-                         <span className="font-bold text-gray-400">x +</span>
-                         <input type="number" value={b1} onChange={e=>setB1(+e.target.value)} className="w-full h-12 bg-gray-50 rounded-xl px-4 font-bold border-2 border-transparent focus:border-google-blue outline-none" />
-                         <span className="font-bold text-gray-400">y =</span>
-                         <input type="number" value={c1} onChange={e=>setC1(+e.target.value)} className="w-full h-12 bg-gray-50 rounded-xl px-4 font-bold border-2 border-transparent focus:border-google-blue outline-none" />
-                      </div>
-                   </div>
-                   <div className="space-y-4">
-                      <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Equation 2: dx + ey = f</div>
-                      <div className="flex items-center gap-3">
-                         <input type="number" value={a2} onChange={e=>setA2(+e.target.value)} className="w-full h-12 bg-gray-50 rounded-xl px-4 font-bold border-2 border-transparent focus:border-google-blue outline-none" />
-                         <span className="font-bold text-gray-400">x +</span>
-                         <input type="number" value={b2} onChange={e=>setB2(+e.target.value)} className="w-full h-12 bg-gray-50 rounded-xl px-4 font-bold border-2 border-transparent focus:border-google-blue outline-none" />
-                         <span className="font-bold text-gray-400">y =</span>
-                         <input type="number" value={c2} onChange={e=>setC2(+e.target.value)} className="w-full h-12 bg-gray-50 rounded-xl px-4 font-bold border-2 border-transparent focus:border-google-blue outline-none" />
-                      </div>
-                   </div>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                   {[
-                    { eq: eq1, set: setEq1, label: 'Eq 1' },
-                    { eq: eq2, set: setEq2, label: 'Eq 2' },
-                    { eq: eq3, set: setEq3, label: 'Eq 3' }
-                   ].map((item, i) => (
-                     <div key={i} className="flex items-center gap-2">
-                        <input type="number" value={item.eq.a} onChange={e=>item.set({...item.eq, a:+e.target.value})} className="w-full h-10 bg-gray-50 rounded-lg px-2 font-bold text-center border focus:border-blue-500 outline-none" />
-                        <span className="text-xs font-bold text-gray-300">x+</span>
-                        <input type="number" value={item.eq.b} onChange={e=>item.set({...item.eq, b:+e.target.value})} className="w-full h-10 bg-gray-50 rounded-lg px-2 font-bold text-center border focus:border-blue-500 outline-none" />
-                        <span className="text-xs font-bold text-gray-300">y+</span>
-                        <input type="number" value={item.eq.c} onChange={e=>item.set({...item.eq, c:+e.target.value})} className="w-full h-10 bg-gray-50 rounded-lg px-2 font-bold text-center border focus:border-blue-500 outline-none" />
-                        <span className="text-xs font-bold text-gray-300">z=</span>
-                        <input type="number" value={item.eq.d} onChange={e=>item.set({...item.eq, d:+e.target.value})} className="w-full h-10 bg-gray-50 rounded-lg px-2 font-bold text-center border focus:border-blue-500 outline-none" />
-                     </div>
-                   ))}
-                </div>
-              )}
-            </div>
-            
-            <div className="bg-blue-50/30 border border-blue-50 rounded-[2.5rem] p-8 flex items-center gap-6">
-               <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl">
-                  <Sparkles className="w-7 h-7" />
-               </div>
-               <div>
-                  <div className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-1">Step-by-Step Solver</div>
-                  <div className="text-sm font-bold text-gray-600 italic">&quot;Using matrices and determinants to find a precise unique solution.&quot;</div>
-               </div>
-            </div>
-          </div>
-
-          <div className="space-y-6 lg:sticky lg:top-10">
-             <div className="bg-gray-900 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden group">
-                <div className="text-[10px] font-black uppercase tracking-[0.3em] mb-8 text-gray-400">Solution Vector</div>
-                
-                {result.type === 'success' ? (
-                  <div className="space-y-6">
-                     <div className="flex items-center justify-between pb-4 border-b border-white/10">
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Variable X</span>
-                        <span className="text-3xl font-black text-google-blue">{result.x?.toFixed(4)}</span>
-                     </div>
-                     <div className="flex items-center justify-between pb-4 border-b border-white/10">
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Variable Y</span>
-                        <span className="text-3xl font-black text-green-500">{result.y?.toFixed(4)}</span>
-                     </div>
-                     {mode === '3var' && (
-                       <div className="flex items-center justify-between pt-2">
-                          <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Variable Z</span>
-                          <span className="text-3xl font-black text-orange-500">{result.z?.toFixed(4)}</span>
-                       </div>
-                     )}
-                  </div>
-                ) : (
-                  <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-sm font-bold">{result.msg}</div>
-                )}
-             </div>
-
-             <ShareResult title="System of Equations Solved" result={result.type==='success' ? `X=${result.x?.toFixed(2)}, Y=${result.y?.toFixed(2)}` : 'Parallel lines'} calcUrl="https://calcpro.com.np/calculator/linear-solver" />
-          </div>
+              <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)]">
+                <p className="text-[11px] text-[var(--text-secondary)]">This is the intersection point of all equations — the unique solution to the system.</p>
+              </div>
+            </>
+          ) : (
+            <div className="p-5 border border-red-200 bg-red-50 text-red-700 text-sm font-bold">{(result as any).msg}</div>
+          )}
         </div>
-
-        <div className="mt-16">
-          <CalcFAQ faqs={[
-            { question: 'What is a linear equation system?', answer: 'It is a set of two or more linear equations involving the same variables. The solution is the point where all these lines intersect.' },
-            { question: "What is Cramer's Rule?", answer: "A method that uses determinants to find the values of unknowns in a system of linear equations." }
-          ]} />
-        </div>
-      </CalcWrapper>
-    </>
+      }
+      faqSection={
+        <CalcFAQ faqs={[
+          { question: 'What is a system of linear equations?', answer: 'A set of two or more equations sharing the same variables. The solution is the set of values that satisfy all equations simultaneously.' },
+          { question: "What is Cramer's Rule?", answer: "A method using matrix determinants to solve systems of linear equations. For ax + by = c: x = Δx/Δ where Δ is the coefficient determinant." },
+          { question: 'When is there no unique solution?', answer: 'When the system determinant is 0, the lines are either parallel (no solution) or identical (infinite solutions).' },
+        ]} />
+      }
+    />
   );
 }

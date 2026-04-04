@@ -1,154 +1,126 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
 import { CATEGORIES } from '@/data/calculators';
-import { MoveRight } from 'lucide-react';
-import { Sidebar } from '@/components/home/Sidebar';
-import { TrustBand } from '@/components/home/TrustBand';
-
-const HomeCalculator = dynamic(() => import('@/components/home/HomeCalculator').then(mod => mod.HomeCalculator), {
-  ssr: false,
-  loading: () => <div className="w-full h-[450px] bg-white border border-google-border rounded-[32px] animate-pulse flex items-center justify-center text-gray-300 text-[10px] font-black uppercase tracking-widest">Constructing Matrix...</div>
-});
-
-const CAT_STYLES: Record<string, { icon: string, color: string, bg: string, accent: string }> = {
-  nepal: { icon: '🇳🇵', color: 'text-rose-600', bg: 'bg-rose-50', accent: 'border-rose-100' },
-  finance: { icon: '💰', color: 'text-amber-600', bg: 'bg-amber-50', accent: 'border-amber-100' },
-  health: { icon: '❤️', color: 'text-red-600', bg: 'bg-red-50', accent: 'border-red-100' },
-  education: { icon: '🎓', color: 'text-purple-600', bg: 'bg-purple-50', accent: 'border-purple-100' },
-  conversion: { icon: '🔄', color: 'text-orange-600', bg: 'bg-orange-50', accent: 'border-orange-100' },
-};
+import { ChevronRight, Zap, Calculator, TrendingUp, Heart, ShieldCheck } from 'lucide-react';
+import { Logo } from '@/components/layout/Logo';
+import { AllInOneCalculator } from '@/components/calculator/AllInOneCalculator';
 
 export default function HomePageClient() {
-  const router = useRouter();
   const [mounted, setMounted] = useState(false);
-
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => setMounted(true), []);
 
   if (!mounted) return null;
 
-
   return (
-    <div className="min-h-screen bg-white font-sans selection:bg-google-blue-light selection:text-google-blue overflow-x-hidden">
+    <div className="min-h-screen bg-white font-sans antialiased text-[14px]">
       
-      {/* HERO SECTION */}
-      <section className="pt-14 pb-6 px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto text-center space-y-5">
+      {/* 1. Interactive Hero - All-in-One Calculator */}
+      <header className="pt-16 pb-16 border-b border-[var(--border)] bg-gray-50">
+        <div className="hp-container flex flex-col items-center">
+          <div className="text-center mb-10">
+            <h1 className="text-3xl md:text-5xl font-black text-[#000000] mb-4 tracking-tighter">
+              Global Precision Hub
+            </h1>
+            <p className="text-[#333333] font-medium leading-relaxed max-w-2xl mx-auto">
+              Professional-grade mathematical tools for finance, health, and engineering. 
+              Featuring our live interactive scientific & graphing engine below.
+            </p>
+          </div>
           
-          <div className="inline-flex items-center gap-2 bg-google-blue-light text-google-blue px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-google-blue/10">
-             <div className="w-1.5 h-1.5 rounded-full bg-google-blue animate-pulse" />
-             Nepal&apos;s #1 Free Calculator Platform
+          <div className="w-full">
+            <AllInOneCalculator />
           </div>
+        </div>
+      </header>
 
-          <div className="space-y-6 max-w-4xl mx-auto">
-             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 tracking-tighter leading-[1.1] animate-in fade-in slide-in-from-top-10 duration-1000">
-               Precision Tools for <br/>
-               <span className="text-google-blue">Nepal & Beyond</span>
-             </h1>
-             <p className="text-base md:text-lg text-gray-500 font-medium tracking-tight max-w-2xl mx-auto leading-relaxed">
-               75+ free calculators for taxes, finance, health & education. <br />
-               Built for Nepal&apos;s FY 2082/83. Private. Fast. No login needed.
-             </p>
-          </div>
-
-          {/* Key Stats Row */}
-          <div className="flex flex-wrap justify-center gap-6 md:gap-10 pt-8 border-t border-google-border max-w-3xl mx-auto">
-             {[
-               { l: 'Free Tools', v: '75+' },
-               { l: 'Audit Score', v: '98%' },
-               { l: 'Nepal Tax Updated', v: 'FY 2082/83' },
-               { l: 'Data Stored', v: '0' }
-             ].map(s => (
-               <div key={s.l} className="text-center group">
-                  <div className="text-xl md:text-2xl font-black text-gray-900 tracking-tighter group-hover:text-google-blue transition-colors">{s.v}</div>
-                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">{s.l}</div>
+      {/* 2. Professional Directory Overview - Masonry Style to save space */}
+      <main className="hp-container py-12">
+        <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-5 gap-8 space-y-12">
+          {CATEGORIES.map(cat => (
+            <section key={cat.id} className="break-inside-avoid mb-12">
+               {/* Category Header */}
+               <div className="flex flex-col gap-2 group mb-5">
+                  <div className="w-14 h-14 rounded-full bg-white border border-gray-200 flex items-center justify-center text-xl grayscale group-hover:grayscale-0 transition-all shadow-sm">
+                    {cat.icon}
+                  </div>
+                  <Link href={`/calculator/category/${cat.id}`}>
+                    <h2 className="text-[17px] font-black text-[#006600] hover:underline leading-tight">
+                      {cat.name}
+                    </h2>
+                  </Link>
                </div>
-             ))}
-          </div>
 
-          {/* QUICK ACCESS PILLS - IMAGE 8 */}
-          <div className="flex flex-wrap justify-center gap-2 md:gap-3 py-4 max-w-4xl mx-auto">
-             {[
-               { n: 'Income Tax', i: '📋', s: 'nepal-income-tax' },
-               { n: 'EMI Calculator', i: '🏦', s: 'loan-emi' },
-               { n: 'GPA Calculator', i: '🎓', s: 'gpa' },
-               { n: 'SIP', i: '📈', s: 'sip-calculator' },
-               { n: 'Nepali Date', i: '📅', s: 'nepali-date' }
-             ].map(p => (
-               <button 
-                key={p.n} 
-                onClick={() => router.push(`/calculator/${p.s}`)}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-google-border rounded-full hover:border-google-blue hover:text-google-blue transition-all group shadow-sm"
-               >
-                  <span className="text-sm">{p.i}</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider">{p.n}</span>
-               </button>
-             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SEARCH OR CALCULATORS */}
-      <main className="max-w-7xl mx-auto px-6 lg:px-12 pb-12 space-y-12">
-        
-        {/* Main Matrix: Calc + Sidebar */}
-        <div className="flex flex-col lg:flex-row gap-12 items-start">
-           <div className="flex-1 w-full order-2 lg:order-1">
-              <HomeCalculator />
-           </div>
-           <div className="w-full lg:w-[360px] order-1 lg:order-2">
-              <Sidebar />
-           </div>
-        </div>
-
-        {/* 6-PILLAR CATEGORY GRID */}
-        <div className="space-y-12">
-          <div className="space-y-2 text-center">
-             <h2 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">All Calculator Categories</h2>
-             <p className="text-gray-400 font-medium text-sm">Free tools for every need — updated for Nepal&apos;s latest fiscal rules</p>
-          </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                 {CATEGORIES.map(cat => {
-                    const s = CAT_STYLES[cat.id] || CAT_STYLES.engineering;
-                    return (
-                      <div key={cat.id} className={`bg-white border ${s.accent} rounded-[32px] p-8 hover:shadow-2xl hover:border-google-blue transition-all duration-500 group border-b-[6px]`}>
-                         <div className={`w-14 h-14 ${s.bg} rounded-2xl flex items-center justify-center mb-6 text-2xl`}>
-                            {s.icon}
-                         </div>
-                         
-                         <div className="space-y-1 mb-6">
-                            <h3 className="text-xl font-black text-gray-900 tracking-tight group-hover:text-google-blue transition-colors">{cat.name}</h3>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{cat.calculators.length} PRO TOOLS</p>
-                         </div>
-                         
-                         <div className="space-y-4 mb-8">
-                            {cat.calculators.slice(0, 7).map(c => (
-                              <Link key={c.id} href={`/calculator/${c.slug}`} className="group/link flex items-center justify-between">
-                                 <span className="text-sm font-semibold text-gray-500 group-hover/link:text-gray-900 group-hover/link:translate-x-1 transition-all">{c.name}</span>
-                                 {c.isHot && <span className="text-[8px] font-bold bg-orange-500 text-white px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">HOT</span>}
-                              </Link>
-                            ))}
-                            {cat.calculators.length > 7 && (
-                              <Link href={`/calculator/category/${cat.id}`} className="text-[10px] font-black text-gray-300 uppercase tracking-widest hover:text-google-blue transition-colors">
-                                 +{cat.calculators.length - 7} more tools →
+               {/* Clean, Non-Overlapping Vertical List */}
+               <nav>
+                 <ul className="flex flex-col gap-y-2">
+                    {[...cat.calculators]
+                      .sort((a, b) => {
+                         const scoreA = (a.isHot ? 2 : 0) + (a.isNew ? 1 : 0);
+                         const scoreB = (b.isHot ? 2 : 0) + (b.isNew ? 1 : 0);
+                         return scoreB - scoreA;
+                      })
+                      .slice(0, 10) // Limit to top 10 for a clean 'one screen' look
+                      .map(calc => {
+                        const isPrimaryTool = ['scientific-calculator', 'base-converter', 'unit-converter'].includes(calc.slug);
+                        return (
+                          <li key={calc.id} className="flex items-center gap-1.5 group/item">
+                            {isPrimaryTool ? (
+                              <button 
+                                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                                className="text-[13px] text-[#0000CC] hover:text-blue-800 hover:underline font-bold leading-none truncate flex-1 text-left"
+                                title="Use our All-In-One Engine at the top"
+                              >
+                                {calc.name}
+                              </button>
+                            ) : (
+                              <Link 
+                                href={`/calculator/${calc.slug}`}
+                                className="text-[13px] text-[#0000CC] hover:text-blue-800 hover:underline font-bold leading-none truncate flex-1"
+                                title={calc.name}
+                              >
+                                {calc.name}
                               </Link>
                             )}
-                         </div>
-
-                         <Link href={`/calculator/category/${cat.id}`} className="flex items-center gap-2 text-[10px] font-black text-google-blue uppercase tracking-widest group-hover:gap-4 transition-all">
-                            Explore {cat.name} <MoveRight className="w-3 h-3" />
-                         </Link>
-                      </div>
-                    );
-                 })}
-              </div>
+                            {(calc.isHot || calc.isNew) && (
+                              <span className="text-[8px] font-black bg-blue-600 text-white px-1 py-0.5 rounded-sm uppercase tracking-tighter shrink-0 select-none">
+                                {calc.isHot ? 'H' : 'N'}
+                              </span>
+                            )}
+                          </li>
+                        );
+                      })}
+                    {cat.calculators.length > 10 && (
+                      <li className="pt-2 border-t border-gray-100 mt-2">
+                        <Link 
+                          href={`/calculator/category/${cat.id}`}
+                          className="text-[11px] font-bold text-gray-500 hover:text-[#0000CC] flex items-center gap-1 transition-colors"
+                        >
+                          View All {cat.name} <ChevronRight className="w-3 h-3" />
+                        </Link>
+                      </li>
+                    )}
+                 </ul>
+               </nav>
+            </section>
+          ))}
         </div>
       </main>
 
-      <TrustBand />
+      {/* 3. Simple Footer Text Detail (SEO/Trust) */}
+      <div className="hp-container pb-24 border-t border-[var(--border)] text-center space-y-4 max-w-2xl mx-auto pt-12">
+         <h3 className="text-xl font-bold text-[var(--text-main)]">Global Computation Excellence</h3>
+         <p className="text-[var(--text-muted)] text-sm leading-relaxed">
+           Calcly is a dedicated mathematical resource built on the principles of accuracy and privacy. 
+           All calculations are performed locally in your browser. We never store, share, or sell your data.
+           Built for professional and academic standards.
+         </p>
+      </div>
+
+      {/* 4. Mini Footer Credits */}
+      <footer className="bg-blue-600 text-white/60 py-6 text-center text-[11px] font-bold tracking-widest uppercase">
+        © 2026 Calcly Platform — Precision Engineering for All Dimensions
+      </footer>
     </div>
   );
 }

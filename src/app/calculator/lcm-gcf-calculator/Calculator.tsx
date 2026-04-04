@@ -1,157 +1,105 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { CalcWrapper } from '@/components/calculator/CalcWrapper';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { CalculatorLayout } from '@/components/layout/CalculatorLayout';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
-import { ShareResult } from '@/components/calculator/ShareResult';
 
 export default function LcmGcfCalculator() {
   const [inputVal, setInputVal] = useState('12, 18, 24');
 
   const r = useMemo(() => {
-    const arr = inputVal.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n) && n > 0);
-    if (arr.length === 0) return { lcm: 0, gcf: 0, valid: false, numbers: [], factors: [] };
-
+    const arr = inputVal.split(/[,\s]+/).map(s => parseInt(s)).filter(n => !isNaN(n) && n > 0);
+    if (arr.length === 0) return null;
     const gcd2 = (a: number, b: number): number => b === 0 ? a : gcd2(b, a % b);
-    const lcm2 = (a: number, b: number): number => (a * b) / gcd2(a, b);
-
-    const getPrimeFactors = (n: number) => {
-      let d = 2;
-      const factors = [];
-      let temp = n;
-      while (temp > 1) {
-        while (temp % d === 0) {
-          factors.push(d);
-          temp /= d;
-        }
-        d++;
-        if (d * d > temp) {
-          if (temp > 1) factors.push(temp);
-          break;
-        }
-      }
-      return factors;
+    const lcm2 = (a: number, b: number) => (a * b) / gcd2(a, b);
+    const getPF = (n: number) => {
+      let d = 2; const f = []; let t = n;
+      while (t > 1) { while (t % d === 0) { f.push(d); t /= d; } d++; if (d*d > t) { if (t > 1) f.push(t); break; } }
+      return f;
     };
-
-    let gcf = arr[0];
-    let lcm = arr[0];
-    const factorsMap = arr.map(n => ({ n, factors: getPrimeFactors(n) }));
-
-    for (let i = 1; i < arr.length; i++) {
-      gcf = gcd2(gcf, arr[i]);
-      lcm = lcm2(lcm, arr[i]);
-    }
-
-    return { lcm, gcf, valid: true, numbers: arr, factors: factorsMap };
+    let gcf = arr[0], lcm = arr[0];
+    for (let i = 1; i < arr.length; i++) { gcf = gcd2(gcf, arr[i]); lcm = lcm2(lcm, arr[i]); }
+    return { lcm, gcf, nums: arr, factors: arr.map(n => ({ n, f: getPF(n) })) };
   }, [inputVal]);
 
   return (
-    <>
-      <JsonLd type="calculator"
-        name="LCM & GCF Calculator"
-        description="Find the Least Common Multiple (LCM) and Greatest Common Factor (GCF) of two or more numbers."
-        url="https://calcpro.com.np/calculator/lcm-gcf-calculator" />
+    <CalculatorLayout
+      title="LCM & GCF Calculator"
+      description="Find the Least Common Multiple (LCM) and Greatest Common Factor (GCF/HCF) of two or more numbers, with prime factorization."
+      category={{ label: 'Math', href: '/calculator/category/math' }}
+      leftPanel={
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Enter Numbers (comma separated)</label>
+            <textarea value={inputVal} onChange={e => setInputVal(e.target.value)}
+              className="w-full h-28 p-4 border border-[var(--border)] bg-white font-mono text-lg font-bold focus:border-[var(--primary)] outline-none resize-none"
+              placeholder="e.g. 12, 18, 24" />
+          </div>
 
-      <CalcWrapper
-        title="LCM & GCF Calculator"
-        description="Find the Least Common Multiple (LCM) and Greatest Common Factor (GCF) of two or more numbers. Perfect for math homework and fractions."
-        crumbs={[{ label: 'Education', href: '/calculator?cat=education' }, { label: 'LCM & GCF' }]}
-        relatedCalcs={[
-          { name: 'Fraction Calculator', slug: 'fraction-calculator' },
-          { name: 'Standard Deviation', slug: 'standard-deviation' },
-        ]}
-      >
-        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_320px] gap-8">
-          <div className="space-y-6">
-            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[2.5rem] p-10 shadow-sm">
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6 px-1">
-                Enter numbers (comma separated)
-              </label>
-              <textarea
-                value={inputVal}
-                onChange={e => setInputVal(e.target.value)}
-                placeholder="e.g. 12, 18, 24"
-                className="w-full h-40 p-8 bg-gray-50 dark:bg-gray-950 border-2 border-transparent focus:border-blue-500 rounded-[2rem] outline-none font-black text-2xl text-gray-900 dark:text-white resize-none transition-all placeholder:text-gray-200"
-              />
-              <p className="mt-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center px-1">
-                Processing: {r.numbers.join(' • ')}
-              </p>
-            </div>
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Quick Sets</label>
+            {[
+              { label: '2 numbers', data: '12, 18' },
+              { label: '3 numbers', data: '12, 18, 24' },
+              { label: 'Large set', data: '36, 48, 60, 84' },
+            ].map(d => (
+              <button key={d.label} onClick={() => setInputVal(d.data)}
+                className="w-full p-4 border border-[var(--border)] bg-white hover:bg-[var(--bg-subtle)] text-left flex justify-between items-center transition-all">
+                <span className="text-[12px] font-bold text-[var(--text-main)]">{d.label}</span>
+                <span className="text-[11px] font-mono text-[var(--text-muted)]">{d.data}</span>
+              </button>
+            ))}
+          </div>
 
-            {r.valid && (
-              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[2.5rem] p-10 space-y-8">
-                 <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                    <div className="w-1 h-1 bg-blue-600 rounded-full" />
-                    Prime Factorization Analysis
-                 </h3>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {r.factors.map((f, i) => (
-                      <div key={i} className="p-6 bg-gray-50 dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700">
-                         <div className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-2">Number {f.n}</div>
-                         <div className="text-xl font-black font-mono tracking-tight text-gray-900 dark:text-white">
-                            {f.factors.join(' × ')}
-                         </div>
-                      </div>
-                    ))}
-                 </div>
+          {/* Prime factorizations */}
+          {r && (
+            <div className="bg-white border border-[var(--border)]">
+              <div className="px-4 py-3 bg-[var(--bg-surface)] border-b border-[var(--border)]">
+                <h3 className="text-[11px] font-bold uppercase text-[var(--text-main)]">Prime Factorization</h3>
               </div>
-            )}
-          </div>
-
-          <div className="space-y-4">
-            <div className="bg-gray-900 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden group">
-               <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform">
-                  <div className="text-4xl font-black">Σ</div>
-               </div>
-               
-               <div className="space-y-8 relative z-10">
-                  <div>
-                    <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Least Common Multiple (LCM)</div>
-                    <div className="text-5xl font-black text-blue-400 tracking-tighter">{r.valid ? r.lcm.toLocaleString() : '-'}</div>
-                  </div>
-
-                  <div className="pt-8 border-t border-white/10">
-                    <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Greatest Common Factor (GCF/HCF)</div>
-                    <div className="text-5xl font-black text-emerald-400 tracking-tighter">{r.valid ? r.gcf.toLocaleString() : '-'}</div>
-                  </div>
-
-                  {r.valid && r.numbers.length === 2 && (
-                    <div className="pt-8 border-t border-white/10 bg-white/5 -mx-10 px-10 py-6">
-                       <div className="text-[9px] font-black uppercase tracking-widest text-blue-400 mb-1">Mathematical Relation</div>
-                       <div className="text-[11px] font-medium leading-relaxed opacity-80">
-                          LCM × GCF = Product of Numbers<br/>
-                          {r.lcm} × {r.gcf} = {r.numbers[0]} × {r.numbers[1]} = {r.numbers[0] * r.numbers[1]}
-                       </div>
-                    </div>
-                  )}
-               </div>
+              {r.factors.map(({ n, f }) => (
+                <div key={n} className="px-4 py-3 border-b border-[var(--border)] flex justify-between last:border-0">
+                  <span className="text-[11px] font-black text-[var(--primary)]">{n}</span>
+                  <span className="text-[11px] font-mono font-bold text-[var(--text-main)]">{f.join(' × ')}</span>
+                </div>
+              ))}
             </div>
-
-            {r.valid && (
-               <ShareResult 
-                  title={`LCM of ${r.numbers.join(', ')}`} 
-                  result={`LCM is ${r.lcm}, GCF is ${r.gcf}`} 
-                  calcUrl="https://calcpro.com.np/calculator/lcm-gcf-calculator" 
-               />
-            )}
-          </div>
+          )}
         </div>
+      }
+      rightPanel={
+        <div className="space-y-6">
+          {r ? (
+            <>
+              <div className="p-8 bg-white border border-[var(--border)] text-center">
+                <div className="text-xs font-bold uppercase text-[var(--text-muted)] mb-2">Least Common Multiple (LCM)</div>
+                <div className="text-6xl font-black text-[var(--primary)] tracking-tighter font-mono mb-2">{r.lcm.toLocaleString()}</div>
+              </div>
 
+              <div className="p-8 bg-white border border-[var(--border)] text-center">
+                <div className="text-xs font-bold uppercase text-[var(--text-muted)] mb-2">Greatest Common Factor (GCF / HCF)</div>
+                <div className="text-6xl font-black text-[#006600] tracking-tighter font-mono">{r.gcf.toLocaleString()}</div>
+              </div>
+
+              {r.nums.length === 2 && (
+                <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)]">
+                  <div className="text-[10px] font-black uppercase text-[var(--text-muted)] mb-2">Mathematical Relation</div>
+                  <p className="text-[11px] font-mono text-[var(--text-main)]">LCM × GCF = {r.lcm} × {r.gcf} = {r.lcm * r.gcf}</p>
+                  <p className="text-[11px] font-mono text-[var(--text-secondary)] mt-1">{r.nums[0]} × {r.nums[1]} = {r.nums[0] * r.nums[1]}</p>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="p-5 border border-amber-200 bg-amber-50 text-amber-700 text-sm font-bold">Enter at least one positive integer.</div>
+          )}
+        </div>
+      }
+      faqSection={
         <CalcFAQ faqs={[
-          {
-            question: 'What is the Least Common Multiple (LCM)?',
-            answer: 'The LCM is the smallest integer that is a multiple of two or more given integers. For example, the multiples of 4 and 6 are 12, 24, 36... The smallest exact multiple they share is 12.',
-          },
-          {
-            question: 'What is the Greatest Common Factor (GCF)?',
-            answer: 'The GCF (also known as Highest Common Factor - HCF) is the largest positive integer that divides evenly into all the numbers with zero remainder. For example, the GCF of 12 and 18 is 6.',
-          },
-          {
-            question: 'How do I use this calculator?',
-            answer: 'Simply type your numbers into the text box, separated by commas (e.g., 24, 36, 48). The calculator will instantly find both the LCM and the GCF across all the numbers provided.',
-          },
+          { question: 'What is LCM?', answer: 'Least Common Multiple: the smallest positive integer exactly divisible by all given numbers. e.g., LCM(4,6) = 12.' },
+          { question: 'What is GCF/HCF?', answer: 'Greatest Common Factor (also HCF): the largest integer that divides all given numbers exactly. e.g., GCF(12,18) = 6.' },
+          { question: 'How are LCM and GCF related?', answer: 'For two numbers a and b: LCM(a,b) × GCF(a,b) = a × b.' },
         ]} />
-      </CalcWrapper>
-    </>
+      }
+    />
   );
 }

@@ -1,202 +1,143 @@
 'use client';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
+import { CalculatorLayout } from '@/components/layout/CalculatorLayout';
 import { ValidatedInput } from '@/components/calculator/ValidatedInput';
-import { ResultCard } from '@/components/calculator/ResultCard';
-import { QuickPresets } from '@/components/calculator/QuickPresets';
-import { CalculatorErrorBoundary } from '@/components/calculator/CalculatorErrorBoundary';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { RefreshCcw, Landmark, Globe, IndianRupee, DollarSign, Euro, TrendingUp } from 'lucide-react';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { RefreshCcw, Globe } from 'lucide-react';
 
-// MOCK LIVE RATES (Reference for 2082)
-const CURRENCIES: any = {
-  USD: { label: 'US Dollar', symbol: '$', rate: 133.50, flag: '🇺🇸' },
-  INR: { label: 'Indian Rupee', symbol: '₹', rate: 1.60, fixed: true, flag: '🇮🇳' },
-  EUR: { label: 'Euro', symbol: '€', rate: 144.20, flag: '🇪🇺' },
-  GBP: { label: 'British Pound', symbol: '£', rate: 168.45, flag: '🇬🇧' },
-  AUD: { label: 'Australian Dollar', symbol: 'A$', rate: 88.10, flag: '🇦🇺' },
-  CAD: { label: 'Canadian Dollar', symbol: 'C$', rate: 98.30, flag: '🇨🇦' },
+const CURRENCIES: Record<string, { label: string; symbol: string; rate: number; flag: string }> = {
+  USD: { label: 'US Dollar',          symbol: '$',   rate: 133.50, flag: '🇺🇸' },
+  INR: { label: 'Indian Rupee',       symbol: '₹',   rate: 1.60,   flag: '🇮🇳' },
+  EUR: { label: 'Euro',               symbol: '€',   rate: 144.20, flag: '🇪🇺' },
+  GBP: { label: 'British Pound',      symbol: '£',   rate: 168.45, flag: '🇬🇧' },
+  AUD: { label: 'Australian Dollar',  symbol: 'A$',  rate: 88.10,  flag: '🇦🇺' },
+  CAD: { label: 'Canadian Dollar',    symbol: 'C$',  rate: 98.30,  flag: '🇨🇦' },
 };
 
-const DEFAULT_STATE = {
-  fromCurrency: 'USD',
-  amount: 100,
-  lastUpdate: new Date().toLocaleTimeString(),
-};
+const DEFAULT = { fromCurrency: 'USD', amount: 100 };
 
 export default function CurrencyCalculator() {
-  const [state, setState] = useLocalStorage('calcpro_currency_v2', DEFAULT_STATE);
-  const { fromCurrency, amount, lastUpdate } = state;
-
-  const updateState = (updates: Partial<typeof DEFAULT_STATE>) => {
-    setState({ ...state, ...updates });
-  };
+  const [state, setState] = useLocalStorage('calcpro_currency_v2', DEFAULT);
+  const { fromCurrency, amount } = state;
+  const update = (u: Partial<typeof DEFAULT>) => setState({ ...state, ...u });
 
   const results = useMemo(() => {
     const rate = CURRENCIES[fromCurrency].rate;
-    const npr = amount * rate;
-    
-    // Multi-conversions for quick view
-    const quickView = Object.entries(CURRENCIES).map(([code, data]: [string, any]) => {
-        const valInLocal = npr / data.rate;
-        return { code, val: valInLocal, label: data.label, icon: data.flag };
-    });
-
+    const npr  = amount * rate;
+    const quickView = Object.entries(CURRENCIES).map(([code, data]) => ({
+      code, flag: data.flag, label: data.label,
+      val: (npr / data.rate).toLocaleString(undefined, { maximumFractionDigits: 2 }),
+    }));
     return { npr, quickView };
   }, [fromCurrency, amount]);
 
-  const presetCurrencies: any[] = [
-    { name: 'USD to NPR', description: 'Business & Tech', icon: 'target', values: { fromCurrency: 'USD', amount: 100 } },
-    { name: 'INR to NPR', description: 'Fixed (1.60)', icon: 'briefcase', values: { fromCurrency: 'INR', amount: 1000 } },
-    { name: 'EUR to NPR', description: 'Travel Bench', icon: 'home', values: { fromCurrency: 'EUR', amount: 50 } },
-    { name: 'GBP to NPR', description: 'Higher Value', icon: 'graduation', values: { fromCurrency: 'GBP', amount: 10 } },
+  const PRESETS = [
+    { label: 'USD 100', currency: 'USD', amt: 100 },
+    { label: 'EUR 50',  currency: 'EUR', amt: 50  },
+    { label: 'GBP 10',  currency: 'GBP', amt: 10  },
+    { label: 'INR 1000',currency: 'INR', amt: 1000 },
   ];
 
-  const formatCurrency = (val: number, code: string = 'NPR') => {
-    return new Intl.NumberFormat('en-NP', {
-      style: 'currency',
-      currency: code,
-      maximumFractionDigits: 2,
-    }).format(val);
-  };
-
   return (
-    <CalculatorErrorBoundary calculatorName="Currency Converter">
-      <div className="max-w-6xl mx-auto space-y-8">
-        
-        {/* Header */}
-        <div className="text-center space-y-4 py-8">
-          <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-indigo-100 mb-2">
-             <div className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse" />
-             Live Exchange Benchmarks
-          </div>
-          <h1 className="text-4xl sm:text-6xl font-black text-gray-900 dark:text-white tracking-tight">
-            Currency <span className="text-indigo-600">Pro</span>
-          </h1>
-          <p className="max-w-2xl mx-auto text-lg text-gray-500 dark:text-gray-400 font-medium">
-             Official NRB-pegged and live-market benchmarks for global currencies against the Nepalese Rupee (NPR).
-          </p>
-        </div>
+    <CalculatorLayout
+      title="Currency Converter (NPR)"
+      description="Convert global currencies to Nepalese Rupee (NPR) using NRB-benchmarked exchange rates. INR pegged at fixed 1:1.60 ratio."
+      category={{ label: 'Finance', href: '/calculator/category/finance' }}
+      leftPanel={
+        <div className="space-y-6">
+          {/* Amount Input */}
+          <ValidatedInput label="Amount to Convert" value={amount} onChange={v => update({ amount: v })} min={0} required />
 
-        {/* Presets */}
-        <QuickPresets 
-           presets={presetCurrencies} 
-           onSelect={(p) => updateState({ fromCurrency: p.values.fromCurrency, amount: p.values.amount })} 
-        />
-
-        {/* Input & Main Card */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          <div className="lg:col-span-2 space-y-8 bg-white dark:bg-gray-900 p-8 sm:p-10 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-xl shadow-gray-200/20">
-             
-             <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-6 items-center">
-                <div className="space-y-4">
-                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Convert From</label>
-                   <ValidatedInput label="" variant="minimal" value={amount} onChange={(v) => updateState({ amount: v })} />
-                   <select 
-                    value={fromCurrency}
-                    onChange={(e) => updateState({ fromCurrency: e.target.value })}
-                    className="w-full h-14 px-6 border-2 border-gray-100 dark:border-gray-800 rounded-2xl bg-gray-50 dark:bg-gray-950 font-bold outline-none focus:border-indigo-500 transition-all appearance-none cursor-pointer"
-                   >
-                     {Object.keys(CURRENCIES).map(code => (
-                       <option key={code} value={code}>{code} — {CURRENCIES[code].label}</option>
-                     ))}
-                   </select>
-                </div>
-
-                <div className="h-12 w-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-100 mt-8">
-                   <RefreshCcw className="w-5 h-5" />
-                </div>
-
-                <div className="space-y-4">
-                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Target Currency</label>
-                   <div className="h-14 flex items-center px-6 bg-gray-50 dark:bg-gray-950 border-2 border-gray-100 dark:border-gray-800 rounded-2xl font-black text-indigo-600 text-lg">
-                      NPR — Nepalese Rupee
-                   </div>
-                   <p className="text-[9px] text-gray-400 font-bold uppercase tracking-[0.2em] px-2">Fixed peg for INR (1.60)</p>
-                </div>
-             </div>
-
-             {/* Live Indicators */}
-             <div className="pt-8 border-t border-gray-100 dark:border-gray-800">
-                <div className="flex items-center justify-between mb-6">
-                   <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Global Comparison (for equivalent value)</h3>
-                   <span className="text-[9px] font-bold text-emerald-500 animate-pulse bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-full border border-emerald-100">Live Benchmarks (2082)</span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                   {results.quickView.map(curr => (
-                     <div key={curr.code} className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700 space-y-1">
-                        <div className="flex items-center gap-2">
-                           <span className="text-sm">{curr.icon}</span>
-                           <span className="text-[9px] font-black text-gray-400">{curr.code}</span>
-                        </div>
-                        <div className="text-sm font-black truncate">{formatCurrency(curr.val, curr.code).split('.')[0]}</div>
-                     </div>
-                   ))}
-                </div>
-             </div>
+          {/* Currency Selector */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">From Currency</label>
+            <div className="space-y-1">
+              {Object.entries(CURRENCIES).map(([code, data]) => (
+                <button key={code} onClick={() => update({ fromCurrency: code })}
+                  className={`w-full p-4 border text-left flex items-center gap-3 transition-all ${fromCurrency === code ? 'bg-[var(--primary)] text-white border-[var(--primary)]' : 'bg-white border-[var(--border)] hover:bg-[var(--bg-subtle)]'}`}>
+                  <span className="text-xl">{data.flag}</span>
+                  <div>
+                    <div className="text-[12px] font-black">{code} — {data.label}</div>
+                    <div className={`text-[10px] font-medium ${fromCurrency === code ? 'text-white/70' : 'text-[var(--text-muted)]'}`}>
+                      1 {code} = {data.rate} NPR
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Result Panel */}
-          <div className="space-y-6 lg:sticky lg:top-8 h-fit">
-             <ResultCard
-                label={`Total in NPR`}
-                value={formatCurrency(results.npr).replace('NPR','')}
-                unit=" NPR"
-                color="blue"
-                title={`${fromCurrency} converted`}
-                copyValue={`${amount} ${fromCurrency} = ${formatCurrency(results.npr)}`}
-             />
-
-             <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-8 rounded-[2.5rem] shadow-sm space-y-5">
-                <div className="flex justify-between items-center text-xs font-bold">
-                   <span className="text-gray-400 uppercase tracking-widest">Exchange Rate</span>
-                   <span className="text-gray-900 dark:text-white font-black">1 {fromCurrency} = {CURRENCIES[fromCurrency].rate} NPR</span>
-                </div>
-                <div className="flex justify-between items-center text-xs font-bold">
-                   <span className="text-gray-400 uppercase tracking-widest">Inverted Rate</span>
-                   <span className="text-gray-900 dark:text-white font-black">1 NPR = {(1/CURRENCIES[fromCurrency].rate).toFixed(5)} {fromCurrency}</span>
-                </div>
-                <div className="pt-4 border-t border-gray-50 dark:border-gray-800 flex justify-between items-center text-[10px] font-bold text-gray-400">
-                   <span className="uppercase">Last Benchmark Refresh</span>
-                   <span>Today, {lastUpdate}</span>
-                </div>
-             </div>
-
-             <div className="bg-gray-900 text-white p-8 rounded-[2.5rem] space-y-4">
-                <div className="flex items-center gap-2">
-                   <Globe className="w-5 h-5 text-indigo-400" />
-                   <h3 className="text-sm font-black uppercase tracking-widest">Travel Insights</h3>
-                </div>
-                <p className="text-xs font-medium leading-relaxed opacity-80">
-                   Planning a trip? Most exchange counters in Nepal offer an additional 0.5% premium for larger denominated USD bills ($100 / $50).
-                </p>
-             </div>
+          {/* Quick Presets */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Quick Scenarios</label>
+            <div className="grid grid-cols-2 gap-2">
+              {PRESETS.map(p => (
+                <button key={p.label} onClick={() => update({ fromCurrency: p.currency, amount: p.amt })}
+                  className="py-3 text-[11px] font-bold border border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] transition-all uppercase">
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      }
+      rightPanel={
+        <div className="space-y-6">
+          {/* NPR Result Hero */}
+          <div className="p-8 bg-white border border-[var(--border)] text-center">
+            <div className="text-xs font-bold uppercase text-[var(--text-muted)] mb-2">NPR Equivalent</div>
+            <div className="text-5xl font-black text-[#006600] tracking-tighter mb-2">
+              {Math.round(results.npr).toLocaleString('en-IN')}
+            </div>
+            <div className="text-xs font-bold text-[var(--text-secondary)] uppercase">Nepalese Rupees</div>
           </div>
 
-        </div>
+          {/* Rate Info */}
+          <div className="space-y-3">
+            <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)] flex justify-between">
+              <span className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Exchange Rate</span>
+              <span className="text-sm font-black text-[var(--text-main)]">1 {fromCurrency} = {CURRENCIES[fromCurrency].rate} NPR</span>
+            </div>
+            <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)] flex justify-between">
+              <span className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Inverted Rate</span>
+              <span className="text-sm font-black text-[var(--text-main)]">1 NPR = {(1 / CURRENCIES[fromCurrency].rate).toFixed(5)} {fromCurrency}</span>
+            </div>
+          </div>
 
-        {/* FAQ Section */}
-        <div className="pt-8">
-           <CalcFAQ
-              faqs={[
-                {
-                  question: 'Is the Indian Rupee (INR) fixed in Nepal?',
-                  answer: 'Yes, the INR is pegged to the NPR at a fixed exchange rate of 1.60 (100 INR = 160 NPR). This rate has been maintained by the Nepal Rastra Bank for decades.'
-                },
-                {
-                  question: 'How often are the exchange rates updated?',
-                  answer: 'Our benchmarks are updated hourly based on mid-market rates. However, actual buy/sell rates at banks or currency exchanges in Thamel or other hubs will vary by 1-2%.'
-                },
-                {
-                  question: 'Can I exchange global currency anywhere in Nepal?',
-                  answer: 'While Kathmandu and Pokhara have numerous exchange counters, it is best to carry NPR for remote trekking areas. Standard currencies like USD, EUR, and GBP are easily convertible at most commercial banks.'
-                }
-              ]}
-           />
-        </div>
+          {/* Multi-Currency Grid */}
+          <div className="bg-white border border-[var(--border)]">
+            <div className="px-4 py-3 bg-[var(--bg-surface)] border-b border-[var(--border)]">
+              <h3 className="text-[11px] font-bold uppercase text-[var(--text-main)]">Equivalent in Other Currencies</h3>
+            </div>
+            <div className="divide-y divide-[var(--border)]">
+              {results.quickView.map(curr => (
+                <div key={curr.code} className="px-4 py-3 flex items-center justify-between hover:bg-[var(--bg-surface)]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">{curr.flag}</span>
+                    <span className="text-[11px] font-bold text-[var(--text-secondary)] uppercase">{curr.code}</span>
+                  </div>
+                  <span className="text-sm font-black text-[var(--primary)] font-mono">{curr.val}</span>
+                </div>
+              ))}
+            </div>
+          </div>
 
-      </div>
-    </CalculatorErrorBoundary>
+          <div className="p-5 bg-[var(--bg-subtle)] border border-[var(--border)] flex gap-3">
+            <Globe className="w-4 h-4 text-[var(--text-muted)] shrink-0 mt-0.5" />
+            <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+              INR is pegged to NPR at a fixed 1:1.60 rate by Nepal Rastra Bank. All other rates are NRB mid-market benchmarks.
+            </p>
+          </div>
+        </div>
+      }
+      faqSection={
+        <CalcFAQ faqs={[
+          { question: 'Is the INR rate fixed?', answer: 'Yes. The Indian Rupee is pegged to the Nepalese Rupee at 1 INR = 1.60 NPR. This has been maintained by the Nepal Rastra Bank for decades.' },
+          { question: 'How current are the rates?', answer: 'Our benchmarks are NRB mid-market reference rates. Actual bank buy/sell rates vary by 1–2%.' },
+          { question: 'Where can I exchange in Nepal?', answer: 'USD, EUR, and GBP are exchangeable at most commercial banks and authorized exchange counters in Kathmandu and Pokhara.' },
+        ]} />
+      }
+    />
   );
 }

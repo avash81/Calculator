@@ -1,113 +1,124 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { useDebounce } from '@/hooks/useDebounce';
-import { CalcWrapper } from '@/components/calculator/CalcWrapper';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { CalculatorLayout } from '@/components/layout/CalculatorLayout';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
-import { ShareResult } from '@/components/calculator/ShareResult';
+
+type Gender = 'male' | 'female';
 
 export default function IdealWeightCalculator() {
-  const [gender, setGender] = useState<'male' | 'female'>('male');
+  const [gender, setGender] = useState<Gender>('male');
   const [heightCm, setHeightCm] = useState(170);
 
   const r = useMemo(() => {
-    // Devine Formula
-    // Male: 50.0 kg + 2.3 kg per inch over 5 feet
-    // Female: 45.5 kg + 2.3 kg per inch over 5 feet
     const heightInches = heightCm / 2.54;
-    const inchesOver5Feet = Math.max(0, heightInches - 60);
-    
-    let base = gender === 'male' ? 50.0 : 45.5;
-    const ideal = base + (2.3 * inchesOver5Feet);
-    
-    // Range (Hamwi formula or +/- 10%)
-    const min = ideal * 0.9;
-    const max = ideal * 1.1;
-    
-    return { ideal, min, max };
+    const inchesOver5ft = Math.max(0, heightInches - 60);
+    const base = gender === 'male' ? 50.0 : 45.5;
+    const ideal = base + 2.3 * inchesOver5ft;
+    return { ideal, min: ideal * 0.9, max: ideal * 1.1 };
   }, [gender, heightCm]);
 
-  return (
-    <>
-      <JsonLd type="calculator"
-        name="Ideal Weight Calculator"
-        description="Calculate your ideal healthy weight range based on the Devine formula. Used by healthcare professionals worldwide to determine healthy weight targets."
-        url="https://calcpro.com.np/calculator/ideal-weight" />
+  const FORMULAS = [
+    { name: 'Devine',   male: 50 + 2.3 * Math.max(0, heightCm / 2.54 - 60), female: 45.5 + 2.3 * Math.max(0, heightCm / 2.54 - 60) },
+    { name: 'Robinson', male: 52 + 1.9 * Math.max(0, heightCm / 2.54 - 60), female: 49   + 1.7 * Math.max(0, heightCm / 2.54 - 60) },
+    { name: 'Miller',   male: 56.2 + 1.41 * Math.max(0, heightCm / 2.54 - 60), female: 53.1 + 1.36 * Math.max(0, heightCm / 2.54 - 60) },
+  ];
 
-      <CalcWrapper
-        title="Ideal Weight Calculator"
-        description="Calculate your ideal healthy weight range based on the Devine formula. Used by healthcare professionals worldwide."
-        crumbs={[{ label: 'Health', href: '/calculator?cat=health' }, { label: 'Ideal Weight' }]}
-        relatedCalcs={[
-          { name: 'BMI Calculator', slug: 'bmi' },
-          { name: 'BMR Calculator', slug: 'bmr' },
-          { name: 'Body Fat %', slug: 'body-fat' },
-        ]}
-      >
-        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_320px] gap-8">
-          <div className="space-y-6">
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Gender</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {['male', 'female'].map(g => (
-                    <button key={g} onClick={() => setGender(g as any)} className={`py-3 rounded-xl text-[10px] font-bold border-2 capitalize transition-all uppercase tracking-widest ${gender === g ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-100 text-gray-500 hover:border-gray-200'}`}>
-                      {g}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Height (cm)</label>
-                <input type="number" inputMode="numeric" pattern="[0-9.]*" value={heightCm} onChange={e => setHeightCm(+e.target.value)} className="w-full h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none font-mono text-lg font-bold" />
-                <input type="range" min={100} max={250} step={1} value={heightCm} onChange={e => setHeightCm(+e.target.value)} className="w-full mt-2 accent-blue-600 h-1.5" />
-              </div>
+  return (
+    <CalculatorLayout
+      title="Ideal Weight Calculator"
+      description="Calculate your ideal healthy weight range using the Devine formula, validated by healthcare professionals worldwide."
+      category={{ label: 'Health', href: '/calculator/category/health' }}
+      leftPanel={
+        <div className="space-y-6">
+          {/* Gender */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Gender</label>
+            <div className="flex border border-[var(--border)] p-1 bg-[var(--bg-surface)]">
+              {(['male', 'female'] as Gender[]).map(g => (
+                <button key={g} onClick={() => setGender(g)}
+                  className={`flex-1 py-2 text-xs font-bold uppercase transition-all ${gender === g ? 'bg-[var(--primary)] text-white' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'}`}>
+                  {g}
+                </button>
+              ))}
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="bg-emerald-600 rounded-2xl p-6 text-white shadow-xl shadow-emerald-900/20">
-              <div className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-1">Ideal Weight</div>
-              <div className="text-3xl font-bold font-mono mb-4">{r.ideal.toFixed(1)} kg</div>
-              <div className="pt-4 border-t border-white/20 space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="opacity-80 font-medium">Healthy Range</span>
-                  <span className="font-mono font-bold text-yellow-300">{r.min.toFixed(1)} - {r.max.toFixed(1)} kg</span>
-                </div>
-              </div>
+          {/* Height */}
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Height</label>
+              <span className="text-[11px] font-black text-[var(--primary)]">{heightCm} cm ({(heightCm / 2.54 / 12 | 0)}' {Math.round(heightCm / 2.54 % 12)}")</span>
             </div>
+            <input type="number" value={heightCm} onChange={e => setHeightCm(Number(e.target.value))} min={100} max={250}
+              className="w-full h-12 px-4 border border-[var(--border)] bg-white font-bold text-lg focus:border-[var(--primary)] outline-none" />
+            <input type="range" min={100} max={250} step={1} value={heightCm} onChange={e => setHeightCm(Number(e.target.value))}
+              className="w-full accent-[#083366]" />
+          </div>
 
-            <ShareResult 
-              title="Ideal Weight Result" 
-              result={`${r.ideal.toFixed(1)} kg (Ideal)`} 
-              calcUrl={`https://calcpro.com.np/calculator/ideal-weight`} 
-            />
+          {/* Multi-formula comparison */}
+          <div className="bg-white border border-[var(--border)]">
+            <div className="px-4 py-3 bg-[var(--bg-surface)] border-b border-[var(--border)]">
+              <h3 className="text-[11px] font-bold uppercase text-[var(--text-main)]">Formula Comparison</h3>
+            </div>
+            <div className="divide-y divide-[var(--border)]">
+              {FORMULAS.map(f => (
+                <div key={f.name} className="px-4 py-3 flex justify-between items-center">
+                  <span className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">{f.name}</span>
+                  <span className="text-sm font-black text-[var(--primary)]">
+                    {(gender === 'male' ? f.male : f.female).toFixed(1)} kg
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="p-4 bg-[var(--bg-subtle)] border border-[var(--border)]">
+            <div className="text-[10px] font-black uppercase text-[var(--text-muted)] mb-1">Devine Formula</div>
+            <code className="text-[11px] font-mono text-[var(--primary)]">
+              {gender === 'male' ? '50.0 + 2.3 × (inches over 5ft)' : '45.5 + 2.3 × (inches over 5ft)'}
+            </code>
           </div>
         </div>
+      }
+      rightPanel={
+        <div className="space-y-6">
+          {/* Ideal Weight Hero */}
+          <div className="p-8 bg-white border border-[var(--border)] text-center">
+            <div className="text-xs font-bold uppercase text-[var(--text-muted)] mb-2">Ideal Weight (Devine)</div>
+            <div className="text-6xl font-black text-[#006600] tracking-tighter mb-3">{r.ideal.toFixed(1)} <span className="text-2xl">kg</span></div>
+            <div className="text-sm font-bold text-[var(--text-secondary)]">≈ {(r.ideal * 2.20462).toFixed(1)} lbs</div>
+          </div>
 
+          {/* Range */}
+          <div className="space-y-3">
+            <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)] flex justify-between">
+              <span className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Lower Healthy Range</span>
+              <span className="text-sm font-black text-[var(--text-main)]">{r.min.toFixed(1)} kg</span>
+            </div>
+            <div className="p-5 bg-[var(--primary)] text-white flex justify-between">
+              <span className="text-[11px] font-bold uppercase">Ideal Target</span>
+              <span className="text-sm font-black">{r.ideal.toFixed(1)} kg</span>
+            </div>
+            <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)] flex justify-between">
+              <span className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Upper Healthy Range</span>
+              <span className="text-sm font-black text-[var(--text-main)]">{r.max.toFixed(1)} kg</span>
+            </div>
+          </div>
+
+          <div className="p-5 bg-[var(--bg-subtle)] border border-[var(--border)]">
+            <p className="text-[11px] text-[var(--text-secondary)] italic leading-relaxed">
+              Range is ±10% of ideal. Consult a physician for personalized targets — athletes and those with high muscle mass may differ.
+            </p>
+          </div>
+        </div>
+      }
+      faqSection={
         <CalcFAQ faqs={[
-          {
-            question: 'What is the Devine formula for ideal weight?',
-            answer: 'The Devine formula is a widely used method to estimate ideal body weight. For men, it is 50.0 kg + 2.3 kg for every inch over 5 feet. For women, it is 45.5 kg + 2.3 kg for every inch over 5 feet.',
-          },
-          {
-            question: 'Is ideal weight the same for everyone of the same height?',
-            answer: 'No, ideal weight can vary based on factors like bone structure, muscle mass, and age. The formula provides a general guideline, but a healthy weight range is usually more important than a single number.',
-          },
-          {
-            question: 'How does ideal weight relate to BMI?',
-            answer: 'Ideal weight formulas often aim for a weight that falls within the "normal" BMI range (18.5 to 24.9). However, BMI is a more general screening tool, while ideal weight formulas focus on specific height-to-weight ratios.',
-          },
-          {
-            question: 'Should I follow the ideal weight exactly?',
-            answer: 'It is important to consult with a healthcare professional to determine your personal healthy weight. Ideal weight formulas are estimates and may not be suitable for everyone, especially athletes or those with specific medical conditions.',
-          },
-          {
-            question: 'What is a healthy weight range?',
-            answer: 'A healthy weight range is typically defined as a weight that results in a BMI between 18.5 and 24.9. Our calculator provides this range (+/- 10% of the ideal weight) to give you a more realistic target.',
-          },
+          { question: 'What is the Devine formula?', answer: 'Developed in 1974 for medical drug dosing calculations. Male: 50 + 2.3 × inches over 5ft. Female: 45.5 + 2.3 × inches over 5ft.' },
+          { question: 'Is ideal weight the same for everyone?', answer: 'No — bone density, muscle mass, and body composition all vary. The formula gives a general guideline, not an exact prescription.' },
+          { question: 'How is this different from BMI?', answer: 'BMI is a ratio of weight to height squared. Ideal weight formulas target a specific weight based on height alone, without considering body composition.' },
         ]} />
-      </CalcWrapper>
-    </>
+      }
+    />
   );
 }

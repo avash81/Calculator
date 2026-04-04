@@ -1,13 +1,9 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { CalcWrapper } from '@/components/calculator/CalcWrapper';
-import { JsonLd } from '@/components/seo/JsonLd';
-import { CalcFAQ } from '@/components/calculator/CalcFAQ';
-import { ShareResult } from '@/components/calculator/ShareResult';
-import { ValidatedInput } from '@/components/calculator/ValidatedInput';
-import { ResultDisplay } from '@/components/calculator/ResultDisplay';
-import { CalculatorErrorBoundary } from '@/components/calculator/CalculatorErrorBoundary';
 import { PlusCircle, Trash2, GraduationCap, RotateCcw } from 'lucide-react';
+import { CalculatorLayout } from '@/components/layout/CalculatorLayout';
+import { ValidatedInput } from '@/components/calculator/ValidatedInput';
+import { CalcFAQ } from '@/components/calculator/CalcFAQ';
 
 const NEPAL_GRADES = [
   { grade: 'A+', point: 4.0, desc: 'Outstanding' },
@@ -27,7 +23,7 @@ const US_GRADES = [
   { grade: 'B+', point: 3.3 },
   { grade: 'B', point: 3.0 },
   { grade: 'B-', point: 2.7 },
-  { grade: 'C+', point: 2.3 },
+  { grade: 'C+', pool: 2.3 },
   { grade: 'C', point: 2.0 },
   { grade: 'C-', point: 1.7 },
   { grade: 'D+', point: 1.3 },
@@ -53,8 +49,8 @@ export default function GPACalculator() {
     subjects.forEach(sub => {
       const g = gradesList.find(g => g.grade === sub.grade);
       const creditValue = parseFloat(sub.credit.toString()) || 0;
-      if (g && creditValue > 0) {
-        totalPoints += g.point * creditValue;
+      if (g && (g as any).point !== undefined && creditValue > 0) {
+        totalPoints += (g as any).point * creditValue;
         totalCredits += creditValue;
       }
     });
@@ -62,16 +58,14 @@ export default function GPACalculator() {
     const gpa = gpaValue.toFixed(2);
     
     let classification = '';
-    let bgColor = 'bg-indigo-600';
-    
     if (system === 'nepal') {
-      if (gpaValue >= 3.6) { classification = 'Outstanding'; bgColor = 'bg-green-600'; }
-      else if (gpaValue >= 3.2) { classification = 'Excellent'; bgColor = 'bg-blue-600'; }
-      else if (gpaValue >= 2.8) { classification = 'Very Good'; bgColor = 'bg-indigo-600'; }
-      else if (gpaValue >= 2.4) { classification = 'Good'; bgColor = 'bg-yellow-600'; }
-      else { classification = 'Passing'; bgColor = 'bg-gray-600'; }
+      if (gpaValue >= 3.6) classification = 'Outstanding';
+      else if (gpaValue >= 3.2) classification = 'Excellent';
+      else if (gpaValue >= 2.8) classification = 'Very Good';
+      else if (gpaValue >= 2.4) classification = 'Good';
+      else classification = 'Passing';
     }
-    return { gpa, totalCredits, totalPoints: totalPoints.toFixed(2), classification, bgColor };
+    return { gpa, totalCredits, totalPoints: totalPoints.toFixed(2), classification };
   }, [subjects, system, gradesList]);
 
   const addSubject = () => {
@@ -86,153 +80,117 @@ export default function GPACalculator() {
     setSubjects(subjects.map(s => s.id === id ? { ...s, [field]: value } : s));
   };
 
-  const resetAll = () => {
-    setSubjects(INITIAL_SUBJECTS.map(s => ({ ...s, id: Math.random() })));
-  };
+  const faqs = [
+    { question: 'What is NEB Grading?', answer: 'Nepal Education Board uses a 4.0 scale where A+ (90+) is 4.0, A (80-90) is 3.6, and B+ (70-80) is 3.2.' },
+    { question: 'How is GPA calculated?', answer: 'GPA = Sum(Grade Point * Credits) / Sum(Credits). Each subject is weighted by its credit hours.' }
+  ];
 
   return (
-    <CalculatorErrorBoundary calculatorName="GPA Calculator">
-      <JsonLd type="calculator" name="Advanced GPA Calculator" description="Professional grade tool for calculating GPA based on credit-weighted system." url="https://calcpro.com.np/calculator/gpa" />
-
-      <CalcWrapper
-        title="GPA Calculator"
-        description="Professional grade tool for calculating GPA based on credit-weighted system used in Nepal (TU/KU) and international US systems."
-        crumbs={[{label:'education',href:'/calculator?cat=education'}, {label:'gpa'}]}
-        relatedCalcs={[{name:'CGPA Calc',slug:'cgpa'},{name:'Percentage',slug:'percentage'}]}
-      >
-        <div className="flex flex-col-reverse lg:grid lg:grid-cols-[1fr_360px] gap-10">
-          
-          <div className="space-y-8">
-            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[2.5rem] shadow-xl shadow-gray-200/20 overflow-hidden">
-              <div className="flex bg-gray-50/50 dark:bg-gray-800/20 p-2">
-                <button 
-                  onClick={() => setSystem('nepal')} 
-                  className={`flex-1 py-4 text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all min-h-[48px] ${system === 'nepal' ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-sm' : 'text-gray-400'}`}
+    <CalculatorLayout
+      title="GPA Calculator"
+      description="Advanced GPA calculation for Nepal (NEB/TU) and US academic systems. Professional credit-weighted results with classification."
+      category={{ label: 'Education', href: '/calculator/category/education' }}
+      leftPanel={
+        <div className="space-y-6">
+          {/* System Toggle */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)] px-1">Grading System</label>
+            <div className="flex bg-[var(--bg-surface)] border border-[var(--border)] p-1">
+              {(['nepal', 'us'] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setSystem(s)}
+                  className={`flex-1 py-2 text-xs font-bold uppercase transition-all ${
+                    system === s ? 'bg-[var(--primary)] text-white' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+                  }`}
                 >
-                  Nepal (NEB/TU)
+                  {s === 'nepal' ? 'Nepal (NEB / TU)' : 'US System'}
                 </button>
-                <button 
-                  onClick={() => setSystem('us')} 
-                  className={`flex-1 py-4 text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all min-h-[48px]  ${system === 'us' ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-sm' : 'text-gray-400'}`}
-                >
-                  US System
-                </button>
-              </div>
+              ))}
+            </div>
+          </div>
 
-              <div className="p-6 sm:p-10 space-y-6">
-                <div className="hidden sm:grid grid-cols-[1fr_100px_140px_48px] gap-6 text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">
-                  <div>Course/Subject</div>
-                  <div className="text-center">Credits</div>
-                  <div className="text-center">Grade</div>
-                  <div></div>
-                </div>
-                
-                <div className="space-y-6">
-                  {subjects.map((sub, idx) => (
-                    <div key={sub.id} className="grid grid-cols-1 sm:grid-cols-[1fr_100px_140px_48px] gap-4 sm:gap-6 p-6 sm:p-0 bg-gray-50/50 dark:bg-gray-800/20 sm:bg-transparent rounded-3xl group border border-transparent hover:border-blue-50 dark:hover:border-blue-900/30 transition-all items-end sm:items-center">
-                      <div>
-                        <label className="sm:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Subject {idx+1}</label>
-                        <input 
-                          type="text" 
-                          value={sub.name} 
-                          onChange={e => updateSubject(sub.id, 'name', e.target.value)} 
-                          className="w-full bg-white dark:bg-gray-950 border-2 border-gray-100 dark:border-gray-800 rounded-2xl px-4 py-3 text-sm font-bold text-gray-900 dark:text-white focus:border-blue-500 outline-none transition-all scroll-m-20" 
-                          placeholder="Subject Name" 
-                        />
-                      </div>
-                      <div>
-                        <label className="sm:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block text-center">Units</label>
-                        <input 
-                          type="number" 
-                          value={sub.credit} 
-                          onChange={e => updateSubject(sub.id, 'credit', Number(e.target.value))} 
-                          className="w-full bg-white dark:bg-gray-950 border-2 border-gray-100 dark:border-gray-800 rounded-2xl px-4 py-3 text-sm font-black text-center text-gray-900 dark:text-white focus:border-blue-500 outline-none transition-all" 
-                        />
-                      </div>
-                      <div>
-                        <label className="sm:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block text-center">Grade</label>
-                        <select 
-                          value={sub.grade} 
-                          onChange={e => updateSubject(sub.id, 'grade', e.target.value)} 
-                          className="w-full bg-white dark:bg-gray-950 border-2 border-gray-100 dark:border-gray-800 rounded-2xl px-4 py-3 text-sm font-black text-center text-gray-900 dark:text-white focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer"
-                        >
-                          {gradesList.map(g => <option key={g.grade} value={g.grade}>{g.grade}</option>)}
-                        </select>
-                      </div>
-                      <div className="flex justify-center items-center">
-                        <button 
-                          onClick={() => removeSubject(sub.id)} 
-                          className="w-12 h-12 rounded-2xl flex items-center justify-center text-red-400 border-2 border-transparent hover:border-red-100 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-all shadow-sm"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </div>
+          <div className="space-y-4">
+             {subjects.map((sub, idx) => (
+               <div key={sub.id} className="p-4 bg-white border border-[var(--border)] shadow-sm space-y-4 relative group">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Course {idx + 1}</span>
+                    {subjects.length > 1 && (
+                      <button onClick={() => removeSubject(sub.id)} className="text-red-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                    <div className="sm:col-span-6">
+                      <input 
+                        type="text" value={sub.name} 
+                        onChange={e => updateSubject(sub.id, 'name', e.target.value)}
+                        placeholder="Course Name"
+                        className="w-full h-11 px-3 border border-[var(--border)] bg-[var(--bg-surface)] text-sm font-bold focus:border-[var(--primary)] outline-none"
+                      />
                     </div>
-                  ))}
-                </div>
+                    <div className="sm:col-span-3">
+                      <input 
+                        type="number" value={sub.credit} 
+                        onChange={e => updateSubject(sub.id, 'credit', Number(e.target.value))}
+                        className="w-full h-11 px-3 border border-[var(--border)] bg-[var(--bg-surface)] text-sm font-bold text-center"
+                      />
+                    </div>
+                    <div className="sm:col-span-3">
+                      <select 
+                        value={sub.grade} 
+                        onChange={e => updateSubject(sub.id, 'grade', e.target.value)}
+                        className="w-full h-11 px-3 border border-[var(--border)] bg-[var(--bg-surface)] text-sm font-bold text-center cursor-pointer appearance-none"
+                      >
+                        {gradesList.map(g => <option key={g.grade} value={g.grade}>{g.grade}</option>)}
+                      </select>
+                    </div>
+                  </div>
+               </div>
+             ))}
+          </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4">
-                  <button 
-                    onClick={addSubject} 
-                    className="group w-full py-5 border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-[2rem] flex items-center justify-center gap-3 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] hover:bg-blue-50/30 dark:hover:bg-blue-900/10 hover:border-blue-200 hover:text-blue-600 transition-all min-h-[48px]"
-                  >
-                    <PlusCircle className="w-5 h-5 transition-transform group-hover:scale-110" />
-                    New Course
-                  </button>
-                  <button 
-                    onClick={resetAll} 
-                    className="group w-full py-5 border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-[2rem] flex items-center justify-center gap-3 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] hover:bg-red-50/30 dark:hover:bg-red-900/10 hover:border-red-200 hover:text-red-500 transition-all min-h-[48px]"
-                  >
-                    <RotateCcw className="w-5 h-5 transition-transform group-hover:rotate-180" />
-                    Reset Table
-                  </button>
-                </div>
+          <div className="flex gap-4">
+            <button onClick={addSubject} className="flex-1 py-3 border-2 border-dashed border-[var(--border)] text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] flex items-center justify-center gap-2">
+              <PlusCircle className="w-4 h-4" /> Add Course
+            </button>
+            <button onClick={() => setSubjects(INITIAL_SUBJECTS)} className="px-6 py-3 border-2 border-dashed border-[var(--border)] text-[11px] font-bold uppercase tracking-widest text-red-600 hover:bg-red-50 flex items-center justify-center gap-2">
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      }
+      rightPanel={
+        <div className="space-y-6">
+           <div className="p-8 bg-white border border-[var(--border)] text-center">
+              <div className="text-xs font-bold uppercase tracking-tight text-[var(--text-muted)] mb-2">Calculated GPA</div>
+              <div className="text-7xl font-black text-[var(--primary)] tracking-tighter mb-2">{resultInfo.gpa}</div>
+              <div className="text-sm font-bold text-[var(--success)] uppercase tracking-widest">{resultInfo.classification}</div>
+           </div>
+
+           <div className="space-y-4">
+              <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)] flex justify-between items-center">
+                <span className="text-[11px] font-bold text-[var(--text-secondary)] uppercase">Total Credits</span>
+                <span className="text-lg font-black text-[var(--text-main)]">{resultInfo.totalCredits}</span>
               </div>
-            </div>
-          </div>
+              <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border)] flex justify-between items-center">
+                <span className="text-[11px] font-bold text-[var(--text-secondary)] uppercase">Total Grade Points</span>
+                <span className="text-lg font-black text-[var(--text-main)]">{resultInfo.totalPoints}</span>
+              </div>
+           </div>
 
-          <div className="space-y-6 lg:sticky lg:top-10">
-            <ResultDisplay
-              title="GPA Calculation Result"
-              primaryResult={{
-                label: 'Cumulative GPA',
-                value: resultInfo.gpa,
-                description: resultInfo.classification,
-                bgColor: resultInfo.bgColor,
-                color: 'text-white'
-              }}
-              secondaryResults={[
-                { label: 'Total Credits', value: resultInfo.totalCredits },
-                { label: 'Total Points', value: resultInfo.totalPoints },
-                { label: 'System', value: system.toUpperCase() }
-              ]}
-              onShare={() => {}}
-            />
-
-            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[2.5rem] p-10 flex justify-between items-center share-shadow relative overflow-hidden group">
-               <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <GraduationCap className="w-20 h-20" />
-               </div>
-               <div className="space-y-1 relative z-10">
-                  <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Status</div>
-                  <div className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">{resultInfo.classification || '---'}</div>
-               </div>
-               <div className="w-14 h-14 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center border border-indigo-100 dark:border-indigo-800 relative z-10 transition-transform group-hover:scale-110">
-                  <div className="w-2 h-2 bg-indigo-600 rounded-full animate-pulse" />
-               </div>
-            </div>
-
-            <ShareResult title="My Academic Performance" result={`${resultInfo.gpa} GPA`} calcUrl="https://calcpro.com.np/calculator/gpa" />
-          </div>
+           <div className="p-6 bg-[var(--primary)] text-white/90 border border-[var(--primary)] flex items-center gap-4">
+              <div className="w-12 h-12 bg-white/10 rounded flex items-center justify-center shrink-0">
+                <GraduationCap className="w-6 h-6 text-white" />
+              </div>
+              <p className="text-[13px] font-medium leading-relaxed">
+                Your performance is categorized as <span className="font-black text-white">{resultInfo.classification || 'Satisfactory'}</span> according to the {system.toUpperCase()} standard.
+              </p>
+           </div>
         </div>
-
-        <div className="mt-16">
-          <CalcFAQ faqs={[
-            { question: 'What is NEB Grading?', answer: 'Nepal Education Board uses a 4.0 scale where A+ (90+) is 4.0, A (80-90) is 3.6, and B+ (70-80) is 3.2.' },
-            { question: 'How is GPA calculated?', answer: 'GPA = Sum(Grade Point * Credits) / Sum(Credits). Each subject is weighted by its credit hours.' }
-          ]} />
-        </div>
-      </CalcWrapper>
-    </CalculatorErrorBoundary>
+      }
+      faqSection={<CalcFAQ faqs={faqs} />}
+    />
   );
 }
