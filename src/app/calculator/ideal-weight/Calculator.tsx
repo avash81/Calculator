@@ -47,7 +47,7 @@ export default function IdealWeightCalculator() {
           <div className="space-y-2">
             <div className="flex justify-between">
               <label className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">Height</label>
-              <span className="text-[11px] font-black text-[var(--primary)]">{heightCm} cm ({(heightCm / 2.54 / 12 | 0)}' {Math.round(heightCm / 2.54 % 12)}")</span>
+              <span className="text-[11px] font-black text-[var(--primary)]">{heightCm} cm ({(heightCm / 2.54 / 12 | 0)}&apos; {Math.round(heightCm / 2.54 % 12)}&quot;)</span>
             </div>
             <input type="number" value={heightCm} onChange={e => setHeightCm(Number(e.target.value))} min={100} max={250}
               className="w-full h-12 px-4 border border-[var(--border)] bg-white font-bold text-lg focus:border-[var(--primary)] outline-none" />

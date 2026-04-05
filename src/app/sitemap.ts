@@ -1,10 +1,10 @@
 import { MetadataRoute } from 'next';
 import { CALCULATORS } from '@/data/calculators';
 
-export const revalidate = 3600; // Refetch every hour
+export const revalidate = 86400; // Refetch daily for static content
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://calcpro.com.np';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://calcly.com';
 
   // 1. Static Core Paths
   const staticPaths = [
@@ -19,7 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
-    changeFrequency: 'daily' as const,
+    changeFrequency: 'monthly' as const,
     priority: route === '' ? 1.0 : 0.8,
   }));
 
@@ -29,7 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ].map((cat) => ({
     url: `${baseUrl}/calculator/category/${cat}`,
     lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
+    changeFrequency: 'monthly' as const,
     priority: 0.8,
   }));
 
@@ -37,7 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const calculatorPaths = CALCULATORS.map((calc) => ({
     url: `${baseUrl}/calculator/${calc.slug}`,
     lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
+    changeFrequency: 'yearly' as const,
     priority: 0.95,
   }));
 

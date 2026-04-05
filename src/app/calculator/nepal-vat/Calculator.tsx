@@ -68,7 +68,7 @@ export default function NepalVATCalculator() {
             <div>
               <div className="text-[11px] font-black uppercase text-[var(--text-main)] mb-1">Nepal IRD Standard</div>
               <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed">
-                Nepal's standard VAT rate is <strong>13%</strong>, applied to most goods and services under the VAT Act 2052. Essential goods like fresh food are exempt.
+                Nepal&apos;s standard VAT rate is <strong>13%</strong>, applied to most goods and services under the VAT Act 2052. Essential goods like fresh food are exempt.
               </p>
             </div>
           </div>

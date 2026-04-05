@@ -12,6 +12,6 @@ export default function robots(): MetadataRoute.Robots {
         '/admin/seo-pages',
       ],
     },
-    sitemap: 'https://calcpro.com.np/sitemap.xml',
+    sitemap: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://calcly.com'}/sitemap.xml`,
   };
 }

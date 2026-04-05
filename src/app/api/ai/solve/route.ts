@@ -1,11 +1,26 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { Redis } from '@upstash/redis';
+import { Ratelimit } from '@upstash/ratelimit';
 
-/**
- * @fileoverview API Route for AI Math Solver
- * POST /api/ai/solve
- */
+/** // Edge runtime forces Next.js to run this on Vercel Edge where globalThis resets */
+export const runtime = 'edge';
 
-export async function POST(req: Request) {
+// Initialize Redis client gracefully (won't crash if ENVs are missing)
+const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN 
+  ? new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    })
+  : null;
+
+// Create a new ratelimiter, that allows 10 requests per 1 minute
+const ratelimit = redis ? new Ratelimit({
+  redis: redis,
+  limiter: Ratelimit.slidingWindow(10, "1 m"),
+  analytics: true,
+}) : null;
+
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({} as any));
     const query = body?.query;
@@ -28,24 +43,36 @@ export async function POST(req: Request) {
       });
     }
 
-    // Basic in-memory rate limiting (prevents trivial abuse).
-    const rateKey =
-      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      'unknown';
-    const g = globalThis as any;
-    g.__aiSolveRateMap = g.__aiSolveRateMap || new Map<string, { count: number; resetAt: number }>();
-    const rateMap: Map<string, { count: number; resetAt: number }> = g.__aiSolveRateMap;
-    const now = Date.now();
-    const windowMs = 60_000; // 1 minute
-    const maxRequests = 10; // per minute per IP
-
-    const bucket = rateMap.get(rateKey);
-    if (!bucket || now > bucket.resetAt) {
-      rateMap.set(rateKey, { count: 1, resetAt: now + windowMs });
-    } else if (bucket.count >= maxRequests) {
-      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    // Rate Limiting Logic via Upstash
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1';
+    
+    if (ratelimit) {
+      const { success, limit, reset, remaining } = await ratelimit.limit(`ai_solve_${ip}`);
+      if (!success) {
+        return NextResponse.json({ error: 'Too many requests' }, { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': limit.toString(),
+            'X-RateLimit-Remaining': remaining.toString(),
+            'X-RateLimit-Reset': reset.toString()
+          }
+        });
+      }
     } else {
-      bucket.count++;
+      // In development or if UPSTASH is missing, we use a basic fallback that at least stops rapid looping 
+      // within the SAME function instance lifespan, though it will reset often on Vercel Edge.
+      const g = globalThis as any;
+      g.__aiSolveRateMap = g.__aiSolveRateMap || new Map<string, { count: number; resetAt: number }>();
+      const rateMap: Map<string, { count: number; resetAt: number }> = g.__aiSolveRateMap;
+      const now = Date.now();
+      const bucket = rateMap.get(ip);
+      if (!bucket || now > bucket.resetAt) {
+        rateMap.set(ip, { count: 1, resetAt: now + 60000 });
+      } else if (bucket.count >= 10) {
+        return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+      } else {
+        bucket.count++;
+      }
     }
 
     // Call Gemini API via fetch (to avoid extra dependencies)

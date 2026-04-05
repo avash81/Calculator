@@ -1,10 +1,14 @@
 'use client';
+import dynamic from 'next/dynamic';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { CATEGORIES } from '@/data/calculators';
-import { ChevronRight, Zap, Calculator, TrendingUp, Heart, ShieldCheck } from 'lucide-react';
-import { Logo } from '@/components/layout/Logo';
-import { AllInOneCalculator } from '@/components/calculator/AllInOneCalculator';
+import { ChevronRight } from 'lucide-react';
+
+const AllInOneCalculator = dynamic(
+  () => import('@/components/calculator/AllInOneCalculator'),
+  { ssr: false, loading: () => <div className="h-[600px] w-full bg-slate-50 animate-pulse rounded-[3rem]" /> }
+);
 
 export default function HomePageClient() {
   const [mounted, setMounted] = useState(false);
@@ -15,112 +19,93 @@ export default function HomePageClient() {
   return (
     <div className="min-h-screen bg-white font-sans antialiased text-[14px]">
       
-      {/* 1. Interactive Hero - All-in-One Calculator */}
-      <header className="pt-16 pb-16 border-b border-[var(--border)] bg-gray-50">
-        <div className="hp-container flex flex-col items-center">
-          <div className="text-center mb-10">
-            <h1 className="text-3xl md:text-5xl font-black text-[#000000] mb-4 tracking-tighter">
-              Global Precision Hub
+      {/* 1. Interactive Command Center - Triple-Threat Suite */}
+      <header className="pt-12 pb-24 border-b border-slate-100 bg-white relative">
+        <div className="w-full max-w-[1700px] mx-auto px-10 flex flex-col items-center">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-3 tracking-tight">
+              CalcPro — All-in-One Calculator Suite
             </h1>
-            <p className="text-[#333333] font-medium leading-relaxed max-w-2xl mx-auto">
-              Professional-grade mathematical tools for finance, health, and engineering. 
-              Featuring our live interactive scientific & graphing engine below.
-            </p>
+            <p className="text-slate-400 text-sm">Scientific Calculator • Graph Plotter • Unit Converter • Statistics</p>
           </div>
           
           <div className="w-full">
             <AllInOneCalculator />
           </div>
         </div>
+        
+        {/* Decorative Background Elements */}
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-50/40 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 right-1/4 w-64 h-64 bg-slate-50 rounded-full blur-3xl pointer-events-none" />
       </header>
 
-      {/* 2. Professional Directory Overview - Masonry Style to save space */}
-      <main className="hp-container py-12">
+      {/* 2. Calculator Directory */}
+      <main className="max-w-[1300px] mx-auto px-8 py-16">
+        {/* Section header */}
+        <div className="flex items-end justify-between mb-10 border-b-2 border-slate-100 pb-6">
+          <div>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Calculator Directory</h2>
+            <p className="text-slate-500 text-sm mt-1">Browse all categories — click any tool to open it instantly</p>
+          </div>
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-50 border border-slate-200 px-3 py-1 rounded-full">
+            75+ Tools
+          </span>
+        </div>
+
         <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-5 gap-8 space-y-12">
           {CATEGORIES.map(cat => (
-            <section key={cat.id} className="break-inside-avoid mb-12">
-               {/* Category Header */}
-               <div className="flex flex-col gap-2 group mb-5">
-                  <div className="w-14 h-14 rounded-full bg-white border border-gray-200 flex items-center justify-center text-xl grayscale group-hover:grayscale-0 transition-all shadow-sm">
+            <section key={cat.id} className="break-inside-avoid">
+               {/* Category header */}
+               <div className="flex flex-col gap-3 group mb-5">
+                  <div className="w-14 h-14 rounded-2xl bg-slate-50 border-2 border-slate-200 flex items-center justify-center text-2xl group-hover:border-blue-400 group-hover:bg-blue-50 group-hover:shadow-lg transition-all duration-300">
                     {cat.icon}
                   </div>
                   <Link href={`/calculator/category/${cat.id}`}>
-                    <h2 className="text-[17px] font-black text-[#006600] hover:underline leading-tight">
+                    <h3 className="text-[18px] font-black text-slate-900 hover:text-blue-600 transition-colors tracking-tight leading-tight">
                       {cat.name}
-                    </h2>
+                    </h3>
                   </Link>
                </div>
 
-               {/* Clean, Non-Overlapping Vertical List */}
                <nav>
-                 <ul className="flex flex-col gap-y-2">
-                    {[...cat.calculators]
-                      .sort((a, b) => {
-                         const scoreA = (a.isHot ? 2 : 0) + (a.isNew ? 1 : 0);
-                         const scoreB = (b.isHot ? 2 : 0) + (b.isNew ? 1 : 0);
-                         return scoreB - scoreA;
-                      })
-                      .slice(0, 10) // Limit to top 10 for a clean 'one screen' look
-                      .map(calc => {
-                        const isPrimaryTool = ['scientific-calculator', 'base-converter', 'unit-converter'].includes(calc.slug);
-                        return (
-                          <li key={calc.id} className="flex items-center gap-1.5 group/item">
-                            {isPrimaryTool ? (
-                              <button 
-                                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                                className="text-[13px] text-[#0000CC] hover:text-blue-800 hover:underline font-bold leading-none truncate flex-1 text-left"
-                                title="Use our All-In-One Engine at the top"
-                              >
-                                {calc.name}
-                              </button>
-                            ) : (
-                              <Link 
-                                href={`/calculator/${calc.slug}`}
-                                className="text-[13px] text-[#0000CC] hover:text-blue-800 hover:underline font-bold leading-none truncate flex-1"
-                                title={calc.name}
-                              >
-                                {calc.name}
-                              </Link>
-                            )}
-                            {(calc.isHot || calc.isNew) && (
-                              <span className="text-[8px] font-black bg-blue-600 text-white px-1 py-0.5 rounded-sm uppercase tracking-tighter shrink-0 select-none">
-                                {calc.isHot ? 'H' : 'N'}
-                              </span>
-                            )}
-                          </li>
-                        );
-                      })}
+                  <ul className="space-y-2.5">
+                    {cat.calculators
+                      .sort((a, b) => ((b.isHot ? 2 : 0) + (b.isNew ? 1 : 0)) - ((a.isHot ? 2 : 0) + (a.isNew ? 1 : 0)))
+                      .slice(0, 10)
+                      .map(calc => (
+                        <li key={calc.id} className="flex items-center gap-2">
+                          <Link
+                            href={`/calculator/${calc.slug}`}
+                            className="text-[14px] text-slate-700 hover:text-blue-600 font-semibold leading-snug flex-1 transition-colors duration-200 hover:underline underline-offset-2"
+                            title={calc.name}
+                          >
+                            {calc.name}
+                          </Link>
+                          {calc.isHot && (
+                            <span className="text-[9px] font-black bg-orange-500 text-white px-1.5 py-0.5 rounded-full uppercase tracking-tight shrink-0">HOT</span>
+                          )}
+                          {!calc.isHot && calc.isNew && (
+                            <span className="text-[9px] font-black bg-blue-500 text-white px-1.5 py-0.5 rounded-full uppercase tracking-tight shrink-0">NEW</span>
+                          )}
+                        </li>
+                      ))}
                     {cat.calculators.length > 10 && (
-                      <li className="pt-2 border-t border-gray-100 mt-2">
-                        <Link 
-                          href={`/calculator/category/${cat.id}`}
-                          className="text-[11px] font-bold text-gray-500 hover:text-[#0000CC] flex items-center gap-1 transition-colors"
+                      <li className="pt-3 border-t border-slate-100 mt-2">
+                        <Link
+                           href={`/calculator/category/${cat.id}`}
+                           className="text-[12px] font-bold text-blue-500 hover:text-blue-700 flex items-center gap-1 transition-colors"
                         >
-                          View All {cat.name} <ChevronRight className="w-3 h-3" />
+                           View all {cat.calculators.length} tools <ChevronRight className="w-3 h-3" />
                         </Link>
                       </li>
                     )}
-                 </ul>
+                  </ul>
                </nav>
             </section>
           ))}
         </div>
       </main>
 
-      {/* 3. Simple Footer Text Detail (SEO/Trust) */}
-      <div className="hp-container pb-24 border-t border-[var(--border)] text-center space-y-4 max-w-2xl mx-auto pt-12">
-         <h3 className="text-xl font-bold text-[var(--text-main)]">Global Computation Excellence</h3>
-         <p className="text-[var(--text-muted)] text-sm leading-relaxed">
-           Calcly is a dedicated mathematical resource built on the principles of accuracy and privacy. 
-           All calculations are performed locally in your browser. We never store, share, or sell your data.
-           Built for professional and academic standards.
-         </p>
-      </div>
-
-      {/* 4. Mini Footer Credits */}
-      <footer className="bg-blue-600 text-white/60 py-6 text-center text-[11px] font-bold tracking-widest uppercase">
-        © 2026 Calcly Platform — Precision Engineering for All Dimensions
-      </footer>
     </div>
   );
 }

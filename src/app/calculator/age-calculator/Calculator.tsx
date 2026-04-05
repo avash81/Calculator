@@ -8,12 +8,12 @@ import { Calendar, Gift, Star } from 'lucide-react';
 const DEFAULT = { dob: '1995-06-15', targetDate: new Date().toISOString().split('T')[0] };
 
 function getZodiac(d: number, m: number) {
-  const cutoffs = [21,20,21,21,22,22,23,24,24,24,23,22];
-  const signs = ['Capricorn','Aquarius','Pisces','Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius'];
-  let month = m;
-  if (d < cutoffs[month]) month--;
-  if (month < 0) month = 11;
-  return signs[month];
+  const cutoffs = [20, 19, 21, 20, 21, 21, 23, 23, 23, 23, 22, 22];
+  const signs = ['Aquarius','Pisces','Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn'];
+  let idx = m;
+  if (d < cutoffs[m]) idx--;
+  if (idx < 0) idx = 11;
+  return signs[idx];
 }
 
 export default function AgeCalculator() {
@@ -25,6 +25,10 @@ export default function AgeCalculator() {
     if (!dob || !targetDate) return null;
     const d1 = new Date(dob), d2 = new Date(targetDate);
     if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return null;
+    
+    if (d1.getTime() > d2.getTime()) {
+      return { error: 'Date of birth cannot be after the target date.' };
+    }
 
     let years = d2.getFullYear() - d1.getFullYear();
     let months = d2.getMonth() - d1.getMonth();
@@ -73,12 +77,12 @@ export default function AgeCalculator() {
           </div>
 
           {/* Stats Grid */}
-          {a && (
+          {a && !a.error && (
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Total Days', value: a.totalDays.toLocaleString() },
-                { label: 'Total Weeks', value: a.totalWeeks.toLocaleString() },
-                { label: 'Total Months', value: a.totalMonths.toLocaleString() },
+                { label: 'Total Days', value: a.totalDays?.toLocaleString() },
+                { label: 'Total Weeks', value: a.totalWeeks?.toLocaleString() },
+                { label: 'Total Months', value: a.totalMonths?.toLocaleString() },
               ].map(s => (
                 <div key={s.label} className="p-4 bg-white border border-[var(--border)] text-center">
                   <div className="text-[9px] font-black uppercase text-[var(--text-muted)] mb-1">{s.label}</div>
@@ -89,7 +93,7 @@ export default function AgeCalculator() {
           )}
 
           {/* Fun Facts */}
-          {a && (
+          {a && !a.error && (
             <div className="p-5 bg-[var(--bg-subtle)] border border-[var(--border)] space-y-2">
               <div className="flex items-center gap-2 mb-2">
                 <Star className="w-4 h-4 text-amber-600" />
@@ -97,7 +101,7 @@ export default function AgeCalculator() {
               </div>
               <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed">
                 Born on a <strong>{a.dayOfWeek}</strong>. Zodiac: <strong>{a.zodiac}</strong>.
-                Est. heartbeats: <strong>{(a.totalDays * 24 * 60 * 80).toLocaleString()}</strong> (at 80 bpm).
+                Est. heartbeats: <strong>{((a.totalDays || 0) * 24 * 60 * 80).toLocaleString()}</strong> (at 80 bpm).
               </p>
             </div>
           )}
@@ -105,7 +109,12 @@ export default function AgeCalculator() {
       }
       rightPanel={
         <div className="space-y-6">
-          {a ? (
+          {a && a.error ? (
+            <div className="p-6 bg-red-50 border border-red-200 text-red-700">
+              <p className="text-xs font-black uppercase mb-1">Future Date Error</p>
+              <p className="text-sm">{a.error}</p>
+            </div>
+          ) : a ? (
             <>
               {/* Exact Age Hero */}
               <div className="p-8 bg-white border border-[var(--border)] text-center">
@@ -131,11 +140,11 @@ export default function AgeCalculator() {
                 <div className="mt-5 space-y-1">
                   <div className="flex justify-between text-[10px] font-bold text-[var(--text-muted)] uppercase">
                     <span>Life Progress (est. 80 yrs)</span>
-                    <span>{Math.min(100, (a.years / 80) * 100).toFixed(1)}%</span>
+                    <span>{Math.min(100, ((a.years || 0) / 80) * 100).toFixed(1)}%</span>
                   </div>
                   <div className="h-2 bg-gray-200 w-full overflow-hidden">
                     <div className="h-full bg-amber-500 transition-all duration-700"
-                      style={{ width: `${Math.min(100, (a.years / 80) * 100)}%` }} />
+                      style={{ width: `${Math.min(100, ((a.years || 0) / 80) * 100)}%` }} />
                   </div>
                 </div>
               </div>

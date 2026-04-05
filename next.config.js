@@ -5,10 +5,6 @@ const nextConfig = {
   compress: true,
 
   // Skip non-critical ESLint warnings (unused imports) during production build
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-
   // Security + performance headers
   async headers() {
     return [
@@ -24,7 +20,7 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com",
+              "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: https: https://calcpro.com.np https://picsum.photos https://images.unsplash.com https://www.googletagmanager.com",

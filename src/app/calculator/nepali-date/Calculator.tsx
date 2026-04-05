@@ -86,7 +86,7 @@ export default function NepaliDateConverter() {
 
           {/* Today info */}
           <div className="p-5 bg-white border border-[var(--border)]">
-            <div className="text-[10px] font-bold uppercase text-[var(--text-muted)] mb-2">Today's Date</div>
+            <div className="text-[10px] font-bold uppercase text-[var(--text-muted)] mb-2">Today&apos;s Date</div>
             <div className="flex items-center gap-2 mb-1">
               <Calendar className="w-3.5 h-3.5 text-[var(--text-muted)]" />
               <span className="font-mono text-sm font-bold text-[var(--text-main)]">AD: {todayAD}</span>

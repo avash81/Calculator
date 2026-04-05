@@ -76,7 +76,7 @@ export default function LoanEMICalculator() {
       tenure: preset.values.tenure,
       method: preset.values.method
     });
-  }, [state, setState]);
+  }, [updateState]);
 
   return (
     <CalculatorErrorBoundary calculatorName="Loan EMI">

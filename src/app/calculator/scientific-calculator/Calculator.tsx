@@ -24,23 +24,23 @@ export default function ScientificCalculator() {
 
   const [history, setHistory] = useLocalStorage<string[]>('calcpro_sci_history', []);
 
-  const updateState = (updates: Partial<typeof DEFAULT_STATE>) => {
-    setState({ ...state, ...updates });
-  };
+  const updateState = useCallback((updates: Partial<typeof DEFAULT_STATE>) => {
+    setState(prev => ({ ...prev, ...updates }));
+  }, [setState]);
 
   const calculate = useCallback((expr: string) => {
     try {
       const result = safeEval(expr, { isDeg });
       if (result !== 'Error') {
-        setHistory([`${expr} = ${result}`, ...history].slice(0, 10));
+        setHistory(prev => [`${expr} = ${result}`, ...prev].slice(0, 10));
       }
       updateState({ display: result, lastEquation: expr });
     } catch {
       updateState({ display: 'Error' });
     }
-  }, [isDeg, history, setHistory, state]);
+  }, [isDeg, setHistory, updateState]);
 
-  const handleKeyPress = (val: string) => {
+  const handleKeyPress = useCallback((val: string) => {
     if (val === '=') {
       calculate(lastEquation || display);
       return;
@@ -57,9 +57,9 @@ export default function ScientificCalculator() {
 
     const nextEq = (lastEquation === '0' || display === 'Error') ? val : (lastEquation + val);
     updateState({ lastEquation: nextEq, display: nextEq });
-  };
+  }, [calculate, display, lastEquation, updateState]);
 
-  const applyFn = (fn: string) => {
+  const applyFn = useCallback((fn: string) => {
     const val = parseFloat(display);
     if (isNaN(val)) return;
     let expr = '';
@@ -84,7 +84,7 @@ export default function ScientificCalculator() {
       case 'e': updateState({ display: Math.E.toString(), lastEquation: Math.E.toString() }); return;
     }
     if (expr) calculate(expr);
-  };
+  }, [display, updateState, calculate]);
 
   const fnBtn = "h-11 rounded-2xl bg-gray-800 text-gray-300 font-bold text-[10px] uppercase tracking-widest hover:bg-gray-700 transition-all active:scale-95 border border-gray-700/50";
   const numBtn = "h-14 rounded-2xl bg-gray-900 text-white font-black text-xl hover:bg-gray-800 transition-all active:scale-95 border border-gray-800 shadow-sm";

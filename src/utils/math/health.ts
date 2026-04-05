@@ -16,6 +16,15 @@
  */
 
 export function calculateBMI(weight: number, height: number, unit: 'metric' | 'imperial' = 'metric') {
+  if (!height || height <= 0) {
+    return {
+      bmi: NaN,
+      category: 'Invalid Height',
+      color: 'text-slate-500',
+      healthyRange: { min: NaN, max: NaN }
+    };
+  }
+
   let bmi: number;
   if (unit === 'metric') {
     bmi = weight / Math.pow(height / 100, 2);

@@ -42,7 +42,7 @@ export default function CurrencyCalculator() {
   return (
     <CalculatorLayout
       title="Currency Converter (NPR)"
-      description="Convert global currencies to Nepalese Rupee (NPR) using NRB-benchmarked exchange rates. INR pegged at fixed 1:1.60 ratio."
+      description="Convert global currencies to Nepalese Rupee (NPR) using offline static reference exchange rates. INR pegged at fixed 1:1.60 ratio."
       category={{ label: 'Finance', href: '/calculator/category/finance' }}
       leftPanel={
         <div className="space-y-6">
@@ -126,7 +126,7 @@ export default function CurrencyCalculator() {
           <div className="p-5 bg-[var(--bg-subtle)] border border-[var(--border)] flex gap-3">
             <Globe className="w-4 h-4 text-[var(--text-muted)] shrink-0 mt-0.5" />
             <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
-              INR is pegged to NPR at a fixed 1:1.60 rate by Nepal Rastra Bank. All other rates are NRB mid-market benchmarks.
+              INR is pegged to NPR at a fixed 1:1.60 rate by Nepal Rastra Bank. All other rates are static offline reference benchmarks and do not live-sync with the market.
             </p>
           </div>
         </div>
@@ -134,7 +134,7 @@ export default function CurrencyCalculator() {
       faqSection={
         <CalcFAQ faqs={[
           { question: 'Is the INR rate fixed?', answer: 'Yes. The Indian Rupee is pegged to the Nepalese Rupee at 1 INR = 1.60 NPR. This has been maintained by the Nepal Rastra Bank for decades.' },
-          { question: 'How current are the rates?', answer: 'Our benchmarks are NRB mid-market reference rates. Actual bank buy/sell rates vary by 1–2%.' },
+          { question: 'How current are the rates?', answer: 'Our benchmarks are static offline reference rates for demonstrative calculation. Actual bank buy/sell rates vary wildly each day.' },
           { question: 'Where can I exchange in Nepal?', answer: 'USD, EUR, and GBP are exchangeable at most commercial banks and authorized exchange counters in Kathmandu and Pokhara.' },
         ]} />
       }

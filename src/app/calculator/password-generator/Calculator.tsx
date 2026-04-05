@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { CalculatorLayout } from '@/components/layout/CalculatorLayout';
 import { CalcFAQ } from '@/components/calculator/CalcFAQ';
 import { RefreshCw, Copy, Check, ShieldCheck } from 'lucide-react';
@@ -38,7 +38,7 @@ export default function PasswordGenerator() {
   }, [length, useUpper, useLower, useNums, useSyms, excludeSimilar]);
 
   // Generate on first render
-  useMemo(() => { if (passwords.length === 0) generate(); }, [generate, passwords.length]);
+  useEffect(() => { if (passwords.length === 0) generate(); }, [generate, passwords.length]);
 
   const copy = (pwd: string, i: number) => {
     navigator.clipboard.writeText(pwd); setCopied(i); setTimeout(() => setCopied(null), 2000);

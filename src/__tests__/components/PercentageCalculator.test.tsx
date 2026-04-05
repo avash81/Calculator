@@ -35,7 +35,7 @@ describe('Percentage Calculator Accuracy Test Suite', () => {
     render(<PercentageCalculator />);
 
     fireEvent.click(
-      screen.getByRole('button', { name: /X is what % of Y\?/i })
+      screen.getByRole('button', { name: /X is \?% of Y/i })
     );
 
     const inputs = screen.getAllByRole('spinbutton');
@@ -51,7 +51,7 @@ describe('Percentage Calculator Accuracy Test Suite', () => {
     render(<PercentageCalculator />);
 
     fireEvent.click(
-      screen.getByRole('button', { name: /X is Y% of what\?/i })
+      screen.getByRole('button', { name: /X is Y% of \?/i })
     );
 
     const inputs = screen.getAllByRole('spinbutton');
@@ -78,7 +78,7 @@ describe('Percentage Calculator Accuracy Test Suite', () => {
     fireEvent.change(inputs[0], { target: { value: '100' } });
     fireEvent.change(inputs[1], { target: { value: '120' } });
 
-    expect(screen.getByText('20.00%')).toBeInTheDocument();
-    expect(screen.getByText(/Increase/i)).toBeInTheDocument();
+    expect(screen.getByText('+20.00%')).toBeInTheDocument();
+    expect(screen.getAllByText(/Increase/i).length).toBeGreaterThan(0);
   });
 });

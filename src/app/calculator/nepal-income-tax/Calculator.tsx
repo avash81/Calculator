@@ -18,30 +18,23 @@ const DEFAULT_STATE = {
   educationAllowance: 0,
 };
 
+import { calculateNepalIncomeTax } from '@/utils/math/country-rules/nepal';
+
 function calculateIncomeTax(income: number, fiscalYear: string, deductions: Record<string, number>, married: boolean) {
-  const yearConfig = TAX_YEARS[fiscalYear as keyof typeof TAX_YEARS];
-  if (!yearConfig) return { error: 'Invalid fiscal year' };
-
   const totalDeductions = Object.values(deductions).reduce((a, b) => a + b, 0);
-  const taxableIncome = Math.max(0, income - totalDeductions);
+  const result = calculateNepalIncomeTax(income - totalDeductions, married, false);
 
-  let totalTax = 0;
-  const breakdown: Array<{ slab: string; income: number; tax: number; rate: number }> = [];
-
-  for (const slab of yearConfig.slabs) {
-    if (taxableIncome <= slab.min) break;
-    const slabIncome = Math.min(taxableIncome, slab.max) - slab.min;
-    const slabTax = slabIncome * slab.rate;
-    breakdown.push({
-      slab: slab.label,
-      income: slabIncome,
-      tax: slabTax,
-      rate: slab.rate * 100,
-    });
-    totalTax += slabTax;
-  }
-
-  return { totalTax: Math.round(totalTax), taxableIncome, breakdown, totalDeductions };
+  return { 
+    totalTax: Math.round(result.totalTax), 
+    taxableIncome: result.taxableIncome, 
+    breakdown: result.breakdown.map(b => ({
+      slab: b.slabLabel,
+      income: b.taxableInSlab,
+      tax: b.taxAmount,
+      rate: b.rate
+    })), 
+    totalDeductions 
+  };
 }
 
 export default function NepalIncomeTaxCalculator() {

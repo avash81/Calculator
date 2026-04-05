@@ -180,7 +180,7 @@ function evalExpression(expr: string, isDeg: boolean): number {
 
     // Function or constant name
     let name = '';
-    while (pos < expr.length && expr[pos] >= 'a' && expr[pos] <= 'z' || expr[pos] === '_') {
+    while (pos < expr.length && ((expr[pos] >= 'a' && expr[pos] <= 'z') || expr[pos] === '_')) {
       name += expr[pos++];
     }
 

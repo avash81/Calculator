@@ -38,24 +38,11 @@ export default function NepalSalaryCalculator() {
     const totalMonthlyDeductions = ssfEmployee + citDeduction;
     const annualTaxableIncome = (grossMonthly - totalMonthlyDeductions) * 12;
 
-    // Tax Logic (Using centralized config)
-    const yearConfig = TAX_YEARS[fiscalYear];
-    let annualTax = 0;
-    let rem = annualTaxableIncome;
+    // Tax Logic (Using centralized config via country-rules)
+    const { calculateNepalIncomeTax } = require('@/utils/math/country-rules/nepal');
+    const taxResult = calculateNepalIncomeTax(annualTaxableIncome, married, ssf);
 
-    if (yearConfig) {
-      for (let i = 0; i < yearConfig.slabs.length; i++) {
-        const slab = yearConfig.slabs[i];
-        if (rem <= 0) break;
-        const chunk = Math.min(rem, slab.max - slab.min);
-        
-        // Social Security 1% is waived if SSF is active
-        const rate = (i === 0 && ssf) ? 0 : slab.rate;
-        annualTax += chunk * rate;
-        rem -= (slab.max - slab.min);
-      }
-    }
-
+    const annualTax = taxResult.totalTax;
     const monthlyTax = Math.round(annualTax / 12);
     const netMonthly = grossMonthly - totalMonthlyDeductions - monthlyTax;
     const ctcMonthly = grossMonthly + ssfEmployer;

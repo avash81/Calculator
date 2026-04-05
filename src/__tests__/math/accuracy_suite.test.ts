@@ -132,6 +132,7 @@ const calculateMortgage = (price: number, downPct: number, rate: number, years: 
 
 /** BMI Metric */
 const calculateBMI = (weightKg: number, heightCm: number): number => {
+  if (heightCm <= 0) return NaN;
   const h = heightCm / 100;
   return weightKg / (h * h);
 };
@@ -603,9 +604,9 @@ describe('═══ CALCPRO COMPLETE ACCURACY SUITE ═══', () => {
   // 6. CROSS-CUTTING EDGE CASES
   // ─────────────────────────────────────────────────
   describe('EDGE CASES — Division by zero, NaN, boundaries', () => {
-    test('BMI with height=0 should produce Infinity, not crash', () => {
+    test('BMI with height=0 should produce NaN, not crash or return Infinity', () => {
       const result = calculateBMI(70, 0);
-      expect(result).toBe(Infinity);
+      expect(result).toBe(NaN);
     });
     test('VAT on zero amount', () => {
       const r = calculateVAT(0, 'add');

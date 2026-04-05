@@ -71,7 +71,7 @@ export default function PregnancyDueDateCalculator() {
           </div>
 
           <div className="p-4 bg-pink-50 border border-pink-200">
-            <p className="text-[12px] text-pink-800 leading-relaxed"><strong>Method:</strong> Naegele's Rule — LMP + 9 months + 7 days (equals LMP + 280 days).</p>
+            <p className="text-[12px] text-pink-800 leading-relaxed"><strong>Method:</strong> Naegele&apos;s Rule — LMP + 9 months + 7 days (equals LMP + 280 days).</p>
           </div>
         </div>
       }

@@ -95,7 +95,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
         <div className="max-h-[400px] overflow-y-auto p-2">
           {query && results.length === 0 ? (
             <div className="py-12 text-center text-[var(--text-secondary)]">
-              <p className="font-medium">No results found for "{query}"</p>
+              <p className="font-medium">No results found for &quot;{query}&quot;</p>
               <p className="text-sm">Try searching for finance, math, or health tools.</p>
             </div>
           ) : results.length > 0 ? (

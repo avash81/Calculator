@@ -94,7 +94,7 @@ export default function LinearSolver() {
 
           <div className="p-4 bg-[var(--bg-subtle)] border border-[var(--border)]">
             <div className="text-[10px] font-black uppercase text-[var(--text-muted)] mb-1">Method</div>
-            <code className="text-[11px] font-mono text-[var(--primary)]">Cramer's Rule: x = Δx/Δ, y = Δy/Δ</code>
+            <code className="text-[11px] font-mono text-[var(--primary)]">Cramer&apos;s Rule: x = Δx/Δ, y = Δy/Δ</code>
           </div>
         </div>
       }
@@ -130,7 +130,7 @@ export default function LinearSolver() {
       faqSection={
         <CalcFAQ faqs={[
           { question: 'What is a system of linear equations?', answer: 'A set of two or more equations sharing the same variables. The solution is the set of values that satisfy all equations simultaneously.' },
-          { question: "What is Cramer's Rule?", answer: "A method using matrix determinants to solve systems of linear equations. For ax + by = c: x = Δx/Δ where Δ is the coefficient determinant." },
+          { question: "What is Cramer&apos;s Rule?", answer: "A method using matrix determinants to solve systems of linear equations. For ax + by = c: x = Δx/Δ where Δ is the coefficient determinant." },
           { question: 'When is there no unique solution?', answer: 'When the system determinant is 0, the lines are either parallel (no solution) or identical (infinite solutions).' },
         ]} />
       }

@@ -36,46 +36,22 @@ export interface TaxResult {
 // DEPRECATED: use calculateNepalIncomeTax() from
 //   src/utils/math/country-rules/nepal.ts instead
 // Edit slabs in src/data/nepal-tax-slabs.json ONLY
+import { calculateNepalIncomeTax } from './country-rules/nepal';
+
 export function calculateNepalTax(annualIncome: number, status: 'single' | 'married', isSsf: boolean): TaxResult {
-  const baseSlab = status === 'single' ? 500000 : 600000;
-  const slabs = [
-    { limit: baseSlab, rate: isSsf ? 0 : 1 }, // 1% SST waived for SSF
-    { limit: 200000, rate: 10 },
-    { limit: 300000, rate: 20 },
-    { limit: 1000000, rate: 30 },
-    { limit: 3000000, rate: 36 },
-    { limit: Infinity, rate: 39 },
-  ];
-
-  let remaining = annualIncome;
-  let totalTax = 0;
-  const breakdown = [];
-
-  for (let i = 0; i < slabs.length; i++) {
-    const slab = slabs[i];
-    const taxableInThisSlab = Math.min(remaining, slab.limit);
-    const tax = (taxableInThisSlab * slab.rate) / 100;
-    
-    if (taxableInThisSlab > 0) {
-      totalTax += tax;
-      breakdown.push({
-        label: i === 0 ? `Up to ${slab.limit}` : `Next ${slab.limit === Infinity ? 'Above' : slab.limit}`,
-        taxableAmount: taxableInThisSlab,
-        rate: slab.rate,
-        tax: Number(tax.toFixed(2)),
-      });
-    }
-    
-    remaining -= taxableInThisSlab;
-    if (remaining <= 0) break;
-  }
-
+  const result = calculateNepalIncomeTax(annualIncome, status === 'married', isSsf);
+  
   return {
-    totalTax: Number(totalTax.toFixed(2)),
-    effectiveRate: Number(((totalTax / annualIncome) * 100).toFixed(2)),
-    monthlyTax: Number((totalTax / 12).toFixed(2)),
-    takeHome: Number(((annualIncome - totalTax) / 12).toFixed(2)),
-    slabs: breakdown,
+    totalTax: result.totalTax,
+    effectiveRate: result.effectiveRate,
+    monthlyTax: result.monthlyTax,
+    takeHome: annualIncome - result.totalTax,
+    slabs: result.breakdown.map(b => ({
+      label: b.slabLabel,
+      taxableAmount: b.taxableInSlab,
+      rate: b.rate,
+      tax: b.taxAmount,
+    })),
   };
 }
 

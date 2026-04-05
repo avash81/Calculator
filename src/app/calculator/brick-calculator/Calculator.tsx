@@ -57,7 +57,7 @@ export default function BrickCalculator() {
 
           <div className="p-4 bg-amber-50 border border-amber-200">
             <p className="text-[12px] text-amber-800 leading-relaxed">
-              Nepal standard brick: <strong>9" × 4.5" × 3"</strong>. Includes <strong>5% wastage</strong> as per standard construction practice.
+              Nepal standard brick: <strong>9&quot; × 4.5&quot; × 3&quot;</strong>. Includes <strong>5% wastage</strong> as per standard construction practice.
             </p>
           </div>
         </div>

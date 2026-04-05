@@ -1,504 +1,619 @@
 'use client';
-import { useState, useRef, useEffect, MouseEvent, WheelEvent, useCallback } from 'react';
-import * as math from 'mathjs';
-import { Settings2, Activity, Divide, X, Delete, Check, History, Calculator } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import {
+  Settings2, Activity, History, Calculator as CalcIcon,
+  Grid3X3, ArrowRightLeft, Cpu, Sigma, Box
+} from 'lucide-react';
 
-/* -------------------------------------------------------------------------- */
-/* GRAPHING CANVAS PLOTTER                                                    */
-/* -------------------------------------------------------------------------- */
-
-interface GraphingCanvasProps {
-  expression: string;
+// ─── Safe evaluator ───────────────────────────
+function safeEval(expr: string): string {
+  try {
+    const clean = expr
+      .replace(/×/g, '*').replace(/÷/g, '/')
+      .replace(/π/g, String(Math.PI))
+      .replace(/sin\(/g, 'Math.sin(').replace(/cos\(/g, 'Math.cos(')
+      .replace(/tan\(/g, 'Math.tan(').replace(/sqrt\(/g, 'Math.sqrt(')
+      .replace(/\^2/g, '**2');
+    // eslint-disable-next-line no-new-func
+    const result = Function('"use strict"; return (' + clean + ')')();
+    if (typeof result === 'number' && isFinite(result)) {
+      return parseFloat(result.toPrecision(10)).toString();
+    }
+    return 'Error';
+  } catch { return ''; }
 }
 
-function GraphingCanvas({ expression }: GraphingCanvasProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [scale, setScale] = useState(40); // pixels per unit
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [hoverCoord, setHoverCoord] = useState<{x:string, y:string} | null>(null);
+// ─── Graph plotter ────────────────────────────
+function plotGraph(
+  canvas: HTMLCanvasElement,
+  expr: string,
+  result: string,
+  historyValues: number[]
+) {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  const cx = W / 2, cy = H / 2, scale = 40;
 
-  // Parse equations separated by commas
-  const functions = expression.split(',').map(f => f.trim()).filter(f => f.length > 0);
-  const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
+  // Grid
+  ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1; ctx.beginPath();
+  for (let x = 0; x < W; x += scale) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+  for (let y = 0; y < H; y += scale) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+  ctx.stroke();
 
-  const draw = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const width = canvas.width;
-    const height = canvas.height;
+  // Axes
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2; ctx.beginPath();
+  ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
 
-    // Reset transform & clear
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, width, height);
+  // Axis numbers
+  ctx.fillStyle = '#94a3b8'; ctx.font = '11px monospace';
+  for (let i = -6; i <= 6; i++) {
+    if (i === 0) continue;
+    ctx.fillText(String(i), cx + i * scale - 5, cy + 14);
+    ctx.fillText(String(-i), cx - 22, cy - i * scale + 4);
+  }
 
-    // Center coordinates
-    const cx = width / 2 + offset.x;
-    const cy = height / 2 + offset.y;
+  if (!expr) return;
 
-    // Draw Grid
-    ctx.strokeStyle = '#334155'; // Darker grid for CASIO screen feel
-    ctx.lineWidth = 1;
-    
-    const step = scale; // 1 unit
-    // Vertical grid lines
-    ctx.beginPath();
-    for (let x = cx % step; x < width; x += step) {
-      if (Math.abs(x - cx) > 1) { ctx.moveTo(x, 0); ctx.lineTo(x, height); }
-    }
-    // Horizontal grid lines
-    for (let y = cy % step; y < height; y += step) {
-      if (Math.abs(y - cy) > 1) { ctx.moveTo(0, y); ctx.lineTo(width, y); }
-    }
-    ctx.stroke();
-
-    // Draw Axes (Thick white/light)
-    ctx.strokeStyle = '#94a3b8';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(cx, 0); ctx.lineTo(cx, height); // Y-axis
-    ctx.moveTo(0, cy); ctx.lineTo(width, cy); // X-axis
-    ctx.stroke();
-
-    // Helper to evaluate compiled math expressions
-    const drawFunc = (eq: string, color: string) => {
+  if (expr.includes('x')) {
+    // ── Plot y = f(x) curve ──
+    const clean = expr.replace(/×/g, '*').replace(/÷/g, '/')
+      .replace(/π/g, String(Math.PI))
+      .replace(/sin\(/g, 'Math.sin(').replace(/cos\(/g, 'Math.cos(')
+      .replace(/tan\(/g, 'Math.tan(').replace(/sqrt\(/g, 'Math.sqrt(')
+      .replace(/\^2/g, '**2');
+    ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 3; ctx.beginPath();
+    let first = true;
+    for (let px = 0; px < W; px++) {
+      const x = (px - cx) / scale;
       try {
-        const compiled = math.compile(eq);
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        let isFirst = true;
-        
-        for (let px = 0; px <= width; px++) {
-          const mathX = (px - cx) / scale;
-          try {
-            const mathY = compiled.evaluate({ x: mathX });
-            if (typeof mathY === 'number' && Number.isFinite(mathY)) {
-              // Ignore massive vertical lines (asymptotes)
-              const py = cy - mathY * scale;
-              if (py < -height*5 || py > height*5) {
-                isFirst = true; 
-              } else {
-                if (isFirst) { ctx.moveTo(px, py); isFirst = false; }
-                else { ctx.lineTo(px, py); }
-              }
-            } else { isFirst = true; }
-          } catch (e) {
-             isFirst = true;
-          }
-        }
-        ctx.stroke();
-      } catch (err) {
-        // Compile fail, just skip drawing this frame
-      }
-    };
-
-    functions.forEach((f, i) => drawFunc(f, colors[i % colors.length]));
-  }, [offset, scale, functions]);
-
-  useEffect(() => {
-    let animationFrameId: number;
-    const render = () => { draw(); animationFrameId = requestAnimationFrame(render); };
-    render();
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [draw]);
-
-  const onWheel = (e: WheelEvent) => {
-    e.preventDefault();
-    const zoomSensitivity = 0.002;
-    const zoomFactor = Math.exp(-e.deltaY * zoomSensitivity);
-    setScale(old => Math.max(10, Math.min(200, old * zoomFactor)));
-  };
-
-  const onMouseDown = (e: MouseEvent) => { setIsDragging(true); setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y }); };
-  const onMouseMove = (e: MouseEvent) => {
-    if (isDragging) {
-      setOffset({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
-    } else {
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (rect) {
-        const px = e.clientX - rect.left; const py = e.clientY - rect.top;
-        const cx = rect.width / 2 + offset.x; const cy = rect.height / 2 + offset.y;
-        setHoverCoord({ x: ((px - cx) / scale).toFixed(2), y: (((cy - py) / scale)).toFixed(2) });
-      }
+        // eslint-disable-next-line no-new-func
+        const y = Function('"use strict"; const x=' + x + '; return (' + clean + ')')();
+        const cy2 = cy - y * scale;
+        if (!isFinite(cy2) || cy2 < -H || cy2 > H * 2) { first = true; continue; }
+        first ? ctx.moveTo(px, cy2) : ctx.lineTo(px, cy2); first = false;
+      } catch { first = true; }
     }
-  };
-  const onMouseUp = () => setIsDragging(false);
+    ctx.stroke();
+  } else {
+    // ── Connected line chart from history ──
+    const currentVal = parseFloat(result);
+    const allVals = [...historyValues, ...(isNaN(currentVal) ? [] : [currentVal])];
 
+    if (allVals.length === 0) return;
+
+    // Auto-scale: find min/max to fit chart
+    const minV = Math.min(...allVals);
+    const maxV = Math.max(...allVals);
+    const range = maxV - minV || 1;
+
+    const padding = 60;
+    const chartW = W - padding * 2;
+    const chartH = H - padding * 2;
+
+    // Compute pixel positions
+    const points = allVals.map((v, i) => ({
+      x: padding + (allVals.length === 1 ? chartW / 2 : (i / (allVals.length - 1)) * chartW),
+      y: padding + chartH - ((v - minV) / range) * chartH,
+      v,
+    }));
+
+    // Draw connecting pink/salmon line
+    ctx.strokeStyle = '#f87171';
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+    ctx.stroke();
+
+    // Draw navy dots + value labels
+    points.forEach((p, i) => {
+      // Dot
+      ctx.fillStyle = '#1e3a8a';
+      ctx.shadowBlur = 8; ctx.shadowColor = 'rgba(30,58,138,0.3)';
+      ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Value label above dot
+      ctx.fillStyle = '#1e3a8a';
+      ctx.font = 'bold 11px monospace';
+      const label = Number.isInteger(p.v) ? String(p.v) : p.v.toFixed(2);
+      const lx = Math.max(8, Math.min(W - 40, p.x - ctx.measureText(label).width / 2));
+      ctx.fillText(label, lx, p.y - 12);
+
+      // Step label below dot (1, 2, 3…)
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '10px monospace';
+      ctx.fillText('#' + (i + 1), p.x - 6, p.y + 20);
+    });
+
+    // Y-axis min/max labels
+    ctx.fillStyle = '#94a3b8'; ctx.font = '10px monospace';
+    ctx.fillText(maxV.toFixed(1), 4, padding);
+    ctx.fillText(minV.toFixed(1), 4, padding + chartH + 4);
+  }
+}
+
+// ─── Mode content panels (Engineering / PhD level) ────────────────────────
+type ModeEntry = [string, string]; // [value, label]
+
+function ModeSection({ title, items, color, onInsert }: {
+  title: string; items: ModeEntry[]; color: string; onInsert: (v: string) => void;
+}) {
   return (
-    <div className="relative w-full h-full bg-[#0f172a] overflow-hidden rounded-md group">
-      <canvas ref={canvasRef} width={600} height={400} className="w-full h-full cursor-crosshair touch-none"
-        onWheel={onWheel} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp} />
-      
-      {/* HUD overlays */}
-      {hoverCoord && (
-        <div className="absolute top-2 right-2 bg-black/60 text-white font-mono text-[10px] px-2 py-1 rounded shadow-lg backdrop-blur-sm transition-opacity opacity-0 group-hover:opacity-100">
-          X: {hoverCoord.x} | Y: {hoverCoord.y}
-        </div>
-      )}
-      <div className="absolute bottom-2 left-2 flex gap-2">
-        <button onClick={() => { setScale(40); setOffset({x:0, y:0}); }} className="bg-black/60 hover:bg-black text-[9px] text-white px-2 py-1 uppercase rounded tracking-widest transition-all">Reset View</button>
+    <div>
+      <p className={`text-[9px] font-black uppercase tracking-widest mb-1.5 ${color}`}>{title}</p>
+      <div className="grid grid-cols-2 gap-1.5 mb-3">
+        {items.map(([v, label]) => (
+          <button key={v} onClick={() => onInsert(v)}
+            className="px-2 py-1.5 rounded-lg text-[10px] font-bold text-left transition-all hover:brightness-95 active:scale-95 bg-white border border-slate-200 hover:border-slate-300 hover:shadow-sm text-slate-700 leading-tight">
+            {label}
+          </button>
+        ))}
       </div>
-      
-      {/* Legend */}
-      {functions.length > 0 && (
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
-          {functions.map((f, i) => (
-             <span key={i} className="px-2 py-0.5 text-[10px] font-black rounded-sm shadow-sm opacity-90" style={{ backgroundColor: colors[i % colors.length], color: '#fff' }}>
-                y = {f}
-             </span>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* UNIFIED ALL-IN-ONE CALCULATOR (CASIO STYLE)                                */
-/* -------------------------------------------------------------------------- */
+function ModePanel({ mode, onInsert }: { mode: string; onInsert: (v: string) => void }) {
+  const scrollCls = "p-4 max-h-[380px] overflow-y-auto space-y-1 scrollbar-thin scrollbar-thumb-slate-200";
 
-export function AllInOneCalculator() {
+  if (mode === 'CONST') return (
+    <div className={scrollCls}>
+      <ModeSection title="⚛ Fundamental" color="text-slate-600" onInsert={onInsert} items={[
+        ['3.14159265358979', 'π (Pi)'],
+        ['2.71828182845904', 'e (Euler)'],
+        ['1.61803398874989', 'φ (Golden Ratio)'],
+        ['1.41421356237310', '√2 (Pythagoras)'],
+        ['0.5772156649015', 'γ (Euler-Masch.)'],
+        ['6.28318530717959', '2π (Tau)'],
+      ]} />
+      <ModeSection title="🔬 Physics (SI)" color="text-blue-600" onInsert={onInsert} items={[
+        ['299792458', 'c — Speed of Light'],
+        ['6.67430e-11', 'G — Gravity const.'],
+        ['9.80665', 'g — Std. Gravity m/s²'],
+        ['6.62607015e-34', 'h — Planck const.'],
+        ['1.054571817e-34', 'ℏ — Reduced Planck'],
+        ['1.380649e-23', 'kB — Boltzmann'],
+        ['6.02214076e23', 'NA — Avogadro'],
+        ['8.314462618', 'R — Gas constant'],
+        ['5.670374419e-8', 'σ — Stefan-Boltzmann'],
+        ['1.380649e-23', 'k — Boltzmann'],
+      ]} />
+      <ModeSection title="⚡ Electromagnetic" color="text-yellow-600" onInsert={onInsert} items={[
+        ['1.602176634e-19', 'e — Electron charge'],
+        ['9.1093837015e-31', 'me — Electron mass'],
+        ['1.67262192369e-27', 'mp — Proton mass'],
+        ['8.8541878128e-12', 'ε₀ — Permittivity'],
+        ['1.25663706212e-6', 'μ₀ — Permeability'],
+        ['6.957e8', 'R☉ — Sun radius'],
+      ]} />
+      <ModeSection title="🔭 Quantum / Atomic" color="text-purple-600" onInsert={onInsert} items={[
+        ['0.0000000529177', 'a₀ — Bohr radius'],
+        ['137.035999084', 'α — Fine structure'],
+        ['2.8179403227e-15', 're — Electron radius'],
+        ['1836.15267343', 'mp/me mass ratio'],
+        ['13.605693122994', 'Ry — Rydberg eV'],
+        ['2.179872361e-18', 'Ry — Rydberg J'],
+      ]} />
+      <ModeSection title="🌐 Astronomy" color="text-indigo-600" onInsert={onInsert} items={[
+        ['1.496e11', 'AU — Astro Unit (m)'],
+        ['9.461e15', 'ly — Light Year (m)'],
+        ['3.086e16', 'pc — Parsec (m)'],
+        ['5.972e24', 'M⊕ — Earth mass'],
+        ['1.989e30', 'M☉ — Sun mass'],
+        ['6.371e6', 'R⊕ — Earth radius'],
+      ]} />
+    </div>
+  );
+
+  if (mode === 'BASE') return (
+    <div className={scrollCls}>
+      <ModeSection title="🔢 Binary" color="text-green-600" onInsert={onInsert} items={[
+        ['0b1010', 'BIN: 1010 = 10'],
+        ['0b11111111', 'BIN: 11111111 = 255'],
+        ['0b1000000000', 'BIN: 2^9 = 512'],
+        ['0b10000000', 'BIN: 128'],
+      ]} />
+      <ModeSection title="🔣 Hexadecimal" color="text-green-600" onInsert={onInsert} items={[
+        ['0xFF', 'HEX: FF = 255'],
+        ['0x1A4', 'HEX: 1A4 = 420'],
+        ['0xDEAD', 'HEX: DEAD = 57005'],
+        ['0x100', 'HEX: 100 = 256'],
+      ]} />
+      <ModeSection title="🔠 Octal" color="text-green-600" onInsert={onInsert} items={[
+        ['0o17', 'OCT: 17 = 15'],
+        ['0o377', 'OCT: 377 = 255'],
+        ['0o777', 'OCT: 777 = 511'],
+        ['0o10', 'OCT: 10 = 8'],
+      ]} />
+      <ModeSection title="🔁 Bitwise Ops" color="text-green-600" onInsert={onInsert} items={[
+        ['12 & 10', 'AND: 12 & 10 = 8'],
+        ['12 | 10', 'OR: 12 | 10 = 14'],
+        ['12 ^ 10', 'XOR: 12 ^ 10 = 6'],
+        ['~0', 'NOT: ~0 = -1'],
+        ['1 << 4', 'SHIFT LEFT: 16'],
+        ['256 >> 2', 'SHIFT RIGHT: 64'],
+      ]} />
+    </div>
+  );
+
+  if (mode === 'MATRIX') return (
+    <div className={scrollCls}>
+      <ModeSection title="📐 2×2 Operations" color="text-orange-600" onInsert={onInsert} items={[
+        ['1*4 - 2*3', 'Det 2×2 [1,2|3,4]'],
+        ['(1+4)', 'Trace [1,2|3,4]'],
+        ['sqrt(1^2+2^2+3^2+4^2)', 'Frobenius Norm'],
+        ['(1*4-2*3)/(1*4-2*3)', 'Identity Check'],
+      ]} />
+      <ModeSection title="📊 Eigenvalue (2×2)" color="text-orange-600" onInsert={onInsert} items={[
+        ['((1+4)+sqrt((1+4)^2-4*(1*4-2*3)))/2', 'λ₁ max'],
+        ['((1+4)-sqrt((1+4)^2-4*(1*4-2*3)))/2', 'λ₂ min'],
+        ['1+4', 'Tr(A) = λ₁+λ₂'],
+        ['1*4-2*3', 'Det(A) = λ₁×λ₂'],
+      ]} />
+      <ModeSection title="📏 Vector / Norm" color="text-orange-600" onInsert={onInsert} items={[
+        ['sqrt(3^2+4^2)', 'L2 Norm (3,4)'],
+        ['sqrt(1^2+1^2+1^2)', 'Unit Diagonal'],
+        ['abs(3)+abs(-4)', 'L1 Norm (3,−4)'],
+        ['max(3,4)', 'L∞ Norm'],
+      ]} />
+      <ModeSection title="🔄 Transforms" color="text-orange-600" onInsert={onInsert} items={[
+        ['(1/(1-0.99^2))', 'Lorentz γ (v=0.99c)'],
+        ['sqrt(2)*3.14159/4', '45° rotation scale'],
+        ['cos(3.14159/4)', 'cos(45°)'],
+        ['sin(3.14159/6)', 'sin(30°)'],
+      ]} />
+    </div>
+  );
+
+  if (mode === 'VECTOR') return (
+    <div className={scrollCls}>
+      <ModeSection title="📍 Magnitude & Norm" color="text-purple-600" onInsert={onInsert} items={[
+        ['sqrt(3^2+4^2)', '|v| 2D (3,4)=5'],
+        ['sqrt(1^2+2^2+2^2)', '|v| 3D (1,2,2)=3'],
+        ['sqrt(2^2+3^2+6^2)', '|v| 3D (2,3,6)=7'],
+        ['sqrt(4^2+3^2+0^2)', '|v| 3D (4,3,0)=5'],
+      ]} />
+      <ModeSection title="🔁 Dot Product" color="text-purple-600" onInsert={onInsert} items={[
+        ['1*4+2*5+3*6', 'v·w (1,2,3)·(4,5,6)'],
+        ['2*1+3*0', 'v·w (2,3)·(1,0)'],
+        ['1*0+0*1', 'v·w perpendicular'],
+        ['3*3+4*4', 'v·v = |v|²'],
+      ]} />
+      <ModeSection title="📐 Angle Between" color="text-purple-600" onInsert={onInsert} items={[
+        ['(1*4+2*5+3*6)/(sqrt(1^2+2^2+3^2)*sqrt(4^2+5^2+6^2))', 'cos θ (1,2,3)·(4,5,6)'],
+        ['(3*5+4*0)/(5*5)', 'cos θ (3,4),(5,0)'],
+        ['1/(sqrt(2)*sqrt(2))', 'cos 60°'],
+        ['0', 'cos 90° (perpendicular)'],
+      ]} />
+      <ModeSection title="✖ Cross Product |·|" color="text-purple-600" onInsert={onInsert} items={[
+        ['sqrt((2*6-3*5)^2+(3*4-1*6)^2+(1*5-2*4)^2)', '|a×b| (1,2,3)×(4,5,6)'],
+        ['sqrt(1^2+(-2)^2+1^2)', '|a×b| (1,0,1)×(0,1,1)'],
+        ['2*6-3*5', 'i component'],
+        ['3*4-1*6', 'j component'],
+      ]} />
+      <ModeSection title="🎯 Projection" color="text-purple-600" onInsert={onInsert} items={[
+        ['(1*4+2*5+3*6)/(4^2+5^2+6^2)', 'scalar proj'],
+        ['(3*5+4*0)/25', 'proj₍₅,₀₎(3,4)'],
+        ['(1*2+1*2)/(2^2+2^2)', 'proj (1,1) on (2,2)'],
+        ['(1*0+0*1)/(1)', 'proj orthogonal=0'],
+      ]} />
+    </div>
+  );
+
+  if (mode === 'EQ') return (
+    <div className={scrollCls}>
+      <ModeSection title="📐 Quadratic ax²+bx+c=0" color="text-red-600" onInsert={onInsert} items={[
+        ['(-2+sqrt(4-4*1*(-8)))/(2*1)', 'x [a=1,b=-2,c=-8]'],
+        ['(-3+sqrt(9-4*1*2))/(2*1)', 'x₁ [a=1,b=3,c=2]'],
+        ['(-3-sqrt(9-4*1*2))/(2*1)', 'x₂ [a=1,b=3,c=2]'],
+        ['sqrt(9-4*1*2)', 'Discriminant'],
+      ]} />
+      <ModeSection title="📊 Polynomial" color="text-red-600" onInsert={onInsert} items={[
+        ['2^3-3*2^2+4', 'p(2) for x³-3x²+4'],
+        ['3^3-2*3^2-5*3+6', 'p(3) for x³-2x²-5x+6'],
+        ['(-1)^4+(-1)^3-(-1)^2+1', 'p(-1) for x⁴+x³-x²+1'],
+        ['1/3*x^3', '∫x² dx (symbolic)'],
+      ]} />
+      <ModeSection title="🔢 Number Theory" color="text-red-600" onInsert={onInsert} items={[
+        ['12*8-11*7', 'Bezout (12,8): gcd=4'],
+        ['2^7-1', 'Mersenne M7=127'],
+        ['2^13-1', 'Mersenne M13=8191'],
+        ['720', '6! (Factorial 6)'],
+        ['3628800', '10! (Factorial 10)'],
+        ['40320', '8! (Factorial 8)'],
+      ]} />
+      <ModeSection title="🧮 Series & Limits" color="text-red-600" onInsert={onInsert} items={[
+        ['1+1/2+1/4+1/8+1/16', 'Geometric S5 (r=½)'],
+        ['1-1/3+1/5-1/7+1/9', 'Leibniz π/4 approx'],
+        ['1+1+1/2+1/6+1/24+1/120', 'e = Σ1/n! approx'],
+        ['(1+1/1000)^1000', 'e approx (1+1/n)^n'],
+      ]} />
+    </div>
+  );
+
+  if (mode === 'UNITS') return (
+    <div className={scrollCls}>
+      <ModeSection title="📏 Length" color="text-teal-600" onInsert={onInsert} items={[
+        ['1*1.60934', '1 mile → km'],
+        ['1/0.3048', '1 m → feet'],
+        ['1*2.54', '1 in → cm'],
+        ['1*1609.34', '1 mi → m'],
+        ['1*0.000621371', '1 m → miles'],
+        ['1*3.28084', '1 m → feet'],
+      ]} />
+      <ModeSection title="⚖ Mass & Weight" color="text-teal-600" onInsert={onInsert} items={[
+        ['1/2.20462', '1 lb → kg'],
+        ['1*2.20462', '1 kg → lb'],
+        ['1*1000', '1 metric ton → kg'],
+        ['1*0.0353', '1 g → oz'],
+        ['1*28.3495', '1 oz → g'],
+        ['1*14.5939', '1 slug → kg'],
+      ]} />
+      <ModeSection title="🌡 Temperature" color="text-teal-600" onInsert={onInsert} items={[
+        ['37*9/5+32', '37°C → °F'],
+        ['(98.6-32)*5/9', '98.6°F → °C'],
+        ['273.15+25', '25°C → K'],
+        ['5778', 'Sun surface K'],
+        ['(-40)*9/5+32', '-40°C = -40°F'],
+        ['0*9/5+32', '0°C → 32°F'],
+      ]} />
+      <ModeSection title="⚡ Energy / Power" color="text-teal-600" onInsert={onInsert} items={[
+        ['1*3600000', '1 kWh → J'],
+        ['1/4.184', '1 J → cal'],
+        ['1*4.184', '1 cal → J'],
+        ['1*1055.06', '1 BTU → J'],
+        ['1*745.7', '1 HP → W'],
+        ['1*1e6', '1 MW → W'],
+      ]} />
+      <ModeSection title="🌍 Area & Volume" color="text-teal-600" onInsert={onInsert} items={[
+        ['1*10000', '1 ha → m²'],
+        ['1*2.471', '1 ha → acres'],
+        ['1*0.000001', '1 cm³ → L? (1mL)'],
+        ['1*3.78541', '1 gal (US) → L'],
+        ['1*0.0929', '1 ft² → m²'],
+        ['1*1609.34^2', '1 mi² → m²'],
+      ]} />
+    </div>
+  );
+
+  if (mode === 'STATS') return (
+    <div className={scrollCls}>
+      <ModeSection title="📊 Descriptive Stats" color="text-pink-600" onInsert={onInsert} items={[
+        ['(10+20+30+40+50)/5', 'Mean (10,20,30,40,50)'],
+        ['sqrt(((10-30)^2+(20-30)^2+(30-30)^2+(40-30)^2+(50-30)^2)/5)', 'Pop. Std Dev'],
+        ['sqrt(((10-30)^2+(20-30)^2+(30-30)^2+(40-30)^2+(50-30)^2)/4)', 'Sample Std Dev'],
+        ['((10-30)^2+(20-30)^2+(30-30)^2+(40-30)^2+(50-30)^2)/5', 'Variance'],
+        ['50-10', 'Range (10..50)'],
+        ['(10+50)/2', 'Midrange'],
+      ]} />
+      <ModeSection title="📈 Probability" color="text-pink-600" onInsert={onInsert} items={[
+        ['(1/(sqrt(2*3.14159)))*2.71828^(-0.5)', 'Normal PDF (x=1)'],
+        ['1-2.71828^(-1)', 'P(X≤1) Exp(λ=1)'],
+        ['1-(1-0.01)^100', 'P(≥1 event) 100 trials'],
+        ['2.71828^(-3)*3^4/24', 'Poisson P(X=4,λ=3)'],
+        ['0.5*(1+0.6827)', 'P within 1σ'],
+        ['10/(10+5)', 'Bayes posterior'],
+      ]} />
+      <ModeSection title="🧪 Hypothesis Testing" color="text-pink-600" onInsert={onInsert} items={[
+        ['(50-45)/(10/sqrt(25))', 'z-score test stat'],
+        ['(102-100)/(15/sqrt(30))', 't df=29 test'],
+        ['1.96*15/sqrt(100)', '95% CI margin'],
+        ['2.576*15/sqrt(100)', '99% CI margin'],
+        ['1-0.05/2', 'α/2 two-tailed 5%'],
+        ['((30-25)^2/25)', 'χ² one cell'],
+      ]} />
+      <ModeSection title="📉 Regression" color="text-pink-600" onInsert={onInsert} items={[
+        ['(5*190-10*80)/(5*22-10^2/5)', 'Slope (least sq.)'],
+        ['(80-1.4*10)/5', 'Intercept'],
+        ['0.95^2', 'R² = 0.9025'],
+        ['1-((1-0.95^2)*(5-1))/(5-2)', 'Adj. R²'],
+        ['sqrt(1-0.95^2)', 'Standard error r'],
+        ['0.95*sqrt(5-2)/sqrt(1-0.95^2)', 't-stat for r'],
+      ]} />
+    </div>
+  );
+
+  // CALC — no extra panel, keypad handles it
+  return null;
+}
+
+// ─── Main Component ───────────────────────────
+
+export default function AllInOneCalculator() {
+  const [mode, setMode] = useState('CALC');
   const [expression, setExpression] = useState('');
-  const [result, setResult] = useState<string|null>(null);
-  const [history, setHistory] = useState<{expr:string, res:string}[]>([]);
-  
-  const [mode, setMode] = useState<'calc'|'graph'|'base'|'eq'|'matrix'|'unit'|'menu'>('calc');
-  const [angleMode, setAngleMode] = useState<'deg'|'rad'>('rad');
+  const [display, setDisplay] = useState('0');
+  const [history, setHistory] = useState<{ exp: string; res: string }[]>([]);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const [isShift, setIsShift] = useState(false);
-  const [isAlpha, setIsAlpha] = useState(false);
-
-  const screenRef = useRef<HTMLDivElement>(null);
-
-  // Scroll to bottom of history when new items added
   useEffect(() => {
-    if (screenRef.current && mode === 'calc') {
-      screenRef.current.scrollTop = screenRef.current.scrollHeight;
-    }
-  }, [history, expression, mode]);
+    if (!expression) { setDisplay('0'); return; }
+    const res = safeEval(expression);
+    if (res !== '') setDisplay(res);
+  }, [expression]);
 
-  // Handle keyboard typing seamlessly
   useEffect(() => {
-    const handleKeyDown = (e: globalThis.KeyboardEvent) => {
-      // Don't intercept if user is typing in a real input field elsewhere
-      if (document.activeElement?.tagName === 'INPUT') return;
-      
-      const key = e.key;
-      if (key === 'Enter') { e.preventDefault(); solve(); }
-      else if (key === 'Backspace') { e.preventDefault(); backspace(); }
-      else if (key === 'Escape') { e.preventDefault(); clear(); }
-      else if (/^[a-zA-Z0-9+\-*/().^,%! ]$/.test(key)) {
-        // e.preventDefault(); -> removed so native inputs still work ok if needed
-        append(key);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [expression, mode]);
+    const historyNums = history.map(h => parseFloat(h.res)).filter(v => isFinite(v));
+    if (canvasRef.current) plotGraph(canvasRef.current, expression, display, historyNums);
+  }, [expression, display, history]);
 
-  const replaceDegTrig = (expr: string) => {
-    // If degree mode, we modify trig arguments to include ' deg'. Safe hack for mathjs.
-    // e.g., sin(45) -> sin(45 deg). This requires strict AST traversal for safety, 
-    // or we can evaluate in rad always but we're relying on mathjs.
-    // For now, if "deg" mode is active, we just rely on mathjs unit suffix injection or scope.
-    // Real mathjs deg support: wrap string with a scope overriding trig, but for string evaluation:
-    return expr; // Note: For a true CASIO exact copy, we would do a deep AST override. Mathjs expects `sin(45 deg)`.
-  };
-
-  const solve = () => {
-    if (!expression.trim() || mode === 'graph' || mode === 'menu') return;
-    try {
-      let toEval = expression;
-      
-      // Handle Angle Mode (Deg vs Rad)
-      // We use a custom scope to override trig functions if in Degree mode
-      const scope = angleMode === 'deg' ? {
-        sin: (x: any) => math.sin(math.unit(x, 'deg')),
-        cos: (x: any) => math.cos(math.unit(x, 'deg')),
-        tan: (x: any) => math.tan(math.unit(x, 'deg')),
-        asin: (x: any) => math.unit(math.asin(x), 'rad').toNumber('deg'),
-        acos: (x: any) => math.unit(math.acos(x), 'rad').toNumber('deg'),
-        atan: (x: any) => math.unit(math.atan(x), 'rad').toNumber('deg'),
-      } : {};
-
-      const res = math.evaluate(toEval, scope);
-      
-      const resStr = math.format(res, { precision: 14 });
-      setResult(resStr);
-      setHistory(prev => [...prev.slice(-10), { expr: expression, res: resStr }]);
-      setIsShift(false); setIsAlpha(false);
-    } catch (err) {
-      setResult('Syntax Error');
+  const press = (k: string) => {
+    if (k === 'DEL') { setExpression(p => p.slice(0, -1)); return; }
+    if (k === 'AC') {
+      if (expression && display !== '0') setHistory(p => [{ exp: expression, res: display }, ...p].slice(0, 8));
+      setExpression(''); setDisplay('0'); return;
     }
+    if (k === '=') {
+      const res = safeEval(expression);
+      if (res && res !== 'Error') { setHistory(p => [{ exp: expression, res }, ...p].slice(0, 8)); setExpression(res); }
+      return;
+    }
+    setExpression(p => p + k);
   };
 
-  const append = (val: string) => {
-    setExpression(prev => prev + val);
-    setResult(null);
-  };
+  const insertText = (v: string) => { setExpression(v); };
 
-  const clear = () => { setExpression(''); setResult(null); };
-  const backspace = () => { setExpression(prev => prev.slice(0, -1)); setResult(null); };
+  const modes = [
+    { id: 'CALC', label: 'CALCULATE', icon: CalcIcon, color: '#2563eb' },
+    { id: 'BASE', label: 'BASE-N', icon: Cpu, color: '#16a34a' },
+    { id: 'MATRIX', label: 'MATRIX', icon: Grid3X3, color: '#ea580c' },
+    { id: 'VECTOR', label: 'VECTOR', icon: Box, color: '#9333ea' },
+    { id: 'EQ', label: 'EQUATION', icon: Sigma, color: '#dc2626' },
+    { id: 'UNITS', label: 'UNITS', icon: ArrowRightLeft, color: '#0d9488' },
+    { id: 'CONST', label: 'CONSTANTS', icon: Settings2, color: '#64748b' },
+    { id: 'STATS', label: 'STATISTICS', icon: Activity, color: '#db2777' },
+  ];
 
-  // Theme Constants (Casio styling)
-  const bgHousing = "bg-[#1f2937] shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-2 border-gray-900";
-  const bgScreenContext = "bg-[#d1d5db] border-4 border-[#0f172a] shadow-inner relative flex flex-col";
-  
-  // Keypads
-  const btnSci = "h-8 bg-[#334155] border-b-2 border-[#1e293b] rounded active:border-b-0 active:translate-y-[2px] transition-all text-[#e2e8f0] text-[10px] font-bold shadow-sm flex items-center justify-center cursor-pointer";
-  const btnNum = "h-12 bg-[#e2e8f0] border-b-2 border-[#94a3b8] rounded active:border-b-0 active:translate-y-[2px] transition-all text-gray-900 text-lg font-black shadow-sm flex items-center justify-center cursor-pointer hover:bg-white";
-  const btnOp = "h-12 bg-[#cbd5e1] border-b-2 border-[#94a3b8] rounded active:border-b-0 active:translate-y-[2px] transition-all text-gray-900 text-lg font-black shadow-sm flex items-center justify-center cursor-pointer";
-  const btnDel = "h-12 bg-[#ef4444] border-b-2 border-[#b91c1c] rounded active:border-b-0 active:translate-y-[2px] transition-all text-white text-sm font-black shadow-sm flex items-center justify-center cursor-pointer hover:bg-red-400";
-  const btnEq = "h-12 bg-blue-600 border-b-2 border-blue-800 rounded active:border-b-0 active:translate-y-[2px] transition-all text-white text-lg font-black shadow-sm flex items-center justify-center cursor-pointer col-span-2 hover:bg-blue-500";
+  const fnKeys = ['sin(', 'cos(', 'tan(', '√', 'x²', 'π', 'x', 'DEL'];
+  const numKeys = ['7', '8', '9', '÷', '4', '5', '6', '×', '1', '2', '3', '-', '0', '.', '(', ')', '+', '='];
 
   return (
-    <div className={`w-full max-w-[360px] mx-auto rounded-3xl overflow-hidden flex flex-col ${bgHousing}`}>
-      
-      {/* ----------------- TOP BRANDING/STATUS ----------------- */}
-      <div className="w-full h-8 bg-[#0f172a] flex items-center justify-between px-4">
-        <span className="text-gray-400 font-black italic text-[11px] tracking-widest">CALCLY fx-991EX</span>
-        <div className="flex gap-2">
-          {isShift && <span className="bg-yellow-500 text-black text-[8px] font-black px-1 rounded-sm">S</span>}
-          {isAlpha && <span className="bg-red-500 text-white text-[8px] font-black px-1 rounded-sm">A</span>}
-        </div>
-      </div>
+    <div className="w-full flex justify-center">
+      <div className="w-full max-w-5xl flex flex-col lg:flex-row gap-6 items-start">
 
-      {/* ----------------- LCD SCREEN ----------------- */}
-      <div className="p-4 bg-[#1f2937]">
-        <div className={`w-full h-52 sm:h-64 rounded-lg overflow-hidden ${bgScreenContext}`}>
-          
-          {/* LCD TOP STATUS BAR */}
-          <div className="w-full h-5 bg-[#0f172a] px-2 flex justify-between items-center text-[8px] font-black text-gray-400 uppercase tracking-widest">
-             <div className="flex gap-3">
-               <button onClick={() => setMode('calc')} className={mode === 'calc' ? 'text-white' : ''}>[ COMP ]</button>
-               <button onClick={() => setMode('graph')} className={mode === 'graph' ? 'text-white' : ''}>[ GRAPH ]</button>
-             </div>
-             <div className="flex gap-3">
-               <button onClick={() => setAngleMode(angleMode==='deg'?'rad':'deg')} className="cursor-pointer hover:text-white">
-                 {angleMode}
-               </button>
-             </div>
+        {/* ── LEFT: Calculator ── */}
+        <div className="w-full lg:w-[420px] flex-shrink-0 flex flex-col gap-4">
+
+          {/* Device shell */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 pt-4 pb-2">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Calcly Ultimate</span>
+              <div className="flex gap-2 items-center text-[10px] font-mono text-slate-400">
+                <span>D</span><span>R</span><span className="font-black text-slate-600">FIX</span>
+              </div>
+            </div>
+
+            {/* LCD Display */}
+            <div className="mx-4 mb-3 bg-slate-100 rounded-2xl px-5 py-4 min-h-[80px] flex flex-col justify-end border border-slate-200">
+              <div className="text-[11px] text-slate-400 font-mono truncate mb-1 min-h-[16px]">
+                {expression || (mode !== 'CALC' ? `${mode} MODE — Select below` : 'Main Menu — Select Mode')}
+              </div>
+              <div className="text-4xl font-black text-slate-900 tracking-tight leading-none text-right">{display}</div>
+            </div>
+
+            {/* Mode grid — 4×2 */}
+            <div className="grid grid-cols-4 gap-2 px-4 pb-4">
+              {modes.map(m => (
+                <button
+                  key={m.id}
+                  onClick={() => setMode(m.id)}
+                  className={`flex flex-col items-center gap-1.5 py-3 rounded-2xl border transition-all active:scale-95 ${
+                    mode === m.id
+                      ? 'bg-white border-slate-300 shadow-md ring-2 ring-blue-100'
+                      : 'bg-slate-50 border-transparent hover:bg-white hover:border-slate-200 hover:shadow-sm'
+                  }`}
+                >
+                  <m.icon size={22} style={{ color: m.color }} strokeWidth={2} />
+                  <span className="text-[8px] font-bold uppercase text-slate-500 tracking-tight leading-none text-center">{m.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Mode-specific panel (shown when not in CALC mode) */}
+            {mode !== 'CALC' && (
+              <div className="border-t border-slate-100">
+                <ModePanel mode={mode} onInsert={insertText} />
+              </div>
+            )}
           </div>
 
-          {/* LCD CONTENT AREA */}
-          <div ref={screenRef} className="flex-1 w-full bg-[#cbd5e1] flex flex-col p-2 overflow-y-auto font-mono relative">
-            {mode === 'menu' ? (
-              // ---------------- MENU OVERLAY ----------------
-              <div className="grid grid-cols-2 gap-2 h-full">
-                {[
-                  { id: 'calc', l: '1:Scientific', i: '🧮' },
-                  { id: 'base', l: '2:Base-N', i: '💻' },
-                  { id: 'eq',   l: '3:Equation', i: '📐' },
-                  { id: 'graph',l: '4:Graphing', i: '📈' },
-                  { id: 'matrix',l: '5:Matrices', i: '▦' },
-                  { id: 'unit',  l: '6:Units',    i: '🔄' },
-                ].map(m => (
-                  <button key={m.id} onClick={() => { setMode(m.id as any); clear(); }}
-                    className="flex flex-col items-center justify-center bg-black/5 hover:bg-black/10 border border-black/10 rounded-md p-1 transition-all">
-                    <span className="text-xl">{m.i}</span>
-                    <span className="text-[8px] font-black uppercase text-black/60">{m.l}</span>
-                  </button>
-                ))}
+          {/* Scientific keypad */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-lg p-4 flex flex-col gap-2">
+            {/* Functions */}
+            <div className="grid grid-cols-4 gap-2">
+              {fnKeys.map(k => (
+                <button key={k}
+                  onClick={() => press(k === '√' ? 'sqrt(' : k === 'x²' ? '^2' : k === 'π' ? 'π' : k)}
+                  className={`h-11 rounded-xl text-[12px] font-bold transition-all active:scale-90 border ${
+                    k === 'DEL'
+                      ? 'bg-orange-50 text-orange-500 border-orange-200 hover:bg-orange-100'
+                      : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                  }`}>
+                  {k}
+                </button>
+              ))}
+            </div>
+            {/* Numbers + operators */}
+            <div className="grid grid-cols-4 gap-2">
+              {numKeys.map(k => (
+                <button key={k} onClick={() => press(k)}
+                  className={`h-12 rounded-xl text-[15px] font-bold transition-all active:scale-90 border ${
+                    k === '='
+                      ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
+                      : /[0-9.]/.test(k)
+                        ? 'bg-white text-slate-900 border-slate-200 hover:bg-slate-50 shadow-sm'
+                        : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                  }`}>
+                  {k}
+                </button>
+              ))}
+            </div>
+            {/* AC */}
+            <button onClick={() => press('AC')}
+              className="w-full h-11 rounded-2xl bg-slate-900 text-white font-bold text-sm hover:bg-black transition-all tracking-widest">
+              AC — Clear All
+            </button>
+          </div>
+
+          {/* History */}
+          {history.length > 0 && (
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-4">
+              <div className="flex items-center gap-2 mb-3 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+                <History size={13} /> History
               </div>
-            ) : mode === 'unit' ? (
-              // ---------------- UNIT CONVERTER ----------------
-              <div className="flex-1 flex flex-col justify-center space-y-2 p-1">
-                 <div className="text-[10px] font-bold text-black border-b border-black/10 pb-1">UNIT CONVERTER</div>
-                 <div className="text-[8px] text-gray-700 italic">Type e.g. "10 km to miles"</div>
-                 <div className="bg-white/50 p-2 rounded text-xs font-bold text-black min-h-[40px]">
-                   {expression || '---'}
-                 </div>
-                 {result && !result.includes('Error') && (
-                   <div className="flex justify-between items-center bg-blue-600/10 p-1 px-2 border-l-2 border-blue-600">
-                      <span className="text-[9px] font-black text-blue-800">RESULT</span>
-                      <span className="text-sm font-black text-black">{result}</span>
-                   </div>
-                 )}
-              </div>
-            ) : mode === 'graph' ? (
-              // ---------------- GRAPHING MODE ----------------
-              <div className="w-full h-full rounded border border-gray-400 shadow-inner overflow-hidden">
-                 <GraphingCanvas expression={expression || 'x'} />
-              </div>
-            ) : mode === 'base' ? (
-               // ---------------- BASE-N MODE ----------------
-               <div className="flex-1 flex flex-col justify-center space-y-1">
-                 <div className="text-[10px] font-bold text-black border-b border-black/10 pb-1">BASE CONVERTER</div>
-                 {(() => {
-                   try {
-                     const dec = BigInt(expression || '0');
-                     return [
-                       { l: 'DEC', v: dec.toString(10) },
-                       { l: 'HEX', v: dec.toString(16).toUpperCase() },
-                       { l: 'BIN', v: dec.toString(2).padStart(8, '0') },
-                       { l: 'OCT', v: dec.toString(8) }
-                     ].map(b => (
-                       <div key={b.l} className="flex justify-between items-center text-gray-800">
-                         <span className="text-[9px] font-black opacity-40">{b.l}</span>
-                         <span className="text-sm font-black truncate max-w-[150px]">{b.v}</span>
-                       </div>
-                     ));
-                   } catch { return <div className="text-xs text-red-700 italic">Invalid for Base-N</div>; }
-                 })()}
-               </div>
-            ) : mode === 'eq' ? (
-               // ---------------- EQUATION SOLVER ----------------
-               <div className="flex-1 flex flex-col justify-center space-y-2 p-1">
-                 <div className="text-[10px] font-bold text-black border-b border-black/10 pb-1 flex justify-between">
-                   <span>QUADRATIC SOLVER</span>
-                   <span className="opacity-40 italic">ax² + bx + c = 0</span>
-                 </div>
-                 <div className="text-[9px] text-gray-700">Enter coefficients separated by comma:</div>
-                 <div className="bg-white/50 p-2 rounded text-xs font-bold text-black">
-                   {expression || '---'}
-                 </div>
-                 {(() => {
-                   const parts = expression.split(',').map(p => parseFloat(p.trim()));
-                   if (parts.length === 3 && !parts.some(isNaN)) {
-                     const [a, b, c] = parts;
-                     const disc = b*b - 4*a*c;
-                     if (disc < 0) return <div className="text-[10px] text-gray-900 font-bold mt-1">No Real Roots</div>;
-                     const x1 = (-b + Math.sqrt(disc)) / (2*a);
-                     const x2 = (-b - Math.sqrt(disc)) / (2*a);
-                     return (
-                       <div className="mt-1 space-y-1">
-                         <div className="flex justify-between border-t border-black/5 pt-1">
-                           <span className="text-[9px] opacity-40">x₁</span>
-                           <span className="text-xs font-black">{x1.toFixed(4)}</span>
-                         </div>
-                         <div className="flex justify-between">
-                           <span className="text-[9px] opacity-40">x₂</span>
-                           <span className="text-xs font-black">{x2.toFixed(4)}</span>
-                         </div>
-                       </div>
-                     );
-                   }
-                   return <div className="text-[9px] text-gray-500 italic mt-1">Waiting for 3 values...</div>;
-                 })()}
-               </div>
-            ) : mode === 'matrix' ? (
-              // ---------------- MATRIX PREVIEW ----------------
-              <div className="flex-1 flex flex-col items-center justify-center">
-                 <div className="text-[10px] font-black opacity-30 uppercase">Matrix Input Template</div>
-                 <div className="grid grid-cols-3 gap-1 p-2 bg-black/5 border border-black/10 rounded mt-2">
-                    {[1,2,3,4,5,6,7,8,9].map(i => <div key={i} className="w-6 h-6 bg-white flex items-center justify-center text-[10px] font-bold">0</div>)}
-                 </div>
-                 <p className="text-[8px] mt-2 italic text-gray-500">Coming in v2: Full Matrix Suite</p>
-              </div>
-            ) : (
-              // ---------------- DEFAULT CALC MODE ----------------
-              <div className="flex-1 flex flex-col justify-end">
+              <div className="space-y-2 max-h-[140px] overflow-y-auto">
                 {history.map((h, i) => (
-                  <div key={i} className="mb-3 opacity-60 text-right">
-                    <div className="text-xs text-gray-700 tracking-tight">{h.expr}</div>
-                    <div className="text-sm font-bold text-gray-900">{h.res}</div>
+                  <div key={i} onClick={() => setExpression(h.res)}
+                    className="flex justify-between items-center px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 cursor-pointer transition-all">
+                    <span className="text-[11px] text-slate-400 font-mono truncate flex-1">{h.exp}</span>
+                    <span className="text-[13px] font-black text-slate-800 ml-2">{h.res}</span>
                   </div>
                 ))}
-                
-                <div className="text-right">
-                  <div className="text-sm sm:text-base text-gray-800 tracking-tight break-all">
-                    {expression || '0'}
-                  </div>
-                  {result && (
-                    <div className="text-xl sm:text-3xl font-black text-black mt-1">
-                      {result === 'Syntax Error' ? <span className="text-red-700 text-lg">Syntax Error</span> : result}
-                    </div>
-                  )}
-                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── RIGHT: Graph ── */}
+        <div className="flex-1 flex flex-col bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden min-h-[520px]">
+          {/* Graph header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" />
+              <span className="text-[12px] font-bold text-slate-600 uppercase tracking-widest">Visual Graph</span>
+            </div>
+            <span className="text-[10px] text-slate-300 font-mono uppercase">
+              {expression.includes('x') ? 'y = f(x) curve' : 'Number Line'}
+            </span>
+          </div>
+
+          {/* Hint */}
+          <div className="px-5 py-2.5 bg-slate-50 border-b border-slate-100">
+            <p className="text-[11px] text-slate-400">
+              Tip: use <code className="bg-white border border-slate-200 px-1 rounded text-slate-600 font-mono">x</code> in your expression to plot a curve — e.g. <code className="bg-white border border-slate-200 px-1 rounded text-slate-600 font-mono">sin(x)</code>
+            </p>
+          </div>
+
+          {/* Canvas */}
+          <div className="flex-1 relative">
+            <canvas ref={canvasRef} width={900} height={600} className="w-full h-full" />
+            {!expression && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <CalcIcon size={36} className="text-slate-200 mb-3" />
+                <p className="text-slate-300 text-sm text-center font-medium">
+                  Start typing to see results<br />
+                  <span className="text-xs">Enter <span className="font-mono">sin(x)</span> to plot a wave</span>
+                </p>
               </div>
             )}
           </div>
         </div>
+
       </div>
-
-      {/* ----------------- CASIO KEYPAD BASE ----------------- */}
-      <div className="flex-1 bg-[#1e293b] p-4 flex flex-col gap-3 rounded-b-3xl pb-6">
-        
-        {/* CONTEXTUAL HEX PAD (Shown in Base-N mode) */}
-        {mode === 'base' && (
-          <div className="grid grid-cols-6 gap-1.5 mb-1 px-1">
-             {['A','B','C','D','E','F'].map(h => (
-               <button key={h} onClick={() => append(h)} 
-                 className="h-6 bg-red-900/40 border-b border-red-900 rounded text-red-100 text-[10px] font-black hover:bg-red-800/60 active:translate-y-[1px]">
-                 {h}
-               </button>
-             ))}
-          </div>
-        )}
-        
-        {/* ROW 1: System Toggles */}
-        <div className="flex justify-between items-center px-1 mb-2">
-           <button onClick={() => setIsShift(!isShift)} className="w-10 h-6 bg-yellow-600 rounded-full text-white text-[8px] font-black uppercase tracking-wider shadow-sm hover:brightness-110 active:scale-95">SHIFT</button>
-           <button onClick={() => setIsAlpha(!isAlpha)} className="w-10 h-6 bg-red-700 rounded-full text-white text-[8px] font-black uppercase tracking-wider shadow-sm hover:brightness-110 active:scale-95">ALPHA</button>
-           <div className="w-16 h-8 rounded-full border border-gray-600 flex bg-[#0f172a] shadow-inner items-center justify-between p-1">
-             <button onClick={() => setMode('calc')} className={`flex-1 flex justify-center text-white ${mode==='calc'?'opacity-100':'opacity-30'}`}><Calculator className="w-4 h-4" /></button>
-             <button onClick={() => setMode('graph')} className={`flex-1 flex justify-center text-white ${mode==='graph'?'opacity-100':'opacity-30'}`}><Activity className="w-4 h-4" /></button>
-           </div>
-           <button onClick={() => append('derivative(')} className="w-10 h-6 bg-gray-600 rounded text-white text-[8px] font-black shadow-sm hover:brightness-110 active:scale-95">d/dx</button>
-           <button onClick={() => setMode('menu')} className="w-10 h-6 bg-gray-600 rounded text-white text-[8px] font-black shadow-sm hover:brightness-110 active:scale-95">MENU</button>
-        </div>
-
-        {/* ROW 2 & 3: Scientific Grid */}
-        <div className="grid grid-cols-6 gap-2">
-           <button className={btnSci} onClick={() => append('abs(')}>abs</button>
-           <button className={btnSci} onClick={() => append('x')}>x</button>
-           <button className={btnSci} onClick={() => append('x^-1')}>x⁻¹</button>
-           <button className={btnSci} onClick={() => append('log(')}>log</button>
-           <button className={btnSci} onClick={() => append('ln(')}>ln</button>
-           <button className={btnSci} onClick={() => append('e')}>e</button>
-
-           <button className={btnSci} onClick={() => append('^2')}>x²</button>
-           <button className={btnSci} onClick={() => append('^')}>xⁿ</button>
-           <button className={btnSci} onClick={() => append('sqrt(')}>√</button>
-           <button className={btnSci} onClick={() => append('sin(')}>sin</button>
-           <button className={btnSci} onClick={() => append('cos(')}>cos</button>
-           <button className={btnSci} onClick={() => append('tan(')}>tan</button>
-
-           <button className={btnSci} onClick={() => append('(')}>(</button>
-           <button className={btnSci} onClick={() => append(')')}>)</button>
-           <button className={btnSci} onClick={() => append(',')}>,</button>
-           <button className={btnSci} onClick={() => append('%')}>%</button>
-           <button className={btnSci} onClick={() => append('!')}>x!</button>
-           <button className={btnSci} onClick={() => append('pi')}>π</button>
-        </div>
-
-        <div className="w-full h-px bg-gray-700 my-1"></div>
-
-        {/* Numpad + Operations */}
-        <div className="grid grid-cols-5 gap-2">
-           {/* Row 1 */}
-           <button className={btnNum} onClick={() => append('7')}>7</button>
-           <button className={btnNum} onClick={() => append('8')}>8</button>
-           <button className={btnNum} onClick={() => append('9')}>9</button>
-           <button className={btnDel} onClick={backspace}>DEL</button>
-           <button className={btnDel} onClick={clear}>AC</button>
-           
-           {/* Row 2 */}
-           <button className={btnNum} onClick={() => append('4')}>4</button>
-           <button className={btnNum} onClick={() => append('5')}>5</button>
-           <button className={btnNum} onClick={() => append('6')}>6</button>
-           <button className={btnOp} onClick={() => append('*')}>×</button>
-           <button className={btnOp} onClick={() => append('/')}>÷</button>
-
-           {/* Row 3 */}
-           <button className={btnNum} onClick={() => append('1')}>1</button>
-           <button className={btnNum} onClick={() => append('2')}>2</button>
-           <button className={btnNum} onClick={() => append('3')}>3</button>
-           <button className={btnOp} onClick={() => append('+')}>+</button>
-           <button className={btnOp} onClick={() => append('-')}>−</button>
-
-           {/* Row 4 */}
-           <button className={btnNum} onClick={() => append('0')}>0</button>
-           <button className={btnNum} onClick={() => append('.')}>.</button>
-           <button className={btnNum} onClick={() => append('10^')}>10˟</button>
-           <button className={btnEq} onClick={solve}>=</button>
-        </div>
-      </div>
-
     </div>
   );
 }

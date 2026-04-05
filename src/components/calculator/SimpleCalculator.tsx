@@ -21,9 +21,14 @@ export function SimpleCalculator() {
   }, [display]);
 
   const handleOperator = useCallback((op: string) => {
-    setEquation(display + ' ' + op + ' ');
+    setEquation(prev => {
+      if (display === '0' && prev && prev.endsWith(' ')) {
+         return prev.slice(0, -2) + op + ' ';
+      }
+      return prev + display + ' ' + op + ' ';
+    });
     setDisplay('0');
-  }, [display]);
+  }, [display, equation]);
 
   const calculate = useCallback(() => {
     if (!equation) return;
